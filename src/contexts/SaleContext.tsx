@@ -9,6 +9,7 @@ const actionTypes = {
   LIST_SALES: "list_sales",
   ADD_SALE: "add_sale",
   SUCCESS: "success",
+  SUCCESS_PRINT: "success_print",
   SET_HIDE_TOAST: "set_hide_toast",
   NEW_SALE: "new_sale",
 };
@@ -75,6 +76,15 @@ export const SaleProvider: React.FC<SaleProviderProps> = ({ children }) => {
           showSuccessToast: true,
           showSuccessToastMsg: action.payload,
           inboundSale: true,
+        };
+      }
+      case actionTypes.SUCCESS_PRINT: {
+        return {
+          ...state,
+          loading: false,
+          error: null,
+          showSuccessToast: true,
+          showSuccessToastMsg: action.payload,
         };
       }
       case actionTypes.NEW_SALE: {
@@ -226,7 +236,7 @@ export const saleActions = {
         });
 
         dispatch({
-          type: actionTypes.SUCCESS,
+          type: actionTypes.SUCCESS_PRINT,
           payload: data.results,
         });
       } catch (error) {
