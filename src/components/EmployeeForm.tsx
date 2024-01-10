@@ -9,10 +9,12 @@ const EmployeeForm = ({
   onUpdateEmployee,
   onDeleteEmployee,
   isLoading,
+  stores,
 }: any) => {
   const initialValues = {
     id: "",
     name: "",
+    store: "",
     active: true,
   };
   const [isNewEmployee, setIsNewEmployee] = useState(true);
@@ -64,6 +66,26 @@ const EmployeeForm = ({
       </div>
 
       <div className="mb-4">
+        <label className="block text-white mb-2">Sucursal:</label>
+        <select
+          className="bg-gray-700 text-white p-2 rounded-md w-full"
+          onChange={(e) =>
+            setEmployeeValues({ ...employeeValues, store: e.target.value })
+          }
+          value={employeeValues.store}
+        >
+          <option value="" className="py-2" disabled hidden>
+            -
+          </option>
+          {stores.map((store: any) => (
+            <option value={store.name} key={store.name} className="py-2">
+              {store.name}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="mb-4">
         <label className="block text-white mb-2 cursor-pointer">
           <input
             type="checkbox"
@@ -81,11 +103,13 @@ const EmployeeForm = ({
         {isNewEmployee ? (
           <button
             className={`${
-              !Boolean(employeeValues.name)
+              !Boolean(employeeValues.name) || !Boolean(employeeValues.store)
                 ? "bg-[#333333]"
                 : "bg-[#007c2f] hover:opacity-80 transition-opacity"
             } text-white px-4 py-2 rounded-md flex items-center mx-auto`}
-            disabled={!Boolean(employeeValues.name)}
+            disabled={
+              !Boolean(employeeValues.name) || !Boolean(employeeValues.store)
+            }
             onClick={() => !isLoading && handleAction(onAddEmployee)}
           >
             <FaPlus className="mr-2" /> Agregar Empleado

@@ -37,6 +37,7 @@ import { SaleProvider } from "./contexts/SaleContext";
 import { UserProvider, useUser, userActions } from "./contexts/UserContext";
 import Spinner from "./components/Spinner";
 import Keyboard from "./components/Keyboard";
+import { StoreProvider, storeActions, useStore } from "./contexts/StoreContext";
 
 setupIonicReact();
 
@@ -63,14 +64,16 @@ const mappingTabs = {
   },
 };
 
-const SalePointContainer = ({ role }: any) => {
+const SalePointContainer = ({ role, store }: any) => {
   const [activeTab, setActiveTab] = useState<TabKey>("Ventas");
   const { dispatch: dispatchPrice } = usePrice();
   const { dispatch: dispatchEmployee } = useEmployee();
+  const { dispatch: dispatchStore } = useStore();
 
   useEffect(() => {
     dispatchPrice(priceActions.getAll()(dispatchPrice));
-    dispatchEmployee(employeeActions.getAll()(dispatchEmployee));
+    dispatchEmployee(employeeActions.getAll({ store })(dispatchEmployee));
+    dispatchStore(storeActions.getAll()(dispatchStore));
   }, []);
 
   const mappingTabsByRole = Object.values(mappingTabs).filter((tabs: any) =>
@@ -218,19 +221,21 @@ const AppContainer = () => {
     return <LoginContainer onLogin={onLogin} error={error} loading={loading} />;
   }
 
-  return <SalePointContainer role={user.role} />;
+  return <SalePointContainer role={user.role} store={user.store} />;
 };
 
 const App: React.FC = () => {
   return (
     <UserProvider>
-      <SaleProvider>
-        <PriceProvider>
-          <EmployeeProvider>
-            <AppContainer />
-          </EmployeeProvider>
-        </PriceProvider>
-      </SaleProvider>
+      <StoreProvider>
+        <SaleProvider>
+          <PriceProvider>
+            <EmployeeProvider>
+              <AppContainer />
+            </EmployeeProvider>
+          </PriceProvider>
+        </SaleProvider>
+      </StoreProvider>
     </UserProvider>
   );
 };

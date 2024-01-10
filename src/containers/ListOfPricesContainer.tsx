@@ -2,6 +2,7 @@ import { formatCurrency } from "../utils/formatUtils";
 import { FaSearch } from "react-icons/fa";
 import { Price } from "../types";
 import Spinner from "../components/Spinner";
+import { useEffect, useState } from "react";
 
 const ListOfPricesContainer = ({
   prices,
@@ -17,6 +18,24 @@ const ListOfPricesContainer = ({
   setDevolutionPricesSelected,
   isLoading,
 }: any) => {
+  const [isVertical, setIsVertical] = useState(
+    window.matchMedia("(orientation: portrait)").matches
+  );
+
+  useEffect(() => {
+    const handleOrientationChange = () => {
+      setIsVertical(window.matchMedia("(orientation: portrait)").matches);
+    };
+
+    // Agregar el event listener para el cambio de orientación
+    window.addEventListener("orientationchange", handleOrientationChange);
+
+    return () => {
+      // Remover el event listener al desmontar el componente
+      window.removeEventListener("orientationchange", handleOrientationChange);
+    };
+  }, []);
+
   const pricesItems = devolutionModeActive
     ? devolutionPricesSelected
     : pricesSelected;
@@ -58,7 +77,6 @@ const ListOfPricesContainer = ({
 
       const productsUpdated = pricesReversed.map((product: any) => {
         if (!itemIncremented && product.price === item.price) {
-          console.log("pasa...");
           itemIncremented = true;
           product.quantity = product.quantity + 1;
         }
@@ -113,6 +131,7 @@ const ListOfPricesContainer = ({
           onChange={handleSearchAmount}
         />
         <div className="absolute top-5 left-5">
+          {isVertical ? "Sí" : "No"}
           <FaSearch className="text-white" />
         </div>
         <div className="ml-4 inline-block">

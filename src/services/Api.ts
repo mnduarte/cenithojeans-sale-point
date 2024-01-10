@@ -6,6 +6,8 @@ const instance = axios.instance;
 const login = ({ username, password }: any) =>
   instance.post("/user/login", { username, password });
 
+const getStores = () => instance.get("/store/stores/");
+
 const getPrices = () => instance.get("/price/prices");
 const addPrice = ({ price, active }: any) =>
   instance.post("/price/add-price", { price, active });
@@ -15,13 +17,14 @@ const updatePrice = ({ id, price, active }: any) =>
 
 const removePrice = ({ id }: any) =>
   instance.delete(`/price/remove-price/${id}`);
+  
+const getEmployees = ({ store }: any) =>
+  instance.post("/employee/employees/", { store });
+const addEmployee = ({ name, store, active }: any) =>
+  instance.post("/employee/add-employee", { name, store, active });
 
-const getEmployees = () => instance.get("/employee/employees/");
-const addEmployee = ({ name, active }: any) =>
-  instance.post("/employee/add-employee", { name, active });
-
-const updateEmployee = ({ id, name, active }: any) =>
-  instance.put("/employee/update-employee", { id, name, active });
+const updateEmployee = ({ id, name, store, active }: any) =>
+  instance.put("/employee/update-employee", { id, name, store, active });
 
 const removeEmployee = ({ id }: any) =>
   instance.delete(`/employee/remove-employee/${id}`);
@@ -85,6 +88,8 @@ const printSale = ({
 
 const Api = {
   login,
+
+  getStores,
 
   getPrices,
   addPrice,

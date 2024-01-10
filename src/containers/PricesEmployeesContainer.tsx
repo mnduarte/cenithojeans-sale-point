@@ -7,6 +7,7 @@ import EmployeeForm from "../components/EmployeeForm";
 import { IoIosPricetags } from "react-icons/io";
 import { FaUsers } from "react-icons/fa";
 import { formatCurrency } from "../utils/formatUtils";
+import { useStore } from "../contexts/StoreContext";
 
 const PricesContainer = () => {
   const {
@@ -63,6 +64,9 @@ const EmployeesContainer = () => {
     state: { employees, loading },
     dispatch,
   } = useEmployee();
+  const {
+    state: { stores },
+  } = useStore();
   const [itemSelected, setItemSelected] = useState<any>({});
 
   const columns = [
@@ -70,6 +74,7 @@ const EmployeesContainer = () => {
       title: "Nombre",
       dataIndex: "name",
     },
+    { title: "Sucursal", dataIndex: "store" },
     { title: "Activo", dataIndex: "active" },
   ];
 
@@ -100,6 +105,7 @@ const EmployeesContainer = () => {
             dispatch(employeeActions.removeEmployee(employee)(dispatch))
           }
           isLoading={loading}
+          stores={stores}
         />
       </div>
     </div>

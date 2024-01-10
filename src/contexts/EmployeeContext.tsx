@@ -88,30 +88,8 @@ export const useEmployee = () => {
 
 // Acciones para modificar el estado del contexto de precios
 export const employeeActions = {
-  getAll: () => async (dispatch: any) => {
-    dispatch({
-      type: actionTypes.LOADING,
-      payload: { loading: true },
-    });
-
-    try {
-      const { data } = await Api.getEmployees();
-
-      dispatch({
-        type: actionTypes.LIST_EMPLOYEES,
-        payload: data.results,
-      });
-    } catch (error) {
-      console.log(error);
-
-      dispatch({
-        type: actionTypes.ERROR,
-        payload: ERROR_MESSAGE_TIMEOUT,
-      });
-    }
-  },
-  addEmployee:
-    ({ name, active }: any) =>
+  getAll:
+    ({ store }: any) =>
     async (dispatch: any) => {
       dispatch({
         type: actionTypes.LOADING,
@@ -119,7 +97,31 @@ export const employeeActions = {
       });
 
       try {
-        const { data } = await Api.addEmployee({ name, active });
+        const { data } = await Api.getEmployees({ store });
+
+        dispatch({
+          type: actionTypes.LIST_EMPLOYEES,
+          payload: data.results,
+        });
+      } catch (error) {
+        console.log(error);
+
+        dispatch({
+          type: actionTypes.ERROR,
+          payload: ERROR_MESSAGE_TIMEOUT,
+        });
+      }
+    },
+  addEmployee:
+    ({ name, store, active }: any) =>
+    async (dispatch: any) => {
+      dispatch({
+        type: actionTypes.LOADING,
+        payload: { loading: true },
+      });
+
+      try {
+        const { data } = await Api.addEmployee({ name, store, active });
 
         dispatch({
           type: actionTypes.LIST_EMPLOYEES,
@@ -135,7 +137,7 @@ export const employeeActions = {
       }
     },
   updateEmployee:
-    ({ id, name, active }: any) =>
+    ({ id, name, store, active }: any) =>
     async (dispatch: any) => {
       dispatch({
         type: actionTypes.LOADING,
@@ -143,7 +145,7 @@ export const employeeActions = {
       });
 
       try {
-        const { data } = await Api.updateEmployee({ id, name, active });
+        const { data } = await Api.updateEmployee({ id, name, store, active });
 
         dispatch({
           type: actionTypes.LIST_EMPLOYEES,
