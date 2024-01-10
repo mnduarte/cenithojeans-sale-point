@@ -185,7 +185,7 @@ const ListOfPricesContainer = ({
               return (
                 <div
                   key={item.id}
-                  className={`${isVertical ? "w-[8vh] h-[6vh]" : "w-[12vh] h-[8vh]"} p-2 border ${boxBorderStyle} bg-[#333333] text-white text-center transition-all hover:bg-[#484E55] hover:cursor-pointer flex items-center justify-center text-lg font-bold select-none`}
+                  className={`${isVertical ? "w-[8vh] h-[6vh]" : "w-[13vh] h-[10vh]"} p-2 border ${boxBorderStyle} bg-[#333333] text-white text-center transition-all hover:bg-[#484E55] hover:cursor-pointer flex items-center justify-center text-lg font-bold select-none`}
                   onClick={() => onProductSelect(item)}
                 >
                   {formatCurrency(item.price)}
