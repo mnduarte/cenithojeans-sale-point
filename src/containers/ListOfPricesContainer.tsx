@@ -122,7 +122,7 @@ const ListOfPricesContainer = ({
 
   return (
     <>
-      <div className="h-[8vh] relative p-2 border border-[#484E55]">
+      <div className={`h-[6vh] relative p-2 border border-[#484E55]`}>
         <input
           type="text"
           placeholder="Buscar"
@@ -185,7 +185,7 @@ const ListOfPricesContainer = ({
               return (
                 <div
                   key={item.id}
-                  className={`${isVertical ? "w-[4vh] h-[4vh]" : "w-[12vh] h-[8vh]"} p-2 border ${boxBorderStyle} bg-[#333333] text-white text-center transition-all hover:bg-[#484E55] hover:cursor-pointer flex items-center justify-center text-lg font-bold select-none`}
+                  className={`${isVertical ? "w-[8vh] h-[6vh]" : "w-[12vh] h-[8vh]"} p-2 border ${boxBorderStyle} bg-[#333333] text-white text-center transition-all hover:bg-[#484E55] hover:cursor-pointer flex items-center justify-center text-lg font-bold select-none`}
                   onClick={() => onProductSelect(item)}
                 >
                   {formatCurrency(item.price)}
