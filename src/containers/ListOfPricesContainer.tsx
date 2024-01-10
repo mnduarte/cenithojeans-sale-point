@@ -122,7 +122,7 @@ const ListOfPricesContainer = ({
 
   return (
     <>
-      <div className={`h-[6vh] relative p-2 border border-[#484E55]`}>
+      <div className={`h-[8vh] relative p-2 border border-[#484E55]`}>
         <input
           type="text"
           placeholder="Buscar"
@@ -165,7 +165,7 @@ const ListOfPricesContainer = ({
           </div>
         </div>
       </div>
-      <div className="h-[77vh] p-2 border border-[#484E55] overflow-hidden overflow-y-auto">
+      <div className="h-[75vh] p-2 border border-[#484E55] overflow-hidden overflow-y-auto">
         {isLoading ? (
           <div className="flex items-center justify-center h-[70vh]">
             <Spinner size="lg" />
