@@ -131,7 +131,6 @@ const ListOfPricesContainer = ({
           onChange={handleSearchAmount}
         />
         <div className="absolute top-5 left-5">
-          {isVertical ? "Sí" : "No"}
           <FaSearch className="text-white" />
         </div>
         <div className="ml-4 inline-block">
@@ -186,7 +185,7 @@ const ListOfPricesContainer = ({
               return (
                 <div
                   key={item.id}
-                  className={`w-[12vh] h-[8vh] p-2 border ${boxBorderStyle} bg-[#333333] text-white text-center transition-all hover:bg-[#484E55] hover:cursor-pointer flex items-center justify-center text-lg font-bold select-none`}
+                  className={`${isVertical ? "w-[4vh] h-[4vh]" : "w-[12vh] h-[8vh]"} p-2 border ${boxBorderStyle} bg-[#333333] text-white text-center transition-all hover:bg-[#484E55] hover:cursor-pointer flex items-center justify-center text-lg font-bold select-none`}
                   onClick={() => onProductSelect(item)}
                 >
                   {formatCurrency(item.price)}
