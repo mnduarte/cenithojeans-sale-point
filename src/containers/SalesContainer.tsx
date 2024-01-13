@@ -254,7 +254,7 @@ const SalesContainer = () => {
   }: any) =>
     dispatchSale(
       saleActions.printSale({
-        pricesSelected,
+        pricesSelected: pricesSelected.filter((price: any) => !price.concept),
         devolutionPricesSelected,
         percentageToDisccountOrAdd,
         username: user.username,
