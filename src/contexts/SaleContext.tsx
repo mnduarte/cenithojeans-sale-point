@@ -174,6 +174,8 @@ export const saleActions = {
       subTotalDevolutionItems,
       percentageToDisccountOrAdd,
       username,
+      numOrder,
+      typeShipment,
       total,
     }: any) =>
     async (dispatch: any) => {
@@ -194,6 +196,8 @@ export const saleActions = {
           subTotalDevolutionItems,
           percentageToDisccountOrAdd,
           username,
+          numOrder,
+          typeShipment,
           total,
         });
 
@@ -217,6 +221,9 @@ export const saleActions = {
       percentageToDisccountOrAdd,
       username,
       seller,
+      typeSale,
+      numOrder,
+      pricesWithconcepts,
       totalPrice,
     }: any) =>
     async (dispatch: any) => {
@@ -232,6 +239,9 @@ export const saleActions = {
           percentageToDisccountOrAdd,
           username,
           seller,
+          typeSale,
+          numOrder,
+          pricesWithconcepts,
           totalPrice,
         });
 

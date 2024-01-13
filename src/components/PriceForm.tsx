@@ -9,15 +9,12 @@ const PriceForm = ({
   onUpdatePrice,
   onDeletePrice,
   isLoading,
+  initialValues,
+  isNewPrice,
+  setIsNewPrice,
+  priceValues,
+  setPriceValues,
 }: any) => {
-  const initialValues = {
-    id: "",
-    price: "",
-    active: true,
-  };
-  const [isNewPrice, setIsNewPrice] = useState(true);
-  const [priceValues, setPriceValues] = useState(initialValues);
-
   const titleForm = `${isNewPrice ? "Carga de" : "Editar"} precio`;
 
   const handleAction = (action: any) => {

@@ -17,7 +17,10 @@ const updatePrice = ({ id, price, active }: any) =>
 
 const removePrice = ({ id }: any) =>
   instance.delete(`/price/remove-price/${id}`);
-  
+
+const deleteSelectedPrices = ({ itemsIdSelected, deleteAll }: any) =>
+  instance.post("/price/delete-selected-price", { itemsIdSelected, deleteAll });
+
 const getEmployees = ({ store }: any) =>
   instance.post("/employee/employees/", { store });
 const addEmployee = ({ name, store, active }: any) =>
@@ -53,6 +56,8 @@ const addSale = ({
   subTotalDevolutionItems,
   percentageToDisccountOrAdd,
   username,
+  numOrder,
+  typeShipment,
   total,
 }: any) =>
   instance.post("/sale/add-sale", {
@@ -66,6 +71,8 @@ const addSale = ({
     subTotalDevolutionItems,
     percentageToDisccountOrAdd,
     username,
+    numOrder,
+    typeShipment,
     total,
   });
 
@@ -75,6 +82,9 @@ const printSale = ({
   percentageToDisccountOrAdd,
   username,
   seller,
+  typeSale,
+  numOrder,
+  pricesWithconcepts,
   totalPrice,
 }: any) =>
   instance.post("/sale/print-sale", {
@@ -83,6 +93,9 @@ const printSale = ({
     percentageToDisccountOrAdd,
     username,
     seller,
+    typeSale,
+    numOrder,
+    pricesWithconcepts,
     totalPrice,
   });
 
@@ -95,6 +108,7 @@ const Api = {
   addPrice,
   updatePrice,
   removePrice,
+  deleteSelectedPrices,
 
   getEmployees,
   addEmployee,

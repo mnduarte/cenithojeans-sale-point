@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { setupIonicReact } from "@ionic/react";
-import { MdOutlineAddShoppingCart } from "react-icons/md";
-import { FaList, FaChartLine } from "react-icons/fa";
+import { MdBorderColor, MdOutlineAddShoppingCart } from "react-icons/md";
+import { FaList } from "react-icons/fa";
 
 import { PriceProvider, priceActions, usePrice } from "./contexts/PriceContext";
 import {
@@ -32,7 +32,7 @@ import "./theme/tailwind.css";
 import "./theme/variables.css";
 import PricesEmployeesContainer from "./containers/PricesEmployeesContainer";
 import SalesContainer from "./containers/SalesContainer";
-import ReportsContainer from "./containers/ReportsContainer";
+import OrdersContainer from "./containers/OrdersContainer";
 import { SaleProvider } from "./contexts/SaleContext";
 import { UserProvider, useUser, userActions } from "./contexts/UserContext";
 import Spinner from "./components/Spinner";
@@ -41,7 +41,7 @@ import { StoreProvider, storeActions, useStore } from "./contexts/StoreContext";
 
 setupIonicReact();
 
-type TabKey = "Ventas" | "Precios y Empleados" | "Informes";
+type TabKey = "Ventas" | "Precios y Empleados" | "Pedidos";
 
 const mappingTabs = {
   Ventas: {
@@ -56,10 +56,10 @@ const mappingTabs = {
     container: <PricesEmployeesContainer />,
     permission: ["ADMIN"],
   },
-  Informes: {
-    title: "Informes",
-    icon: <FaChartLine />,
-    container: <ReportsContainer />,
+  Pedidos: {
+    title: "Pedidos",
+    icon: <MdBorderColor  />,
+    container: <OrdersContainer />,
     permission: ["ADMIN"],
   },
 };

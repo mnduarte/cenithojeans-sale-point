@@ -158,6 +158,30 @@ export const priceActions = {
         });
       }
     },
+  deleteSelectedPrices:
+    ({ itemsIdSelected, deleteAll }: any) =>
+    async (dispatch: any) => {
+      dispatch({
+        type: actionTypes.LOADING,
+        payload: { loading: true },
+      });
+
+      try {
+        const { data } = await Api.deleteSelectedPrices({ itemsIdSelected, deleteAll });
+
+        dispatch({
+          type: actionTypes.LIST_PRICES,
+          payload: data.results,
+        });
+      } catch (error) {
+        console.log(error);
+
+        dispatch({
+          type: actionTypes.ERROR,
+          payload: ERROR_MESSAGE_TIMEOUT,
+        });
+      }
+    },
   removePrice:
     ({ id }: any) =>
     async (dispatch: any) => {

@@ -14,7 +14,15 @@ const PricesContainer = () => {
     state: { prices, loading },
     dispatch,
   } = usePrice();
+  const initialValues = {
+    id: "",
+    price: "",
+    active: true,
+  };
+  const [isNewPrice, setIsNewPrice] = useState(true);
+  const [priceValues, setPriceValues] = useState(initialValues);
   const [itemSelected, setItemSelected] = useState<any>({});
+  const [itemsIdSelected, setItemsIdSelected] = useState<any[]>([]);
 
   const columns = [
     {
@@ -29,13 +37,55 @@ const PricesContainer = () => {
     <div className="h-[73vh] mx-auto flex">
       <div className="w-4/5 p-2">
         <h3 className="text-2xl text-white mb-4">Listado de Precios</h3>
+
+        <div className="h-[3vh] flex items-center justify-start">
+          {Boolean(itemsIdSelected.length) && (
+            <div
+              className="w-1/3 bg-green-700 hover:bg-green-800 hover:cursor-pointer text-white px-4 py-2 rounded-md flex items-center justify-center mx-auto select-none"
+              onClick={() => {
+                setPriceValues(initialValues);
+                setIsNewPrice(true);
+                setItemSelected({});
+                setItemsIdSelected([]);
+                dispatch(
+                  priceActions.deleteSelectedPrices({
+                    itemsIdSelected,
+                    deleteAll: false,
+                  })(dispatch)
+                );
+              }}
+            >
+              Eliminar Precios Seleccionados
+            </div>
+          )}
+          <div
+            className="w-1/3 bg-blue-500 hover:bg-blue-700 hover:cursor-pointer text-white px-4 py-2 rounded-md flex items-center justify-center mx-auto select-none"
+            onClick={() => {
+              setPriceValues(initialValues);
+              setIsNewPrice(true);
+              setItemSelected({});
+              setItemsIdSelected([]);
+              dispatch(
+                priceActions.deleteSelectedPrices({
+                  itemsIdSelected,
+                  deleteAll: true,
+                })(dispatch)
+              );
+            }}
+          >
+            Eliminar Todos los Precios
+          </div>
+        </div>
         <div className="h-[65vh] mx-auto max-w overflow-hidden overflow-y-auto">
           <Table
-            title={"Listado de Precios"}
+            //title={"Listado de Precios"}
             data={prices}
             columns={columns}
-            itemSelected={itemSelected}
-            setItemSelected={setItemSelected}
+            //itemSelected={itemSelected}
+            //setItemSelected={setItemSelected}
+            //itemsIdSelected={itemsIdSelected}
+            //setItemsIdSelected={setItemsIdSelected}
+            //enableSelectItem={true}
           />
         </div>
       </div>
@@ -53,6 +103,11 @@ const PricesContainer = () => {
             dispatch(priceActions.removePrice(price)(dispatch))
           }
           isLoading={loading}
+          initialValues={initialValues}
+          isNewPrice={isNewPrice}
+          setIsNewPrice={setIsNewPrice}
+          priceValues={priceValues}
+          setPriceValues={setPriceValues}
         />
       </div>
     </div>
@@ -86,8 +141,8 @@ const EmployeesContainer = () => {
           <Table
             data={employees}
             columns={columns}
-            itemSelected={itemSelected}
-            setItemSelected={setItemSelected}
+            /*itemSelected={itemSelected}
+            setItemSelected={setItemSelected}*/
           />
         </div>
       </div>

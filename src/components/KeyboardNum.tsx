@@ -2,22 +2,28 @@ import { MdClose } from "react-icons/md";
 import { FiDelete } from "react-icons/fi";
 import { IoEnter } from "react-icons/io5";
 import { formatCurrency } from "../utils/formatUtils";
+import { useEffect, useState } from "react";
 
 const KeyboardNum = ({
   isModalKeyboardNumOpen,
   devolutionModeActive,
-  manualPrice,
+  manualNum,
   itemIdFocusForQuantity,
   quantityForItem,
-  handleManualPrice,
+  handleManualNum,
   closeModal,
   handleQuantityByItem,
+  isItemPrice,
+  concept,
+  setConcept,
 }: any) => {
-  const title = itemIdFocusForQuantity
-    ? "Agregar Cantidad al Item"
-    : devolutionModeActive
-    ? "Añadir precio dev manual"
-    : "Añadir precio manual";
+  const title = isItemPrice
+    ? itemIdFocusForQuantity
+      ? "Agregar Cantidad al Item"
+      : devolutionModeActive
+      ? "Añadir precio dev manual"
+      : "Añadir precio manual"
+    : "Ingrese Num";
 
   const elements = [
     [{ value: 1 }, { value: 2 }, { value: 3 }],
@@ -50,12 +56,38 @@ const KeyboardNum = ({
               type="text"
               className="w-[26vh] h-[6vh] p-4 border border-[#484E55] rounded-md mb-5 text-2xl"
               value={`${
-                Boolean(itemIdFocusForQuantity)
-                  ? quantityForItem
-                  : "$" + formatCurrency(manualPrice)
+                isItemPrice
+                  ? Boolean(itemIdFocusForQuantity)
+                    ? quantityForItem
+                    : "$" + formatCurrency(manualNum)
+                  : manualNum
               }`}
               readOnly
             />
+
+            {isItemPrice && !itemIdFocusForQuantity && (
+              <div className="mb-4">
+                <label className="mr-2 text-white">Concepto:</label>
+                <select
+                  className="p-1 border border-[#484E55] rounded-md"
+                  onChange={(e: any) => setConcept(e.target.value)}
+                  value={concept}
+                >
+                  <option value="" className="py-2" disabled hidden>
+                    Sin concepto
+                  </option>
+                  <option value="bolsas" className="py-2">
+                    Bolsas
+                  </option>
+                  <option value="envio" className="py-2">
+                    Envío
+                  </option>
+                  <option value="recargoPorMenor" className="py-2">
+                    Recargo por menor
+                  </option>
+                </select>
+              </div>
+            )}
 
             <div className="h-auto ">
               {elements.map((element: any, idx: number) => {
@@ -68,7 +100,7 @@ const KeyboardNum = ({
                         onClick={() =>
                           Boolean(itemIdFocusForQuantity)
                             ? handleQuantityByItem(item)
-                            : handleManualPrice(item)
+                            : handleManualNum(item, concept)
                         }
                       >
                         {item.value}

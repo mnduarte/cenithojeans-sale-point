@@ -5,7 +5,7 @@ import Table from "../components/Table";
 import { formatCurrency } from "../utils/formatUtils";
 import Spinner from "../components/Spinner";
 
-const ReportsContainer = () => {
+const OrdersContainer = () => {
   const {
     state: { employees },
   } = useEmployee();
@@ -143,4 +143,4 @@ const ReportsContainer = () => {
   );
 };
 
-export default ReportsContainer;
+export default OrdersContainer;

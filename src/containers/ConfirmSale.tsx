@@ -3,6 +3,8 @@ import { MdClose } from "react-icons/md";
 import { calculateTotalPercentage, formatCurrency } from "../utils/formatUtils";
 import Spinner from "../components/Spinner";
 import { FaMinus, FaPlus } from "react-icons/fa";
+import { mappingConceptWithIcon } from "../utils/mappings";
+import KeyboardNum from "../components/KeyboardNum";
 
 const ConfirmSale = ({
   employees,
@@ -13,6 +15,7 @@ const ConfirmSale = ({
   totalPrice,
   onSale,
   isLoading,
+  pricesSelected,
   setPricesSelected,
   setDevolutionPricesSelected,
   inboundSale,
@@ -22,8 +25,11 @@ const ConfirmSale = ({
   setPercentageToDisccountOrAdd,
 }: any) => {
   const [sellerSelected, setSellerSelected] = useState("");
+  const [numOrder, setNumOrder] = useState(0);
   const [typeSale, setTypeSale] = useState("");
   const [typePayment, setTypePayment] = useState("");
+  const [typeShipment, setTypeShipment] = useState("");
+  const [isModalKeyboardNumOpen, setIsModalKeyboardNumOpen] = useState(false);
 
   const availableAction =
     Boolean(sellerSelected.length) &&
@@ -32,17 +38,25 @@ const ConfirmSale = ({
 
   const closeModalSale = () => {
     setSellerSelected("");
+    setNumOrder(0);
     setTypeSale("");
     setTypePayment("");
+    setTypeShipment("");
     setDevolutionModeActive(false);
     setIsModalSaleOpen(false);
   };
+
+  const pricesWithconcepts = pricesSelected.filter((price: any) =>
+    Boolean(price.concept)
+  );
 
   const handleSale = () => {
     const data = {
       employee: sellerSelected,
       typeSale,
       typePayment,
+      numOrder,
+      typeShipment,
     };
     onSale(data);
   };
@@ -52,6 +66,22 @@ const ConfirmSale = ({
     setDevolutionPricesSelected([]);
     setPercentageToDisccountOrAdd(0);
     closeModalSale();
+  };
+
+  const handleManualNumOrder = (item: any) => {
+    if (item.action === "deleteLast") {
+      return setNumOrder((currentValue: any) =>
+        Number(String(currentValue).slice(0, -1))
+      );
+    }
+
+    if (item.action === "addPrice") {
+      return setIsModalKeyboardNumOpen(false);
+    }
+
+    setNumOrder((currentValue: any) =>
+      Number(String(currentValue) + String(item.value))
+    );
   };
 
   const multiplyBy = percentageToDisccountOrAdd < 0 ? 1 : -1;
@@ -120,9 +150,59 @@ const ConfirmSale = ({
                   Local
                 </option>
                 <option value="pedido" className="py-2">
-                  Pedidos
+                  Pedido
                 </option>
               </select>
+            </div>
+
+            <div className="mb-4 h-[5vh] flex items-center justify-start">
+              {typeSale === "pedido" && (
+                <>
+                  <label className="mr-2 text-white">Num de Pedido:</label>
+
+                  <input
+                    type="text"
+                    className="w-[5vh] p-2 border border-[#484E55] rounded-md mr-2"
+                    readOnly
+                    value={numOrder}
+                    onFocus={() => setIsModalKeyboardNumOpen(true)}
+                  />
+
+                  <input
+                    type="radio"
+                    id="retiraLocalRadio"
+                    name="tipoEnvio"
+                    className="ml-4 mr-2 hover:cursor-pointer"
+                    value="retiraLocal"
+                    onChange={(e) => {
+                      setTypeShipment(e.target.value);
+                    }}
+                  />
+                  <label
+                    htmlFor="retiraLocalRadio"
+                    className="text-white select-none hover:cursor-pointer"
+                  >
+                    Retira local
+                  </label>
+
+                  <input
+                    type="radio"
+                    id="envioRadio"
+                    name="tipoEnvio"
+                    className="ml-4 mr-2 hover:cursor-pointer"
+                    value="envio"
+                    onChange={(e) => {
+                      setTypeShipment(e.target.value);
+                    }}
+                  />
+                  <label
+                    htmlFor="envioRadio"
+                    className="text-white select-none hover:cursor-pointer"
+                  >
+                    Envio
+                  </label>
+                </>
+              )}
             </div>
 
             <div className="mb-4 h-[5vh] flex items-center justify-start">
@@ -203,6 +283,16 @@ const ConfirmSale = ({
 
             <div className="mb-4 select-none">
               <p className="mr-2 text-white">Total de prendas: {totalItems}</p>
+              {Boolean(pricesWithconcepts.length) &&
+                pricesWithconcepts.map((price: any) => (
+                  <p className="mr-2 text-white" key={price.id}>
+                    {mappingConceptWithIcon[price.concept].value}{" "}
+                    <div className="inline-block">
+                      {mappingConceptWithIcon[price.concept].icon}
+                    </div>
+                    : ${formatCurrency(price.price)}
+                  </p>
+                ))}
               {Boolean(totalDevolutionItems) && (
                 <p className="mr-2 text-white">
                   Devoluciones: {totalDevolutionItems}
@@ -235,7 +325,14 @@ const ConfirmSale = ({
             <div className="flex space-x-4">
               <div
                 className="w-1/2 bg-blue-500 hover:bg-blue-700 hover:cursor-pointer text-white px-4 py-2 rounded-md flex items-center justify-center mx-auto select-none"
-                onClick={() => handlePrintSale(sellerSelected)}
+                onClick={() =>
+                  handlePrintSale({
+                    sellerSelected,
+                    typeSale,
+                    numOrder,
+                    pricesWithconcepts,
+                  })
+                }
               >
                 Imprimir Ticket
               </div>
@@ -271,6 +368,12 @@ const ConfirmSale = ({
               </div>
             </div>
           </div>
+          <KeyboardNum
+            isModalKeyboardNumOpen={isModalKeyboardNumOpen}
+            manualNum={numOrder}
+            handleManualNum={handleManualNumOrder}
+            closeModal={() => setIsModalKeyboardNumOpen(false)}
+          />
         </div>
       )}
     </>

@@ -1,7 +1,12 @@
 import { useEffect, useState } from "react";
 import { usePrice } from "../contexts/PriceContext";
 import { useEmployee } from "../contexts/EmployeeContext";
-import { Price, PriceDevolutionSelected, PriceSelected } from "../types";
+import {
+  Price,
+  PriceDevolutionSelected,
+  PriceSelected,
+  SaleItem,
+} from "../types";
 import ShoppingCartContainer from "./ShoppingCartContainer";
 import ListOfPricesContainer from "./ListOfPricesContainer";
 import ConfirmSale from "./ConfirmSale";
@@ -36,9 +41,9 @@ const SalesContainer = () => {
   const [pricesFiltered, setPricesFiltered] = useState<any[]>([]);
   const [employeesFiltered, setEmployeesFiltered] = useState<any[]>([]);
 
-  const [pricesSelected, setPricesSelected] = useState<PriceSelected[]>([]);
+  const [pricesSelected, setPricesSelected] = useState<any[]>([]);
   const [devolutionPricesSelected, setDevolutionPricesSelected] = useState<
-    PriceDevolutionSelected[]
+    any[]
   >([]);
 
   const [searchAmount, setSearchAmount] = useState("");
@@ -55,6 +60,7 @@ const SalesContainer = () => {
   const [isModalKeyboardNumOpen, setIsModalKeyboardNumOpen] = useState(false);
   const [itemIdFocusForQuantity, setItemIdFocusForQuantity] = useState("");
   const [quantityForItem, setQuantityForItem] = useState("");
+  const [concept, setConcept] = useState("");
 
   const openModalSale = () => {
     setIsModalSaleOpen(true);
@@ -62,7 +68,8 @@ const SalesContainer = () => {
 
   useEffect(() => {
     const totalItems = pricesSelected.reduce(
-      (acc, current) => Number(current.quantity) + Number(acc),
+      (acc, current) =>
+        Number(acc) + (current.concept ? 0 : Number(current.quantity)),
       0
     );
     setTotalItems(totalItems);
@@ -146,26 +153,36 @@ const SalesContainer = () => {
   };
 
   const closeModal = () => {
+    setConcept("");
     setIsModalKeyboardNumOpen(false);
   };
 
-  const addManualPrice = () => {
+  const addManualPrice = (concept: any) => {
     if (manualPrice) {
-      const setPricesItems = devolutionModeActive
+      const setPricesItems = concept.length
+        ? setPricesSelected
+        : devolutionModeActive
         ? setDevolutionPricesSelected
         : setPricesSelected;
+
       setPricesItems((items: any) => {
         const maxId = Math.max(
           ...items.map((item: PriceSelected) => item.id),
           ...prices.map((item: Price) => item.id)
         );
 
-        const newItem = {
+        const newItem: SaleItem = {
           id: maxId + 1,
           price: manualPrice,
           quantity: 1,
           active: true,
         };
+
+        if (concept.length) {
+          setConcept("");
+          newItem.concept = concept;
+        }
+
         return [...items, newItem];
       });
       setManualPrice("");
@@ -192,7 +209,7 @@ const SalesContainer = () => {
     }
   };
 
-  const handleManualPrice = (item: any) => {
+  const handleManualPrice = (item: any, concept: any) => {
     if (item.action === "deleteLast") {
       return setManualPrice((currentValue: any) =>
         String(currentValue).slice(0, -1)
@@ -200,7 +217,7 @@ const SalesContainer = () => {
     }
 
     if (item.action === "addPrice") {
-      return addManualPrice();
+      return addManualPrice(concept);
     }
 
     setManualPrice(
@@ -229,14 +246,22 @@ const SalesContainer = () => {
     setIsModalKeyboardNumOpen(true);
   };
 
-  const handlePrintSale = (seller: string) =>
+  const handlePrintSale = ({
+    sellerSelected,
+    typeSale,
+    numOrder,
+    pricesWithconcepts,
+  }: any) =>
     dispatchSale(
       saleActions.printSale({
         pricesSelected,
         devolutionPricesSelected,
         percentageToDisccountOrAdd,
         username: user.username,
-        seller,
+        seller: sellerSelected,
+        typeSale,
+        numOrder,
+        pricesWithconcepts,
         totalPrice,
       })(dispatchSale)
     );
@@ -287,6 +312,7 @@ const SalesContainer = () => {
         totalPrice={totalPrice}
         onSale={onSale}
         isLoading={loadingSales}
+        pricesSelected={pricesSelected}
         setPricesSelected={setPricesSelected}
         setDevolutionPricesSelected={setDevolutionPricesSelected}
         setDevolutionModeActive={setDevolutionModeActive}
@@ -296,19 +322,21 @@ const SalesContainer = () => {
         inboundSale={inboundSale}
       />
       <KeyboardNum
-        prices={prices}
         isModalKeyboardNumOpen={isModalKeyboardNumOpen}
         setIsModalKeyboardNumOpen={setIsModalKeyboardNumOpen}
         setDevolutionPricesSelected={setDevolutionPricesSelected}
         devolutionModeActive={devolutionModeActive}
         setPricesSelected={setPricesSelected}
-        manualPrice={manualPrice}
+        manualNum={manualPrice}
         setManualPrice={setManualPrice}
         itemIdFocusForQuantity={itemIdFocusForQuantity}
         quantityForItem={quantityForItem}
-        handleManualPrice={handleManualPrice}
+        handleManualNum={handleManualPrice}
         handleQuantityByItem={handleQuantityByItem}
         closeModal={closeModal}
+        isItemPrice={true}
+        concept={concept}
+        setConcept={setConcept}
       />
       {showSuccessToast && (
         <Toast
