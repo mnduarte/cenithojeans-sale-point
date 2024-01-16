@@ -45,6 +45,20 @@ const getSales = ({ startDate, endDate, store, employee }: any) => {
   return instance.get("/sale/sales", config);
 };
 
+const getOrders = ({ startDate, endDate, typeSale, store, employee }: any) => {
+  const config: AxiosRequestConfig = {
+    params: {
+      startDate,
+      endDate,
+      typeSale,
+      store,
+      employee,
+    },
+  };
+
+  return instance.get("/sale/orders", config);
+};
+
 const addSale = ({
   store,
   employee,
@@ -76,6 +90,12 @@ const addSale = ({
     total,
   });
 
+const updateSale = ({ id, dataIndex, value }: any) =>
+  instance.put("/sale/update-sale", { id, dataIndex, value });
+
+const cancelOrders = ({ itemsIdSelected }: any) =>
+  instance.post("/sale/cancel-order", { itemsIdSelected });
+
 const printSale = ({
   pricesSelected,
   devolutionPricesSelected,
@@ -99,6 +119,14 @@ const printSale = ({
     totalPrice,
   });
 
+const addCashflow = ({ type, amount, employee, description }: any) =>
+  instance.post("/cashflow/add-cashflow", {
+    type,
+    amount,
+    employee,
+    description,
+  });
+
 const Api = {
   login,
 
@@ -116,8 +144,13 @@ const Api = {
   removeEmployee,
 
   addSale,
+  updateSale,
+  cancelOrders,
   printSale,
   getSales,
+  getOrders,
+
+  addCashflow,
 };
 
 export default Api;

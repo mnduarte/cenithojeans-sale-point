@@ -2,11 +2,9 @@ import { MdClose } from "react-icons/md";
 import { FiDelete } from "react-icons/fi";
 import { IoEnter } from "react-icons/io5";
 import { formatCurrency } from "../utils/formatUtils";
-import { useEffect, useState } from "react";
 
 const KeyboardNum = ({
   isModalKeyboardNumOpen,
-  devolutionModeActive,
   manualNum,
   itemIdFocusForQuantity,
   quantityForItem,
@@ -16,14 +14,8 @@ const KeyboardNum = ({
   isItemPrice,
   concept,
   setConcept,
+  title
 }: any) => {
-  const title = isItemPrice
-    ? itemIdFocusForQuantity
-      ? "Agregar Cantidad al Item"
-      : devolutionModeActive
-      ? "Añadir precio dev manual"
-      : "Añadir precio manual"
-    : "Ingrese Num";
 
   const elements = [
     [{ value: 1 }, { value: 2 }, { value: 3 }],

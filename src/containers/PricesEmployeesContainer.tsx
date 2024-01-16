@@ -38,10 +38,27 @@ const PricesContainer = () => {
       <div className="w-4/5 p-2">
         <h3 className="text-2xl text-white mb-4">Listado de Precios</h3>
 
-        <div className="h-[3vh] flex items-center justify-start">
+        <div className="h-[5vh] flex">
+          <div
+            className="w-1/3 bg-blue-500 hover:bg-blue-700 hover:cursor-pointer text-white px-4 py-2 rounded-md flex items-center justify-center select-none"
+            onClick={() => {
+              setPriceValues(initialValues);
+              setIsNewPrice(true);
+              setItemSelected({});
+              setItemsIdSelected([]);
+              dispatch(
+                priceActions.deleteSelectedPrices({
+                  itemsIdSelected,
+                  deleteAll: true,
+                })(dispatch)
+              );
+            }}
+          >
+            Eliminar Todos los Precios
+          </div>
           {Boolean(itemsIdSelected.length) && (
             <div
-              className="w-1/3 bg-green-700 hover:bg-green-800 hover:cursor-pointer text-white px-4 py-2 rounded-md flex items-center justify-center mx-auto select-none"
+              className="w-1/3 ml-2 bg-red-700 hover:bg-red-800 hover:cursor-pointer text-white px-4 py-2 rounded-md flex items-center justify-center select-none"
               onClick={() => {
                 setPriceValues(initialValues);
                 setIsNewPrice(true);
@@ -58,34 +75,16 @@ const PricesContainer = () => {
               Eliminar Precios Seleccionados
             </div>
           )}
-          <div
-            className="w-1/3 bg-blue-500 hover:bg-blue-700 hover:cursor-pointer text-white px-4 py-2 rounded-md flex items-center justify-center mx-auto select-none"
-            onClick={() => {
-              setPriceValues(initialValues);
-              setIsNewPrice(true);
-              setItemSelected({});
-              setItemsIdSelected([]);
-              dispatch(
-                priceActions.deleteSelectedPrices({
-                  itemsIdSelected,
-                  deleteAll: true,
-                })(dispatch)
-              );
-            }}
-          >
-            Eliminar Todos los Precios
-          </div>
         </div>
         <div className="h-[65vh] mx-auto max-w overflow-hidden overflow-y-auto">
           <Table
-            //title={"Listado de Precios"}
             data={prices}
             columns={columns}
-            //itemSelected={itemSelected}
-            //setItemSelected={setItemSelected}
-            //itemsIdSelected={itemsIdSelected}
-            //setItemsIdSelected={setItemsIdSelected}
-            //enableSelectItem={true}
+            itemSelected={itemSelected}
+            setItemSelected={setItemSelected}
+            itemsIdSelected={itemsIdSelected}
+            setItemsIdSelected={setItemsIdSelected}
+            enableSelectItem={true}
           />
         </div>
       </div>
@@ -141,8 +140,8 @@ const EmployeesContainer = () => {
           <Table
             data={employees}
             columns={columns}
-            /*itemSelected={itemSelected}
-            setItemSelected={setItemSelected}*/
+            itemSelected={itemSelected}
+            setItemSelected={setItemSelected}
           />
         </div>
       </div>

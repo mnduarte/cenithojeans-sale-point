@@ -323,18 +323,20 @@ const SalesContainer = () => {
       />
       <KeyboardNum
         isModalKeyboardNumOpen={isModalKeyboardNumOpen}
-        setIsModalKeyboardNumOpen={setIsModalKeyboardNumOpen}
-        setDevolutionPricesSelected={setDevolutionPricesSelected}
-        devolutionModeActive={devolutionModeActive}
-        setPricesSelected={setPricesSelected}
         manualNum={manualPrice}
-        setManualPrice={setManualPrice}
         itemIdFocusForQuantity={itemIdFocusForQuantity}
         quantityForItem={quantityForItem}
         handleManualNum={handleManualPrice}
         handleQuantityByItem={handleQuantityByItem}
         closeModal={closeModal}
         isItemPrice={true}
+        title={
+          itemIdFocusForQuantity
+            ? "Agregar Cantidad al Item"
+            : devolutionModeActive
+            ? "Añadir precio dev manual"
+            : "Añadir precio manual"
+        }
         concept={concept}
         setConcept={setConcept}
       />

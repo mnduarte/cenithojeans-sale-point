@@ -3,6 +3,8 @@ import { FaSearch } from "react-icons/fa";
 import { Price } from "../types";
 import Spinner from "../components/Spinner";
 import { useEffect, useState } from "react";
+import IncomeContainer from "./IncomeContainer";
+import OutgoingContainer from "./OutgoingContainer";
 
 const ListOfPricesContainer = ({
   prices,
@@ -21,6 +23,9 @@ const ListOfPricesContainer = ({
   const [isVertical, setIsVertical] = useState(
     window.matchMedia("(orientation: portrait)").matches
   );
+
+  const [isModalIncomeOpen, setIsModalIncomeOpen] = useState(false);
+  const [isModalOutgoingOpen, setIsModalOutgoingOpen] = useState(false);
 
   useEffect(() => {
     const handleOrientationChange = () => {
@@ -122,7 +127,7 @@ const ListOfPricesContainer = ({
 
   return (
     <>
-      <div className={`h-[8vh] relative p-2 border border-[#484E55]`}>
+      <div className={`h-[6vh] relative p-2 border border-[#484E55]`}>
         <input
           type="text"
           placeholder="Buscar"
@@ -165,6 +170,25 @@ const ListOfPricesContainer = ({
           </div>
         </div>
       </div>
+
+      <div className={`h-[6vh] relative p-2 border border-[#484E55]`}>
+        <div
+          className={`cursor-pointer inline-block px-4 py-1 rounded-md border bg-green-800 border-green-800 text-white`}
+          onClick={() => {
+            setIsModalIncomeOpen(true);
+          }}
+        >
+          INGRESOS
+        </div>
+        <div
+          className={`ml-2 cursor-pointer inline-block px-4 py-1 rounded-md border bg-red-800 border-red-800 text-white`}
+          onClick={() => {
+            setIsModalOutgoingOpen(true);
+          }}
+        >
+          EGRESOS
+        </div>
+      </div>
       <div className="h-[75vh] p-2 border border-[#484E55] overflow-hidden overflow-y-auto">
         {isLoading ? (
           <div className="flex items-center justify-center h-[70vh]">
@@ -185,7 +209,9 @@ const ListOfPricesContainer = ({
               return (
                 <div
                   key={item.id}
-                  className={`${isVertical ? "w-[8vh] h-[6vh]" : "w-[13vh] h-[10vh]"} p-2 border ${boxBorderStyle} bg-[#333333] text-white text-center transition-all hover:bg-[#484E55] hover:cursor-pointer flex items-center justify-center text-lg font-bold select-none`}
+                  className={`${
+                    isVertical ? "w-[8vh] h-[6vh]" : "w-[13vh] h-[10vh]"
+                  } p-2 border ${boxBorderStyle} bg-[#333333] text-white text-center transition-all hover:bg-[#484E55] hover:cursor-pointer flex items-center justify-center text-lg font-bold select-none`}
                   onClick={() => onProductSelect(item)}
                 >
                   {formatCurrency(item.price)}
@@ -194,6 +220,15 @@ const ListOfPricesContainer = ({
             })}
           </div>
         )}
+
+        <IncomeContainer
+          isModalIncomeOpen={isModalIncomeOpen}
+          setIsModalIncomeOpen={setIsModalIncomeOpen}
+        />
+        <OutgoingContainer
+          isModalOutgoingOpen={isModalOutgoingOpen}
+          setIsModalOutgoingOpen={setIsModalOutgoingOpen}
+        />
       </div>
     </>
   );

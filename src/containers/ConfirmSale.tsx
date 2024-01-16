@@ -162,7 +162,7 @@ const ConfirmSale = ({
 
                   <input
                     type="text"
-                    className="w-[5vh] p-2 border border-[#484E55] rounded-md mr-2"
+                    className="w-[10vh] p-2 border border-[#484E55] rounded-md mr-2"
                     readOnly
                     value={numOrder}
                     onFocus={() => setIsModalKeyboardNumOpen(true)}
@@ -373,6 +373,7 @@ const ConfirmSale = ({
             manualNum={numOrder}
             handleManualNum={handleManualNumOrder}
             closeModal={() => setIsModalKeyboardNumOpen(false)}
+            title="Ingrese Num"
           />
         </div>
       )}

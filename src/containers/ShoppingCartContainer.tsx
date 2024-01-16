@@ -116,7 +116,7 @@ const ShoppingCartContainer = ({
       <div>
         <div
           className={`${
-            Boolean(devolutionPricesSelected.length) ? "h-[40vh]" : "h-[63vh]"
+            Boolean(devolutionPricesSelected.length) ? "h-[42vh]" : "h-[67vh]"
           } p-2 border border-[#484E55] overflow-hidden overflow-y-auto`}
         >
           {pricesSelected.map((item: any, idx: any) => (
@@ -174,7 +174,7 @@ const ShoppingCartContainer = ({
       {Boolean(devolutionPricesSelected.length) && (
         <div>
           <div
-            className={`h-[20vh] p-2 border border-[#484E55] overflow-hidden overflow-y-auto`}
+            className={`h-[22vh] p-2 border border-[#484E55] overflow-hidden overflow-y-auto`}
           >
             {devolutionPricesSelected.map((item: any, idx: any) => (
               <div

@@ -12,6 +12,8 @@ const actionTypes = {
   SUCCESS_PRINT: "success_print",
   SET_HIDE_TOAST: "set_hide_toast",
   NEW_SALE: "new_sale",
+  UPDATE_SALE: "update_sale",
+  CANCEL_ORDERS: "cancel_orders",
 };
 
 // Tipo de estado para el contexto de precios
@@ -78,6 +80,37 @@ export const SaleProvider: React.FC<SaleProviderProps> = ({ children }) => {
           inboundSale: true,
         };
       }
+      case actionTypes.UPDATE_SALE: {
+        return {
+          ...state,
+          loading: false,
+          error: null,
+          showSuccessToast: true,
+          showSuccessToastMsg: "Pedido Actualizado",
+          sales: state.sales.map((sale: any) => {
+            if (sale.id === action.payload.id) {
+              return { ...sale, ...action.payload };
+            }
+            return sale;
+          }),
+        };
+      }
+      case actionTypes.CANCEL_ORDERS: {
+        return {
+          ...state,
+          loading: false,
+          error: null,
+          showSuccessToast: true,
+          showSuccessToastMsg: "Pedidos anulados",
+          sales: state.sales.map((sale: any) => {
+            const foundItem = action.payload.find((order:any) => order.id === sale.id)
+            if (foundItem) {
+              return { ...sale, ...foundItem };
+            }
+            return sale;
+          }),
+        };
+      }
       case actionTypes.SUCCESS_PRINT: {
         return {
           ...state,
@@ -133,6 +166,36 @@ export const useSale = () => {
 
 // Acciones para modificar el estado del contexto de precios
 export const saleActions = {
+  getOrders:
+    ({ startDate, endDate, typeSale, store, employee }: any) =>
+    async (dispatch: any) => {
+      dispatch({
+        type: actionTypes.LOADING,
+        payload: { loading: true },
+      });
+
+      try {
+        const { data } = await Api.getOrders({
+          startDate,
+          endDate,
+          typeSale,
+          store,
+          employee,
+        });
+
+        dispatch({
+          type: actionTypes.LIST_SALES,
+          payload: data.results,
+        });
+      } catch (error) {
+        console.log(error);
+
+        dispatch({
+          type: actionTypes.ERROR,
+          payload: ERROR_MESSAGE_TIMEOUT,
+        });
+      }
+    },
   getSales:
     ({ startDate, endDate, store, employee }: any) =>
     async (dispatch: any) => {
@@ -203,6 +266,60 @@ export const saleActions = {
 
         dispatch({
           type: actionTypes.SUCCESS,
+          payload: data.results,
+        });
+      } catch (error) {
+        console.log(error);
+
+        dispatch({
+          type: actionTypes.ERROR,
+          payload: ERROR_MESSAGE_TIMEOUT,
+        });
+      }
+    },
+  updateSale:
+    ({ id, dataIndex, value }: any) =>
+    async (dispatch: any) => {
+      dispatch({
+        type: actionTypes.LOADING,
+        payload: { loading: true },
+      });
+
+      try {
+        const { data } = await Api.updateSale({
+          id,
+          dataIndex,
+          value,
+        });
+
+        dispatch({
+          type: actionTypes.UPDATE_SALE,
+          payload: data.results,
+        });
+      } catch (error) {
+        console.log(error);
+
+        dispatch({
+          type: actionTypes.ERROR,
+          payload: ERROR_MESSAGE_TIMEOUT,
+        });
+      }
+    },
+  cancelOrders:
+    ({ itemsIdSelected }: any) =>
+    async (dispatch: any) => {
+      dispatch({
+        type: actionTypes.LOADING,
+        payload: { loading: true },
+      });
+
+      try {
+        const { data } = await Api.cancelOrders({
+          itemsIdSelected,
+        });
+
+        dispatch({
+          type: actionTypes.CANCEL_ORDERS,
           payload: data.results,
         });
       } catch (error) {

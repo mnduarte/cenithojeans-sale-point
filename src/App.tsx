@@ -38,6 +38,7 @@ import { UserProvider, useUser, userActions } from "./contexts/UserContext";
 import Spinner from "./components/Spinner";
 import Keyboard from "./components/Keyboard";
 import { StoreProvider, storeActions, useStore } from "./contexts/StoreContext";
+import { CashflowProvider } from "./contexts/CashflowContext";
 
 setupIonicReact();
 
@@ -58,9 +59,9 @@ const mappingTabs = {
   },
   Pedidos: {
     title: "Pedidos",
-    icon: <MdBorderColor  />,
+    icon: <MdBorderColor />,
     container: <OrdersContainer />,
-    permission: ["ADMIN"],
+    permission: ["EMPLOYEE", "ADMIN"],
   },
 };
 
@@ -186,20 +187,22 @@ const LoginContainer = ({ onLogin, error, loading }: any) => {
             if (inputSelected === "username") {
               setUser((userProps) => ({
                 ...userProps,
-                username:
-                  typeof e === "object"
+                username: e.action
+                  ? e.action === "deleteLast"
                     ? userProps.username.slice(0, -1)
-                    : userProps.username + e.toLowerCase(),
+                    : userProps.username + " "
+                  : userProps.username + e.value.toLowerCase(),
               }));
             }
 
             if (inputSelected === "password") {
               setUser((userProps) => ({
                 ...userProps,
-                password:
-                  typeof e === "object"
+                password: e.action
+                  ? e.action === "deleteLast"
                     ? userProps.password.slice(0, -1)
-                    : userProps.password + e.toLowerCase(),
+                    : userProps.password + " "
+                  : userProps.password + e.value.toLowerCase(),
               }));
             }
           }}
@@ -231,7 +234,9 @@ const App: React.FC = () => {
         <SaleProvider>
           <PriceProvider>
             <EmployeeProvider>
-              <AppContainer />
+              <CashflowProvider>
+                <AppContainer />
+              </CashflowProvider>
             </EmployeeProvider>
           </PriceProvider>
         </SaleProvider>

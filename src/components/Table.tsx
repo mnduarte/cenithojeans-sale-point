@@ -1,7 +1,6 @@
 import { FaCheck } from "react-icons/fa";
 import { MdClose } from "react-icons/md";
 import { formatCurrency } from "../utils/formatUtils";
-import React, { useState } from "react";
 
 const Table = ({
   data,
@@ -115,104 +114,5 @@ const Table = ({
     </table>
   );
 };
-
-interface Column {
-  title: string;
-  dataIndex: string;
-}
-
-interface Row {
-  [key: string]: string | boolean | number;
-}
-
-interface EditableTableProps {
-  data: Row[];
-  columns: Column[];
-}
-/*
-const Table: React.FC<EditableTableProps> = ({ data, columns }) => {
-  const [editableRow, setEditableRow] = useState<number | null>(null);
-
-  const handleEditDoubleClick = (rowIndex: number) => {
-    setEditableRow(rowIndex);
-  };
-
-  const handleSaveClick = () => {
-    // Lógica para guardar la fila editada
-    setEditableRow(null);
-  };
-
-  const handleCancelClick = () => {
-    // Lógica para cancelar la edición
-    setEditableRow(null);
-  };
-
-  return (
-    <table className="w-full bg-[#252525] border border-[#2A2B2A]">
-      <thead>
-        <tr className="border-b-2 border-[#1BA1E2]">
-          {columns.map((column, columnIndex) => (
-            <th
-              key={columnIndex}
-              className="text-left font-normal border border-[#333333] p-2 px-5"
-            >
-              {column.title}
-            </th>
-          ))}
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {data.map((row, rowIndex) => (
-          <React.Fragment key={rowIndex}>
-            <tr
-              className={`${
-                editableRow === rowIndex ? "bg-[#ff0000]" : "hover:bg-[#1E1E1E]"
-              }`}
-              onDoubleClick={() => handleEditDoubleClick(rowIndex)}
-            >
-              {columns.map((column, columnIndex) => (
-                <td
-                  key={columnIndex}
-                  className="text-right p-2 px-2 border border-[#292A28]"
-                >
-                  {editableRow === rowIndex ? (
-                    <input
-                      type="text"
-                      value={row[column.dataIndex].toString()}
-                      onChange={(e) => {
-                        // Lógica para actualizar el valor mientras se edita
-                      }}
-                    />
-                  ) : (
-                    row[column.dataIndex]
-                  )}
-                </td>
-              ))}
-              <td className="p-2 pl-5 border border-[#292A28]">
-                {editableRow === rowIndex ? (
-                  <>
-                    <button
-                      className="text-[#1BA1E2]"
-                      onClick={handleSaveClick}
-                    >
-                      Guardar
-                    </button>
-                    <button
-                      className="text-red-500"
-                      onClick={handleCancelClick}
-                    >
-                      Cancelar
-                    </button>
-                  </>
-                ) : null}
-              </td>
-            </tr>
-          </React.Fragment>
-        ))}
-      </tbody>
-    </table>
-  );
-};*/
 
 export default Table;

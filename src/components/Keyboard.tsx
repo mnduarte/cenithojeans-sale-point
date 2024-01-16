@@ -1,11 +1,54 @@
 import { FiDelete } from "react-icons/fi";
+import { MdOutlineSpaceBar } from "react-icons/md";
 
 const Keyboard = ({ onKeyPress }: any) => {
   const rows = [
-    ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"],
-    ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
-    ["A", "S", "D", "F", "G", "H", "J", "K", "L"],
-    ["Z", "X", "C", "V", "B", "N", "M", <FiDelete className="ml-3 text-2xl"/>],
+    [
+      { value: "1" },
+      { value: "2" },
+      { value: "3" },
+      { value: "4" },
+      { value: "5" },
+      { value: "6" },
+      { value: "7" },
+      { value: "8" },
+      { value: "9" },
+      { value: "0" },
+    ],
+    [
+      { value: "Q" },
+      { value: "W" },
+      { value: "E" },
+      { value: "R" },
+      { value: "T" },
+      { value: "Y" },
+      { value: "U" },
+      { value: "I" },
+      { value: "O" },
+      { value: "P" },
+    ],
+    [
+      { value: "A" },
+      { value: "S" },
+      { value: "D" },
+      { value: "F" },
+      { value: "G" },
+      { value: "H" },
+      { value: "J" },
+      { value: "K" },
+      { value: "L" },
+    ],
+    [
+      { value: "Z" },
+      { value: "X" },
+      { value: "C" },
+      { value: "V" },
+      { value: "B" },
+      { value: "N" },
+      { value: "M" },
+      { value: <FiDelete className="ml-2" />, action: "deleteLast" },
+      { value: <MdOutlineSpaceBar className="ml-2" />, action: "addSpace" },
+    ],
   ];
 
   return (
@@ -18,7 +61,7 @@ const Keyboard = ({ onKeyPress }: any) => {
               className="flex-1 w-[3vh] h-10 border border-gray-300 rounded focus:outline-none focus:ring focus:border-blue-300 bg-[#333333] mr-2"
               onClick={() => onKeyPress(key)}
             >
-              {key}
+              {key.value}
             </button>
           ))}
         </div>
