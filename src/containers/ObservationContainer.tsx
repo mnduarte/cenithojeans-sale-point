@@ -1,71 +1,54 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { MdClose } from "react-icons/md";
-import KeyboardNum from "../components/KeyboardNum";
-import { cashflowActions, useCashflow } from "../contexts/CashflowContext";
 import Spinner from "../components/Spinner";
 import Toast from "../components/Toast";
 import Keyboard from "../components/Keyboard";
 import { useUser } from "../contexts/UserContext";
+import {
+  observationActions,
+  useObservation,
+} from "../contexts/ObservationContext";
 
-const OutgoingContainer = ({
-  isModalOutgoingOpen,
-  setIsModalOutgoingOpen,
+const ObservationContainer = ({
+  isModalObservationOpen,
+  setIsModalObservationOpen,
 }: any) => {
   const {
     state: { user },
   } = useUser();
   const {
     state: {
-      loading: loadingCashflow,
+      loading: loadingObservation,
       showSuccessToast,
       showSuccessToastMsg,
       showErrorToast,
     },
-    dispatch: dispatchCashflow,
-  } = useCashflow();
+    dispatch: dispatchObservation,
+  } = useObservation();
 
-  const [amount, setAmount] = useState(0);
-  const [description, setDescription] = useState("");
-  const [isModalKeyboardNumOpen, setIsModalKeyboardNumOpen] = useState(false);
+  const [observation, setObservation] = useState("");
 
   const closeModal = () => {
-    setDescription("");
-    setAmount(0);
-    setIsModalOutgoingOpen(false);
+    setObservation("");
+    setIsModalObservationOpen(false);
   };
 
-  const handleIncome = () => {
+  const handleObservation = () => {
     const data = {
-      type: "egreso",
-      description,
+      observation,
       store: user.store,
-      amount,
+      username: user.username,
     };
 
-    dispatchCashflow(cashflowActions.addCashflow(data)(dispatchCashflow));
-    setDescription("");
-    setAmount(0);
-  };
-
-  const handleManualNumOrder = (item: any) => {
-    if (item.action === "deleteLast") {
-      return setAmount((currentValue: any) =>
-        Number(String(currentValue).slice(0, -1))
-      );
-    }
-
-    if (item.action === "addPrice") {
-      return setIsModalKeyboardNumOpen(false);
-    }
-
-    setAmount((currentValue: any) =>
-      Number(String(currentValue) + String(item.value))
+    dispatchObservation(
+      observationActions.addObservation(data)(dispatchObservation)
     );
+    setObservation("");
   };
 
   return (
     <>
-      {isModalOutgoingOpen && (
+      {isModalObservationOpen && (
         <div className="fixed inset-0 bg-[#252525] bg-opacity-60 flex items-center justify-center">
           {/* Contenido del modal */}
           <div className="w-[60vh] bg-gray-800 border border-[#000000] p-8 rounded shadow-md relative">
@@ -78,36 +61,20 @@ const OutgoingContainer = ({
             </button>
 
             <h2 className="text-white text-lg font-bold mb-4">
-              Agregar Egreso
+              Agregar Observacion
             </h2>
 
-            <div className="mb-4 h-[5vh] flex items-center justify-start">
-              <label className="mr-2 text-white">Agrege importe:</label>
-
-              <input
-                type="text"
-                className="w-[10vh] p-2 border border-[#484E55] rounded-md mr-2"
-                readOnly
-                value={amount}
-                onFocus={() => setIsModalKeyboardNumOpen(true)}
-              />
-            </div>
-
             <div className="mb-4">
-              <label className="mb-2 h-[5vh] flex items-center justify-start">
-                Descripcion:
-              </label>
-              <input
-                type="text"
-                value={description}
+              <textarea
+                value={observation}
                 readOnly
-                className="w-[30vh] p-2 border border-[#484E55] rounded-md mr-2"
+                className="w-[50vh] p-2 border border-[#484E55] rounded-md mr-2 text-lg"
               />
             </div>
 
             <Keyboard
               onKeyPress={(e: any) => {
-                let newDescription = description;
+                let newDescription = observation;
 
                 if (e.action === "deleteLast") {
                   newDescription = newDescription.slice(0, -1);
@@ -121,7 +88,7 @@ const OutgoingContainer = ({
                   newDescription = newDescription + e.value.toLowerCase();
                 }
 
-                setDescription(newDescription);
+                setObservation(newDescription);
               }}
             />
 
@@ -136,18 +103,16 @@ const OutgoingContainer = ({
               </div>
               <div
                 className={`${
-                  !Boolean(description.length) || !Boolean(amount)
+                  !Boolean(observation.length)
                     ? "bg-gray-500"
                     : "bg-green-800 hover:bg-green-800 hover:cursor-pointer"
                 } w-1/2 text-white px-4 py-2 rounded-md flex items-center justify-center mx-auto select-none`}
                 onClick={() =>
-                  Boolean(description.length) &&
-                  Boolean(amount) &&
-                  handleIncome()
+                  Boolean(observation.length) && handleObservation()
                 }
               >
                 Guardar
-                {loadingCashflow && (
+                {loadingObservation && (
                   <div className="ml-2">
                     <Spinner />
                   </div>
@@ -155,20 +120,13 @@ const OutgoingContainer = ({
               </div>
             </div>
           </div>
-          <KeyboardNum
-            isModalKeyboardNumOpen={isModalKeyboardNumOpen}
-            manualNum={amount}
-            handleManualNum={handleManualNumOrder}
-            closeModal={() => setIsModalKeyboardNumOpen(false)}
-            title="Ingrese Monto"
-          />
           {showSuccessToast && (
             <Toast
               type="success"
               message={showSuccessToastMsg}
               onClose={() =>
-                dispatchCashflow(
-                  cashflowActions.setHideToasts()(dispatchCashflow)
+                dispatchObservation(
+                  observationActions.setHideToasts()(dispatchObservation)
                 )
               }
             />
@@ -179,8 +137,8 @@ const OutgoingContainer = ({
               type="error"
               message={showSuccessToastMsg}
               onClose={() =>
-                dispatchCashflow(
-                  cashflowActions.setHideToasts()(dispatchCashflow)
+                dispatchObservation(
+                  observationActions.setHideToasts()(dispatchObservation)
                 )
               }
             />
@@ -191,4 +149,4 @@ const OutgoingContainer = ({
   );
 };
 
-export default OutgoingContainer;
+export default ObservationContainer;

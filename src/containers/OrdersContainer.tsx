@@ -1,58 +1,21 @@
 import { useEffect, useState } from "react";
 import { useEmployee } from "../contexts/EmployeeContext";
 import { saleActions, useSale } from "../contexts/SaleContext";
-import { formatCurrency } from "../utils/formatUtils";
+import { formatCurrency, formatDateToYYYYMMDD } from "../utils/formatUtils";
 import Spinner from "../components/Spinner";
 import { useUser } from "../contexts/UserContext";
 import KeyboardNum from "../components/KeyboardNum";
 import Toast from "../components/Toast";
 import EditableTable from "../components/EditableTable";
+import { MdOutlinePendingActions } from "react-icons/md";
 
 const mappingConceptToUpdate: Record<string, string> = {
-  cash: "efectivo",
-  transfer: "transferencia",
-  items: "prendas",
+  order: "N° Pedido",
+  cash: "Efectivo",
+  transfer: "Transferencia",
+  items: "Prendas",
+  total: "Total",
 };
-
-const columns = [
-  { title: "Fecha", dataIndex: "date" },
-  { title: "Vendedor", dataIndex: "employee" },
-  { title: "N°", dataIndex: "order" },
-  { title: "Sucursal", dataIndex: "store" },
-  { title: "Tipo", dataIndex: "typeShipment" },
-  {
-    title: "Transferencia",
-    dataIndex: "transfer",
-    editableCell: true,
-    format: (number: any) => `$${formatCurrency(number)}`,
-    type: "string",
-  },
-  {
-    title: "Efectivo",
-    dataIndex: "cash",
-    editableCell: true,
-    format: (number: any) => `$${formatCurrency(number)}`,
-    type: "string",
-  },
-  {
-    title: "Prendas",
-    dataIndex: "items",
-    editableCell: true,
-    type: "string",
-  },
-  {
-    title: "Total",
-    dataIndex: "total",
-    format: (number: any) => `$${formatCurrency(number)}`,
-    sumAcc: true,
-  },
-  {
-    title: "Salida",
-    dataIndex: "checkoutDate",
-    editableCell: true,
-    type: "date",
-  },
-];
 
 const OrdersContainer = () => {
   const {
@@ -60,7 +23,7 @@ const OrdersContainer = () => {
   } = useEmployee();
   const {
     state: {
-      sales,
+      orders,
       loading,
       showSuccessToast,
       showErrorToast,
@@ -77,9 +40,9 @@ const OrdersContainer = () => {
     store: user.store === "ALL" ? "" : user.store,
     employee: "",
     typeSale: "pedido",
+    typeShipment: "",
   });
-  const [salesFiltered, setSalesFiltered] = useState<any[]>([]);
-  const [sort, setSort] = useState<any>("");
+  const [ordersFiltered, setOrdersFiltered] = useState<any[]>([]);
 
   const [value, setValue] = useState(0);
   const [propSale, setPropSale] = useState({
@@ -90,6 +53,69 @@ const OrdersContainer = () => {
   const [itemsIdSelected, setItemsIdSelected] = useState<any[]>([]);
 
   const [editableRow, setEditableRow] = useState<number | null>(null);
+
+  const columns = [
+    { title: "Fecha", dataIndex: "date" },
+    {
+      title: "Vendedor",
+      dataIndex: "employee",
+      editableCell: true,
+      type: "select",
+      dataSelect: employees.map(({ name }) => name),
+    },
+    { title: "N°", dataIndex: "order", editableCell: true, type: "string" },
+    { title: "Sucursal", dataIndex: "store" },
+    {
+      title: "Tipo",
+      dataIndex: "typeShipment",
+      editableCell: true,
+      type: "select",
+      dataSelect: ["retiraLocal", "envio"],
+    },
+    {
+      title: "Transferencia",
+      dataIndex: "transfer",
+      editableCell: true,
+      type: "string",
+      format: (number: any) => `$${formatCurrency(number)}`,
+      sumAcc: user.role === "ADMIN",
+    },
+    {
+      title: "Efectivo",
+      dataIndex: "cash",
+      editableCell: true,
+      type: "string",
+      format: (number: any) => `$${formatCurrency(number)}`,
+      sumAcc: user.role === "ADMIN",
+    },
+    {
+      title: "Prendas",
+      dataIndex: "items",
+      editableCell: true,
+      type: "string",
+    },
+    {
+      title: "Total",
+      dataIndex: "total",
+      format: (number: any) => `$${formatCurrency(number)}`,
+      editableCell: true,
+      type: "string",
+      sumAcc: user.role === "ADMIN",
+    },
+    {
+      title: <MdOutlinePendingActions />,
+      defaultValue: <MdOutlinePendingActions />,
+      dataIndex: "checkoutDate",
+      editableCell: true,
+      type: "button",
+    },
+    {
+      title: "Salida",
+      dataIndex: "checkoutDate",
+      editableCell: true,
+      type: "date",
+    },
+  ];
 
   const handleEditClick = (rowIndex: number) => {
     setEditableRow(rowIndex);
@@ -104,7 +130,7 @@ const OrdersContainer = () => {
 
     if (item.action === "addPrice") {
       dispatchSale(
-        saleActions.updateSale({ ...propSale, value })(dispatchSale)
+        saleActions.updateOrder({ ...propSale, value })(dispatchSale)
       );
       setValue(0);
       setEditableRow(null);
@@ -129,19 +155,33 @@ const OrdersContainer = () => {
       setIsModalKeyboardNumOpen(true);
     }
 
-    if (inputType === "date") {
+    if (inputType === "date" || inputType === "select") {
       dispatchSale(
-        saleActions.updateSale({ dataIndex, id, value: inputValue })(
-          dispatchSale
-        )
+        saleActions.updateOrder({
+          dataIndex,
+          id,
+          value: inputValue.target.value,
+        })(dispatchSale)
       );
       setEditableRow(null);
+    }
+
+    if (inputType === "button") {
+      dispatchSale(
+        saleActions.updateOrder({
+          dataIndex,
+          id,
+          value: formatDateToYYYYMMDD(new Date()),
+        })(dispatchSale)
+      );
+      setTimeout(() => {
+        setEditableRow(null);
+      }, 50);
     }
   };
 
   const onOrderAscDesc = (e: any) => {
-    setSort(e.target.value);
-    setSalesFiltered((items: any) =>
+    setOrdersFiltered((items: any) =>
       items
         .slice()
         .sort((a: any, b: any) =>
@@ -150,27 +190,11 @@ const OrdersContainer = () => {
     );
   };
 
-  const onFilterByType = (e: any) => {
-    const salesSorted = sales
-      .slice()
-      .sort((a: any, b: any) =>
-        sort === "lower" ? a.order - b.order : b.order - a.order
-      );
-
-    setSalesFiltered(
-      e.target.value === "all"
-        ? salesSorted
-        : salesSorted.filter(
-            (sale: any) => sale.typeShipment === e.target.value
-          )
-    );
-  };
-
   useEffect(() => {
-    if (sales.length) {
-      setSalesFiltered(sales);
+    if (orders.length) {
+      setOrdersFiltered(orders);
     }
-  }, [sales]);
+  }, [orders]);
 
   return (
     <>
@@ -284,10 +308,12 @@ const OrdersContainer = () => {
           <label className="mr-2 text-white">Filtrar por Tipo:</label>
           <select
             className="p-1 border border-[#484E55] rounded-md"
-            onChange={onFilterByType}
-            defaultValue="all"
+            onChange={({ target }: any) =>
+              setFilters((props) => ({ ...props, typeShipment: target.value }))
+            }
+            defaultValue=""
           >
-            <option value="all" className="py-2">
+            <option value="" className="py-2">
               Todos
             </option>
             <option value="retiraLocal" className="py-2">
@@ -318,7 +344,7 @@ const OrdersContainer = () => {
 
       <div className="mt-5 h-[70vh] mx-auto max-w overflow-hidden overflow-y-auto overflow-x-auto">
         <EditableTable
-          data={salesFiltered}
+          data={ordersFiltered}
           columns={columns}
           handleAction={handleAction}
           editableRow={editableRow}

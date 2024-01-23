@@ -5,6 +5,7 @@ import Spinner from "../components/Spinner";
 import { useEffect, useState } from "react";
 import IncomeContainer from "./IncomeContainer";
 import OutgoingContainer from "./OutgoingContainer";
+import ObservationContainer from "./ObservationContainer";
 
 const ListOfPricesContainer = ({
   prices,
@@ -26,6 +27,7 @@ const ListOfPricesContainer = ({
 
   const [isModalIncomeOpen, setIsModalIncomeOpen] = useState(false);
   const [isModalOutgoingOpen, setIsModalOutgoingOpen] = useState(false);
+  const [isModalObservationOpen, setIsModalObservationOpen] = useState(false);
 
   useEffect(() => {
     const handleOrientationChange = () => {
@@ -188,6 +190,14 @@ const ListOfPricesContainer = ({
         >
           EGRESOS
         </div>
+        <div
+          className={`ml-2 cursor-pointer inline-block px-4 py-1 rounded-md border bg-blue-800 border-blue-800 text-white`}
+          onClick={() => {
+            setIsModalObservationOpen(true);
+          }}
+        >
+          OBSERVACIONES
+        </div>
       </div>
       <div className="h-[75vh] p-2 border border-[#484E55] overflow-hidden overflow-y-auto">
         {isLoading ? (
@@ -228,6 +238,10 @@ const ListOfPricesContainer = ({
         <OutgoingContainer
           isModalOutgoingOpen={isModalOutgoingOpen}
           setIsModalOutgoingOpen={setIsModalOutgoingOpen}
+        />
+        <ObservationContainer
+          isModalObservationOpen={isModalObservationOpen}
+          setIsModalObservationOpen={setIsModalObservationOpen}
         />
       </div>
     </>

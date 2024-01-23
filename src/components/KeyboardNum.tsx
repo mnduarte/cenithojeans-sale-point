@@ -2,6 +2,7 @@ import { MdClose } from "react-icons/md";
 import { FiDelete } from "react-icons/fi";
 import { IoEnter } from "react-icons/io5";
 import { formatCurrency } from "../utils/formatUtils";
+import { concepts } from "../utils/constants";
 
 const KeyboardNum = ({
   isModalKeyboardNumOpen,
@@ -14,9 +15,8 @@ const KeyboardNum = ({
   isItemPrice,
   concept,
   setConcept,
-  title
+  title,
 }: any) => {
-
   const elements = [
     [{ value: 1 }, { value: 2 }, { value: 3 }],
     [{ value: 4 }, { value: 5 }, { value: 6 }],
@@ -33,7 +33,7 @@ const KeyboardNum = ({
       {isModalKeyboardNumOpen && (
         <div className="fixed inset-0 bg-[#252525] bg-opacity-70 flex justify-center">
           {/* Contenido del modal */}
-          <div className="w-[40vh] h-[55vh] mt-10 bg-gray-800 border border-[#000000] p-8 rounded shadow-md relative">
+          <div className="w-[40vh] h-max mt-10 bg-gray-800 border border-[#000000] p-8 rounded shadow-md relative">
             {/* Icono de cerrar en la esquina superior derecha */}
             <button
               className="absolute top-4 right-4 text-white"
@@ -68,15 +68,17 @@ const KeyboardNum = ({
                   <option value="" className="py-2" disabled hidden>
                     Sin concepto
                   </option>
-                  <option value="bolsas" className="py-2">
-                    Bolsas
-                  </option>
-                  <option value="envio" className="py-2">
-                    Envío
-                  </option>
-                  <option value="recargoPorMenor" className="py-2">
-                    Recargo por menor
-                  </option>
+                  {concepts.map((concept, idx) => (
+                    <option
+                      value={concept.value}
+                      key={idx}
+                      className={`py-2 ${
+                        concept.action === "addition" && "text-green-300"
+                      } ${concept.action === "subtraction" && "text-red-300"}`}
+                    >
+                      {concept.description}
+                    </option>
+                  ))}
                 </select>
               </div>
             )}

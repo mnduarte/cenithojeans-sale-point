@@ -7,25 +7,24 @@ const actionTypes = {
   LOADING: "loading",
   ERROR: "error",
   ADD_SUCCESS: "success",
-  LIST_CASHFLOW: "list_cashflow",
+  LIST_OBSERVATION: "list_observation",
   SET_HIDE_TOAST: "set_hide_toast",
 };
 
-const CashflowContext = createContext<any>(undefined);
+const ObservationContext = createContext<any>(undefined);
 
-type CashflowProviderProps = {
+type ObservationProviderProps = {
   children?: React.ReactNode;
 };
 
 // Proveedor de contexto para el contexto de precios
-export const CashflowProvider: React.FC<CashflowProviderProps> = ({
+export const ObservationProvider: React.FC<ObservationProviderProps> = ({
   children,
 }) => {
   const initialState: any = {
     loading: false,
     error: null,
-    incomes: [],
-    outgoings: [],
+    observations: [],
     showSuccessToast: false,
     showErrorToast: false,
     showSuccessToastMsg: "",
@@ -59,13 +58,12 @@ export const CashflowProvider: React.FC<CashflowProviderProps> = ({
           showSuccessToastMsg: action.payload,
         };
       }
-      case actionTypes.LIST_CASHFLOW: {
+      case actionTypes.LIST_OBSERVATION: {
         return {
           ...state,
           loading: false,
           error: false,
-          incomes: action.payload.incomes,
-          outgoings: action.payload.outgoings,
+          observations: action.payload,
         };
       }
       case actionTypes.SET_HIDE_TOAST: {
@@ -84,25 +82,27 @@ export const CashflowProvider: React.FC<CashflowProviderProps> = ({
   const [state, dispatch] = useReducer(reducer, initialState);
 
   return (
-    <CashflowContext.Provider value={{ state, dispatch }}>
+    <ObservationContext.Provider value={{ state, dispatch }}>
       {children}
-    </CashflowContext.Provider>
+    </ObservationContext.Provider>
   );
 };
 
 // Hook personalizado para acceder al contexto de precios
-export const useCashflow = () => {
-  const context = useContext(CashflowContext);
+export const useObservation = () => {
+  const context = useContext(ObservationContext);
   if (!context) {
-    throw new Error("useCashflow debe usarse dentro de un CashflowProvider");
+    throw new Error("useObservation debe usarse dentro de un ObservationProvider");
   }
   return context;
 };
 
 // Acciones para modificar el estado del contexto de precios
-export const cashflowActions = {
-  addCashflow:
-    ({ type, amount, employee, store, description }: any) =>
+export const observationActions = {
+  addObservation:
+    ({ observation,
+      store,
+      username }: any) =>
     async (dispatch: any) => {
       dispatch({
         type: actionTypes.LOADING,
@@ -110,17 +110,15 @@ export const cashflowActions = {
       });
 
       try {
-        await Api.addCashflow({
-          type,
-          amount,
-          employee,
+        await Api.addObservation({
+          observation,
           store,
-          description,
+          username,
         });
 
         dispatch({
           type: actionTypes.ADD_SUCCESS,
-          payload: `${type} añadido!!`,
+          payload: `Observacion ingresada`,
         });
       } catch (error) {
         console.log(error);
@@ -131,7 +129,7 @@ export const cashflowActions = {
         });
       }
     },
-  getCashFlowByDay:
+  getObservationByDay:
     ({ date, store }: any) =>
     async (dispatch: any) => {
       dispatch({
@@ -140,15 +138,15 @@ export const cashflowActions = {
       });
 
       try {
-        const { data } = await Api.getCashflowByDay({
+        /*const { data } = await Api.getObservationByDay({
           date,
           store,
         });
 
         dispatch({
-          type: actionTypes.LIST_CASHFLOW,
+          type: actionTypes.LIST_OBSERVATION,
           payload: data.results,
-        });
+        });*/
       } catch (error) {
         console.log(error);
 

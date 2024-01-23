@@ -1,10 +1,36 @@
 import React from "react";
+import { MdOutlinePendingActions } from "react-icons/md";
+import { formatCurrency } from "../utils/formatUtils";
 
 const mappingInputType: any = {
+  button: ({ action }: any) => (
+    <div
+      className={`bg-blue-500 p-2 rounded-md flex items-center justify-center select-none`}
+      onClick={action}
+    >
+      <MdOutlinePendingActions />
+    </div>
+  ),
+  select: ({ value, action, dataSelect }: any) => (
+    <select
+      className="p-1 border border-[#484E55] rounded-md"
+      onChange={action}
+      value={value ? value : ""}
+    >
+      <option value="" className="py-2" disabled hidden>
+        -
+      </option>
+      {dataSelect.map((data: any, idx: number) => (
+        <option value={data} key={idx} className="py-2">
+          {data}
+        </option>
+      ))}
+    </select>
+  ),
   string: ({ value, action }: any) => (
     <input
       type="text"
-      className="w-[10vh] p-1 border border-[#484E55] rounded-md mr-2 text-right hover:cursor-pointer"
+      className="w-20 p-1 border border-[#484E55] rounded-md mr-2 text-right hover:cursor-pointer"
       readOnly
       value={value ? value.toString() : ""}
       onFocus={action}
@@ -13,8 +39,9 @@ const mappingInputType: any = {
   date: ({ value, action }: any) => (
     <input
       type="date"
+      //value={value ? value.split("/").reverse().join("-") : ""}
       value={value ? value : ""}
-      onChange={({ target }: any) => action(target.value)}
+      onChange={action}
       className="p-1 border border-gray-300 rounded-md hover:cursor-pointer"
     />
   ),
@@ -26,6 +53,7 @@ const EditableTable = ({
   handleAction,
   editableRow,
   handleEditClick,
+  table = "0-",
   enableSelectItem = false,
   itemsIdSelected = false,
   setItemsIdSelected = false,
@@ -50,11 +78,15 @@ const EditableTable = ({
         {data.map((row: any, rowIndex: any) => (
           <React.Fragment key={rowIndex}>
             <tr
-              className={`${
-                editableRow === rowIndex ? "bg-[#01557c]" : "hover:bg-[#1E1E1E]"
-              }  ${rowIndex % 2 === 0 && "bg-[#1E1E1E]"} ${
-                row[rowWithoutActions] && "bg-red-700 hover:bg-red-700"
-              }`}
+              className={` ${
+                rowIndex % 2 === 0 &&
+                editableRow !== table + rowIndex &&
+                "bg-[#1E1E1E]"
+              } ${
+                editableRow === table + rowIndex
+                  ? "bg-[#01557c]"
+                  : "hover:bg-[#1E1E1E]"
+              } ${row[rowWithoutActions] && "bg-red-700 hover:bg-red-700"}`}
             >
               {enableSelectItem && (
                 <td className="p-2 pl-2 border border-[#292A28]">
@@ -82,17 +114,18 @@ const EditableTable = ({
               {columns.map((column: any, columnIndex: any) => (
                 <td
                   key={columnIndex}
-                  className="text-right p-2 px-2 border border-[#292A28] hover:cursor-pointer"
+                  className="text-right p-1 px-2 border border-[#292A28] hover:cursor-pointer"
                   onClick={() =>
-                    !row[rowWithoutActions] && handleEditClick(rowIndex)
+                    !row[rowWithoutActions] && handleEditClick(table + rowIndex)
                   }
                 >
-                  {editableRow === rowIndex &&
+                  {editableRow === table + rowIndex &&
                   column.editableCell &&
                   column.type
                     ? mappingInputType[column.type]({
                         value: row[column.dataIndex],
                         dataIndex: column.dataIndex,
+                        dataSelect: column.dataSelect,
                         action: (inputValue: any) =>
                           handleAction({
                             dataIndex: column.dataIndex,
@@ -102,18 +135,42 @@ const EditableTable = ({
                             inputValue,
                           }),
                       })
-                    : column.format
-                    ? Boolean(row[column.dataIndex])
-                      ? column.format(row[column.dataIndex])
-                      : "-"
+                    : column.defaultValue
+                    ? column.defaultValue
                     : Boolean(row[column.dataIndex])
-                    ? row[column.dataIndex]
+                    ? column.format
+                      ? column.format(row[column.dataIndex])
+                      : row[column.dataIndex]
                     : "-"}
                 </td>
               ))}
             </tr>
           </React.Fragment>
         ))}
+
+        {columns.find(({ sumAcc }: any) => sumAcc) && (
+          <tr>
+            {enableSelectItem && (
+              <th className="text-right p-2 px-3 border border-[#292A28] font-bold bg-[#1E1E1E]"></th>
+            )}
+            {columns.map((column: any, idx: number) => (
+              <td
+                className="text-right p-2 px-3 border border-[#292A28] font-bold bg-[#1E1E1E]"
+                key={idx}
+              >
+                {idx === 0 && "TOTAL"}
+                {column.sumAcc &&
+                  `$${formatCurrency(
+                    data.reduce(
+                      (acc: any, current: any) =>
+                        acc + current[column.dataIndex],
+                      0
+                    )
+                  )}`}
+              </td>
+            ))}
+          </tr>
+        )}
       </tbody>
     </table>
   );

@@ -31,9 +31,12 @@ const IncomeContainer = ({ isModalIncomeOpen, setIsModalIncomeOpen }: any) => {
   };
 
   const handleIncome = () => {
+    const foundEmployee = employees.find((emp) => emp.name === sellerSelected);
+
     const data = {
       type: "ingreso",
       employee: sellerSelected,
+      store: foundEmployee.store,
       amount,
     };
 
@@ -88,8 +91,6 @@ const IncomeContainer = ({ isModalIncomeOpen, setIsModalIncomeOpen }: any) => {
               />
             </div>
 
-            <br />
-
             <div className="mb-4 inline-block">
               <label className="mr-2 text-white">Seleccione Vendedor:</label>
               <select
@@ -113,6 +114,8 @@ const IncomeContainer = ({ isModalIncomeOpen, setIsModalIncomeOpen }: any) => {
               </select>
             </div>
 
+            <br />
+
             <div className="flex space-x-4">
               <div
                 className="w-1/2 bg-blue-800 hover:bg-blue-800 hover:cursor-pointer text-white px-4 py-2 rounded-md flex items-center justify-center mx-auto select-none"
@@ -121,10 +124,11 @@ const IncomeContainer = ({ isModalIncomeOpen, setIsModalIncomeOpen }: any) => {
                 Cancelar
               </div>
               <div
-                className={`bg-green-800 hover:bg-green-800 hover:cursor-pointer w-1/2 text-white px-4 py-2 rounded-md flex items-center justify-center mx-auto select-none ${
-                  (!Boolean(sellerSelected.length) || !Boolean(amount)) &&
-                  "bg-gray-500"
-                }`}
+                className={`${
+                  !Boolean(sellerSelected.length) || !Boolean(amount)
+                    ? "bg-gray-500"
+                    : "bg-green-800 hover:bg-green-800 hover:cursor-pointer"
+                }  w-1/2 text-white px-4 py-2 rounded-md flex items-center justify-center mx-auto select-none `}
                 onClick={() =>
                   Boolean(sellerSelected.length) &&
                   Boolean(amount) &&

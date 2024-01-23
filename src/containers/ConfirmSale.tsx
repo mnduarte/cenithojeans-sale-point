@@ -16,6 +16,7 @@ const ConfirmSale = ({
   onSale,
   isLoading,
   pricesSelected,
+  devolutionPricesSelected,
   setPricesSelected,
   setDevolutionPricesSelected,
   inboundSale,
@@ -50,9 +51,18 @@ const ConfirmSale = ({
     Boolean(price.concept)
   );
 
+  const pricesDevolutionWithconcepts = devolutionPricesSelected.filter(
+    (price: any) => Boolean(price.concept)
+  );
+
   const handleSale = () => {
+    const [objEmployee] = employees.filter(
+      (employee: any) => employee.name === sellerSelected
+    );
+
     const data = {
       employee: sellerSelected,
+      store: objEmployee.store,
       typeSale,
       typePayment,
       numOrder,
@@ -290,7 +300,17 @@ const ConfirmSale = ({
                     <div className="inline-block">
                       {mappingConceptWithIcon[price.concept].icon}
                     </div>
-                    : ${formatCurrency(price.price)}
+                    : ${formatCurrency(price.price * price.quantity)}
+                  </p>
+                ))}
+              {Boolean(pricesDevolutionWithconcepts.length) &&
+                pricesDevolutionWithconcepts.map((price: any) => (
+                  <p className="mr-2 text-white" key={price.id}>
+                    {mappingConceptWithIcon[price.concept].value}{" "}
+                    <div className="inline-block">
+                      {mappingConceptWithIcon[price.concept].icon}
+                    </div>
+                    : ${formatCurrency(price.price * price.quantity)}
                   </p>
                 ))}
               {Boolean(totalDevolutionItems) && (
@@ -331,6 +351,7 @@ const ConfirmSale = ({
                     typeSale,
                     numOrder,
                     pricesWithconcepts,
+                    pricesDevolutionWithconcepts,
                   })
                 }
               >

@@ -45,7 +45,14 @@ const getSales = ({ startDate, endDate, store, employee }: any) => {
   return instance.get("/sale/sales", config);
 };
 
-const getOrders = ({ startDate, endDate, typeSale, store, employee }: any) => {
+const getOrders = ({
+  startDate,
+  endDate,
+  typeSale,
+  store,
+  employee,
+  typeShipment,
+}: any) => {
   const config: AxiosRequestConfig = {
     params: {
       startDate,
@@ -53,10 +60,33 @@ const getOrders = ({ startDate, endDate, typeSale, store, employee }: any) => {
       typeSale,
       store,
       employee,
+      typeShipment,
     },
   };
 
   return instance.get("/sale/orders", config);
+};
+
+const getSalesByDay = ({ date, store }: any) => {
+  const config: AxiosRequestConfig = {
+    params: {
+      date,
+      store,
+    },
+  };
+
+  return instance.get("/sale/sales-by-employees", config);
+};
+
+const getCashflowByDay = ({ date, store }: any) => {
+  const config: AxiosRequestConfig = {
+    params: {
+      date,
+      store,
+    },
+  };
+
+  return instance.get("/cashflow/cashflow-by-day", config);
 };
 
 const addSale = ({
@@ -90,8 +120,26 @@ const addSale = ({
     total,
   });
 
-const updateSale = ({ id, dataIndex, value }: any) =>
-  instance.put("/sale/update-sale", { id, dataIndex, value });
+const addNewSaleByEmployee = ({
+  items,
+  total,
+  employee,
+  store,
+  username,
+}: any) =>
+  instance.post("/sale/add-sale-by-employee", {
+    items,
+    total,
+    employee,
+    store,
+    username,
+  });
+
+const updateOrder = ({ id, dataIndex, value }: any) =>
+  instance.put("/sale/update-order", { id, dataIndex, value });
+
+const updatSaleByEmployee = ({ id, dataIndex, value }: any) =>
+  instance.put("/sale/update-sale-by-employee", { id, dataIndex, value });
 
 const cancelOrders = ({ itemsIdSelected }: any) =>
   instance.post("/sale/cancel-order", { itemsIdSelected });
@@ -105,6 +153,7 @@ const printSale = ({
   typeSale,
   numOrder,
   pricesWithconcepts,
+  pricesDevolutionWithconcepts,
   totalPrice,
 }: any) =>
   instance.post("/sale/print-sale", {
@@ -116,15 +165,24 @@ const printSale = ({
     typeSale,
     numOrder,
     pricesWithconcepts,
+    pricesDevolutionWithconcepts,
     totalPrice,
   });
 
-const addCashflow = ({ type, amount, employee, description }: any) =>
+const addCashflow = ({ type, amount, employee, store, description }: any) =>
   instance.post("/cashflow/add-cashflow", {
     type,
     amount,
     employee,
+    store,
     description,
+  });
+
+const addObservation = ({ observation, store, username }: any) =>
+  instance.post("/observation/add-observation", {
+    observation,
+    store,
+    username,
   });
 
 const Api = {
@@ -144,13 +202,18 @@ const Api = {
   removeEmployee,
 
   addSale,
-  updateSale,
+  addNewSaleByEmployee,
+  updateOrder,
+  updatSaleByEmployee,
   cancelOrders,
   printSale,
   getSales,
   getOrders,
+  getSalesByDay,
+  getCashflowByDay,
 
   addCashflow,
+  addObservation,
 };
 
 export default Api;

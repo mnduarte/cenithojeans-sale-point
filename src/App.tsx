@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import { setupIonicReact } from "@ionic/react";
-import { MdBorderColor, MdOutlineAddShoppingCart } from "react-icons/md";
+import {
+  MdBorderColor,
+  MdOutlineAddShoppingCart,
+  MdSell,
+} from "react-icons/md";
 import { FaList } from "react-icons/fa";
 
 import { PriceProvider, priceActions, usePrice } from "./contexts/PriceContext";
@@ -39,6 +43,8 @@ import Spinner from "./components/Spinner";
 import Keyboard from "./components/Keyboard";
 import { StoreProvider, storeActions, useStore } from "./contexts/StoreContext";
 import { CashflowProvider } from "./contexts/CashflowContext";
+import SalesByDayContainer from "./containers/SalesByDayContainer";
+import { ObservationProvider } from "./contexts/ObservationContext";
 
 setupIonicReact();
 
@@ -56,6 +62,12 @@ const mappingTabs = {
     icon: <FaList />,
     container: <PricesEmployeesContainer />,
     permission: ["ADMIN"],
+  },
+  "Venta Local": {
+    title: "Venta Local",
+    icon: <MdSell />,
+    container: <SalesByDayContainer />,
+    permission: ["EMPLOYEE", "ADMIN"],
   },
   Pedidos: {
     title: "Pedidos",
@@ -235,7 +247,9 @@ const App: React.FC = () => {
           <PriceProvider>
             <EmployeeProvider>
               <CashflowProvider>
-                <AppContainer />
+                <ObservationProvider>
+                  <AppContainer />
+                </ObservationProvider>
               </CashflowProvider>
             </EmployeeProvider>
           </PriceProvider>

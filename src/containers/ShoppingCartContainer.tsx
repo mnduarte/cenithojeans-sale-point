@@ -1,8 +1,4 @@
-import {
-  FaTimes,
-  FaPlus,
-  FaMinus,
-} from "react-icons/fa";
+import { FaTimes, FaPlus, FaMinus } from "react-icons/fa";
 import { MdCleaningServices, MdPointOfSale } from "react-icons/md";
 import { formatCurrency } from "../utils/formatUtils";
 import { Price, PriceSelected } from "../types";
@@ -123,11 +119,13 @@ const ShoppingCartContainer = ({
             <div
               key={idx}
               className={` border ${
-                item.concept ? "border-green-500" : "border-[#1BA1E2]"
+                item.concept ? "border-yellow-600" : "border-[#1BA1E2]"
               } bg-[#333333] text-white text-center flex items-center justify-center mb-2 `}
             >
               <div
-                className="w-1/6 h-12 border-r border-[#1BA1E2] flex items-center justify-center hover:bg-red-500 hover:cursor-pointer"
+                className={`w-1/6 h-12 border-r ${
+                  item.concept ? "border-yellow-600" : "border-[#1BA1E2]"
+                } flex items-center justify-center hover:bg-red-500 hover:cursor-pointer`}
                 onClick={() => removeProductSelected(item.id, false)}
               >
                 <FaTimes />
@@ -179,10 +177,14 @@ const ShoppingCartContainer = ({
             {devolutionPricesSelected.map((item: any, idx: any) => (
               <div
                 key={idx}
-                className={` border border-red-500 bg-[#333333] text-white text-center flex items-center justify-center mb-2 `}
+                className={` border ${
+                  item.concept ? "border-yellow-600" : "border-red-500"
+                }  bg-[#333333] text-white text-center flex items-center justify-center mb-2 `}
               >
                 <div
-                  className="w-1/6 h-12 border-r border-red-500 flex items-center justify-center hover:bg-red-500 hover:cursor-pointer"
+                  className={`w-1/6 h-12 border-r ${
+                    item.concept ? "border-yellow-600" : "border-red-500"
+                  } flex items-center justify-center hover:bg-red-500 hover:cursor-pointer`}
                   onClick={() => removeProductSelected(item.id, true)}
                 >
                   <FaTimes />
@@ -199,7 +201,8 @@ const ShoppingCartContainer = ({
                   x {formatCurrency(item.price)}
                 </div>
                 <div className="w-2/5 h-12 pr-1 border-l border-[#484E55] flex items-center justify-end select-none">
-                  ${formatCurrency(`${item.quantity * item.price}`)}
+                  {item.concept && mappingConceptWithIcon[item.concept].icon} $
+                  {formatCurrency(`${item.quantity * item.price}`)}
                 </div>
 
                 <div className="w-1/6 h-12 flex flex-col">

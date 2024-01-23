@@ -14,6 +14,7 @@ import { saleActions, useSale } from "../contexts/SaleContext";
 import Toast from "../components/Toast";
 import KeyboardNum from "../components/KeyboardNum";
 import { useUser } from "../contexts/UserContext";
+import { concepts } from "../utils/constants";
 
 const SalesContainer = () => {
   const {
@@ -75,7 +76,8 @@ const SalesContainer = () => {
     setTotalItems(totalItems);
 
     const totalDevolutionItems = devolutionPricesSelected.reduce(
-      (acc, current) => Number(current.quantity) + Number(acc),
+      (acc, current) =>
+        Number(acc) + (current.concept ? 0 : Number(current.quantity)),
       0
     );
     setTotalDevolutionItems(totalDevolutionItems);
@@ -111,7 +113,6 @@ const SalesContainer = () => {
   }, [isModalSaleOpen]);
 
   const onSale = (data: any) => {
-    data.store = user.store;
     data.items = totalItems;
     data.subTotalItems = pricesSelected.reduce(
       (acc, current) =>
@@ -159,11 +160,19 @@ const SalesContainer = () => {
 
   const addManualPrice = (concept: any) => {
     if (manualPrice) {
-      const setPricesItems = concept.length
-        ? setPricesSelected
-        : devolutionModeActive
+      const [foundConcept]: any = concepts.filter((c) => c.value === concept);
+
+      let setPricesItems = devolutionModeActive
         ? setDevolutionPricesSelected
         : setPricesSelected;
+
+      if (foundConcept && foundConcept.action === "addition") {
+        setPricesItems = setPricesSelected;
+      }
+
+      if (foundConcept && foundConcept.action === "subtraction") {
+        setPricesItems = setDevolutionPricesSelected;
+      }
 
       setPricesItems((items: any) => {
         const maxId = Math.max(
@@ -251,17 +260,19 @@ const SalesContainer = () => {
     typeSale,
     numOrder,
     pricesWithconcepts,
+    pricesDevolutionWithconcepts,
   }: any) =>
     dispatchSale(
       saleActions.printSale({
         pricesSelected: pricesSelected.filter((price: any) => !price.concept),
-        devolutionPricesSelected,
+        devolutionPricesSelected: devolutionPricesSelected.filter((price: any) => !price.concept),
         percentageToDisccountOrAdd,
         username: user.username,
         seller: sellerSelected,
         typeSale,
         numOrder,
         pricesWithconcepts,
+        pricesDevolutionWithconcepts,
         totalPrice,
       })(dispatchSale)
     );
@@ -313,6 +324,7 @@ const SalesContainer = () => {
         onSale={onSale}
         isLoading={loadingSales}
         pricesSelected={pricesSelected}
+        devolutionPricesSelected={devolutionPricesSelected}
         setPricesSelected={setPricesSelected}
         setDevolutionPricesSelected={setDevolutionPricesSelected}
         setDevolutionModeActive={setDevolutionModeActive}
