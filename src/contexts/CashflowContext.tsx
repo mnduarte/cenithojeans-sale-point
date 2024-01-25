@@ -8,6 +8,7 @@ const actionTypes = {
   ERROR: "error",
   ADD_SUCCESS: "success",
   LIST_CASHFLOW: "list_cashflow",
+  LIST_OUTGOINGS_BY_DAY: "list_outgoins_by_day",
   SET_HIDE_TOAST: "set_hide_toast",
 };
 
@@ -26,6 +27,7 @@ export const CashflowProvider: React.FC<CashflowProviderProps> = ({
     error: null,
     incomes: [],
     outgoings: [],
+    outgoingsByDay: [],
     showSuccessToast: false,
     showErrorToast: false,
     showSuccessToastMsg: "",
@@ -66,6 +68,14 @@ export const CashflowProvider: React.FC<CashflowProviderProps> = ({
           error: false,
           incomes: action.payload.incomes,
           outgoings: action.payload.outgoings,
+        };
+      }
+      case actionTypes.LIST_OUTGOINGS_BY_DAY: {
+        return {
+          ...state,
+          loading: false,
+          error: false,
+          outgoingsByDay: action.payload,
         };
       }
       case actionTypes.SET_HIDE_TOAST: {
@@ -147,6 +157,33 @@ export const cashflowActions = {
 
         dispatch({
           type: actionTypes.LIST_CASHFLOW,
+          payload: data.results,
+        });
+      } catch (error) {
+        console.log(error);
+
+        dispatch({
+          type: actionTypes.ERROR,
+          payload: ERROR_MESSAGE_TIMEOUT,
+        });
+      }
+    },
+  getOutgoingsByDay:
+    ({ date, store }: any) =>
+    async (dispatch: any) => {
+      dispatch({
+        type: actionTypes.LOADING,
+        payload: { loading: true },
+      });
+
+      try {
+        const { data } = await Api.getOutgoingsByDay({
+          date,
+          store,
+        });
+
+        dispatch({
+          type: actionTypes.LIST_OUTGOINGS_BY_DAY,
           payload: data.results,
         });
       } catch (error) {

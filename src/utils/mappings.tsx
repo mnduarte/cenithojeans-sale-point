@@ -1,6 +1,7 @@
 import { FaArrowAltCircleUp, FaShoppingBag, FaTruck } from "react-icons/fa";
 import { IoIosCash } from "react-icons/io";
 import { FaMoneyBillTransfer } from "react-icons/fa6";
+import { BiSolidDiscount } from "react-icons/bi";
 
 interface ConceptWithIcon {
   value: string;
@@ -21,5 +22,9 @@ export const mappingConceptWithIcon: Record<string, ConceptWithIcon> = {
     pagoTransferencia: {
       value: "Pago transferencia",
       icon: <FaMoneyBillTransfer className="mr-2" />,
+    },
+    descuento: {
+      value: "Descuento",
+      icon: <BiSolidDiscount className="mr-2" />,
     },
   };

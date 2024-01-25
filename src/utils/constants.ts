@@ -31,4 +31,9 @@ export const concepts = [
     description: "Pago transferencia",
     action: "subtraction",
   },
+  {
+    value: "descuento",
+    description: "Descuento",
+    action: "subtraction",
+  },
 ];

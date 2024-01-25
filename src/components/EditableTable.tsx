@@ -54,6 +54,7 @@ const EditableTable = ({
   editableRow,
   handleEditClick,
   table = "0-",
+  setItemInOnClick = false,
   enableSelectItem = false,
   itemsIdSelected = false,
   setItemsIdSelected = false,
@@ -116,7 +117,8 @@ const EditableTable = ({
                   key={columnIndex}
                   className="text-right p-1 px-2 border border-[#292A28] hover:cursor-pointer"
                   onClick={() =>
-                    !row[rowWithoutActions] && handleEditClick(table + rowIndex)
+                    !row[rowWithoutActions] &&
+                    handleEditClick(setItemInOnClick ? row : table + rowIndex)
                   }
                 >
                   {editableRow === table + rowIndex &&

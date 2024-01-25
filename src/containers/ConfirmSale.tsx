@@ -304,6 +304,10 @@ const ConfirmSale = ({
                     : ${formatCurrency(price.price * price.quantity)}
                   </div>
                 ))}
+              <div className="mr-2 text-white text-base font-bold">
+                Total: ${formatCurrency(totalPrices)}
+              </div>
+              <br />
               {Boolean(totalDevolutionItems) && (
                 <div className="mr-2 text-white">
                   Devoluciones: {totalDevolutionItems}
@@ -319,13 +323,13 @@ const ConfirmSale = ({
                     : ${formatCurrency(price.price * price.quantity)}
                   </div>
                 ))}
-              <div className="mr-2 text-white text-base font-bold">
-                Total: ${formatCurrency(totalPrices)}
-              </div>
               {Boolean(totalDevolutionPrices) && (
-                <div className="mr-2 text-white text-base font-bold">
-                  Total Devoluciones: ${formatCurrency(totalDevolutionPrices)}
-                </div>
+                <>
+                  <div className="mr-2 text-white text-base font-bold">
+                    Total Devoluciones: ${formatCurrency(totalDevolutionPrices)}
+                  </div>
+                  <br />
+                </>
               )}
               <div className="h-[6vh]">
                 {percentageToDisccountOrAdd !== 0 && (
@@ -341,9 +345,8 @@ const ConfirmSale = ({
                 <div className="mr-2 text-white text-lg font-bold">
                   Total Final: $
                   {formatCurrency(
-                    totalPrices *
-                      calculateTotalPercentage(percentageToDisccountOrAdd) -
-                      totalDevolutionPrices
+                    (totalPrices - totalDevolutionPrices) *
+                      calculateTotalPercentage(percentageToDisccountOrAdd)
                   )}
                 </div>
               </div>

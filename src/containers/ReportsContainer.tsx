@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { saleActions, useSale } from "../contexts/SaleContext";
-import { formatCurrency } from "../utils/formatUtils";
+import { formatCurrency, formatDateToYYYYMMDD } from "../utils/formatUtils";
 import { months } from "../utils/constants";
 import Spinner from "../components/Spinner";
 import EditableTable from "../components/EditableTable";
+import { cashflowActions, useCashflow } from "../contexts/CashflowContext";
 
 const ReportsContainer = () => {
   const currentMonth = new Date().getMonth();
@@ -12,6 +13,10 @@ const ReportsContainer = () => {
     state: { reports, loading },
     dispatch: dispatchSale,
   } = useSale();
+  const {
+    state: { outgoingsByDay, loading: loadingCashflow },
+    dispatch: dispatchCashflow,
+  } = useCashflow();
   const [filters, setFilters] = useState({
     month: Number(currentMonth),
     year: currentYear,
@@ -106,6 +111,20 @@ const ReportsContainer = () => {
       applyFormat: true,
     },
   ];
+
+  const handleOutGoings = ({ date, outgoings }: any) => {
+    const [day, month, year] = date.split("/");
+    const outputDate = `${year}-${month}-${day}`;
+    outgoings &&
+      dispatchCashflow(
+        cashflowActions.getOutgoingsByDay({
+          date: outputDate,
+          store: filters.store,
+        })(dispatchCashflow)
+      );
+  };
+
+  console.log(outgoingsByDay);
 
   return (
     <>
@@ -216,7 +235,8 @@ const ReportsContainer = () => {
                           ? columnsLocalSalesByDay
                           : columnsPedidoSalesByDay
                       }
-                      handleEditClick={(e: any) => console.log(e)}
+                      handleEditClick={handleOutGoings}
+                      setItemInOnClick={true}
                       table={`-byDay`}
                     />
                   </div>

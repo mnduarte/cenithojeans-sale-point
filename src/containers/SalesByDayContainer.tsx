@@ -35,7 +35,7 @@ const SalesByDayContainer = () => {
   } = useUser();
 
   const {
-    state: { loading: incomes, outgoings },
+    state: { loading: loadingCashflow, incomes, outgoings },
     dispatch: dispatchCashflow,
   } = useCashflow();
   const [date, setDate] = useState("");

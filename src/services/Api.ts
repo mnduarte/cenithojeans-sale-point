@@ -102,6 +102,17 @@ const getCashflowByDay = ({ date, store }: any) => {
   return instance.get("/cashflow/cashflow-by-day", config);
 };
 
+const getOutgoingsByDay = ({ date, store }: any) => {
+  const config: AxiosRequestConfig = {
+    params: {
+      date,
+      store,
+    },
+  };
+
+  return instance.get("/cashflow/outgoings-by-day", config);
+};
+
 const addSale = ({
   store,
   employee,
@@ -236,6 +247,7 @@ const Api = {
   getReports,
   getSalesByDay,
   getCashflowByDay,
+  getOutgoingsByDay,
 
   addCashflow,
   addObservation,

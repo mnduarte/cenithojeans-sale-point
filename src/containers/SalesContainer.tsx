@@ -117,15 +117,15 @@ const SalesContainer = () => {
   }, [isModalSaleOpen]);
 
   const onSale = (data: any) => {
-    data.items = totalItems;
+    data.items = totalItems - totalDevolutionItems;
     data.subTotalItems = totalPrices;
     data.devolutionItems = totalDevolutionItems;
     data.subTotalDevolutionItems = totalDevolutionPrices;
     data.percentageToDisccountOrAdd = percentageToDisccountOrAdd;
     data.username = user.username;
     data.total =
-      totalPrices * calculateTotalPercentage(percentageToDisccountOrAdd) -
-      totalDevolutionPrices;
+      (totalPrices - totalDevolutionPrices) *
+      calculateTotalPercentage(percentageToDisccountOrAdd);
     dispatchSale(saleActions.addSale(data)(dispatchSale));
   };
 
@@ -276,8 +276,8 @@ const SalesContainer = () => {
         totalPrices: totalPrices,
         totalDevolutionPrices: totalDevolutionPrices,
         total:
-          totalPrices * calculateTotalPercentage(percentageToDisccountOrAdd) -
-          totalDevolutionPrices,
+          (totalPrices - totalDevolutionPrices) *
+          calculateTotalPercentage(percentageToDisccountOrAdd),
       })(dispatchSale)
     );
 
