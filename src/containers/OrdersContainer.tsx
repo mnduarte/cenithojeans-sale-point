@@ -79,6 +79,7 @@ const OrdersContainer = () => {
       type: "string",
       format: (number: any) => `$${formatCurrency(number)}`,
       sumAcc: user.role === "ADMIN",
+      applyFormat: true,
     },
     {
       title: "Efectivo",
@@ -87,12 +88,14 @@ const OrdersContainer = () => {
       type: "string",
       format: (number: any) => `$${formatCurrency(number)}`,
       sumAcc: user.role === "ADMIN",
+      applyFormat: true,
     },
     {
       title: "Prendas",
       dataIndex: "items",
       editableCell: true,
       type: "string",
+      sumAcc: true,
     },
     {
       title: "Total",
@@ -101,6 +104,7 @@ const OrdersContainer = () => {
       editableCell: true,
       type: "string",
       sumAcc: user.role === "ADMIN",
+      applyFormat: true,
     },
     {
       title: <MdOutlinePendingActions />,
@@ -198,7 +202,7 @@ const OrdersContainer = () => {
 
   return (
     <>
-      <div className="h-[8vh] relative p-2 border border-[#484E55] flex justify-center">
+      <div className="h-12 relative p-2 border border-[#484E55] flex justify-center">
         <div className="inline-block">
           <label className="mr-2 text-white">Desde:</label>
           <input
@@ -207,7 +211,7 @@ const OrdersContainer = () => {
             onChange={({ target }: any) =>
               setFilters((props) => ({ ...props, startDate: target.value }))
             }
-            className="p-2 border border-gray-300 rounded-md"
+            className="p-1 border border-gray-300 rounded-md"
           />
           <label className="ml-2 mr-2 text-white">Hasta:</label>
           <input
@@ -216,7 +220,7 @@ const OrdersContainer = () => {
             onChange={({ target }: any) =>
               setFilters((props) => ({ ...props, endDate: target.value }))
             }
-            className="p-2 border border-gray-300 rounded-md"
+            className="p-1 border border-gray-300 rounded-md"
           />
         </div>
 
@@ -224,7 +228,7 @@ const OrdersContainer = () => {
           <div className="ml-4 inline-block">
             <label className="mr-2 text-white">Filtrar por sucursal:</label>
             <select
-              className="p-2 border border-[#484E55] rounded-md"
+              className="p-1 border border-[#484E55] rounded-md"
               onChange={({ target }: any) =>
                 setFilters((props) => ({ ...props, store: target.value }))
               }
@@ -245,7 +249,7 @@ const OrdersContainer = () => {
         <div className="ml-4 inline-block">
           <label className="mr-2 text-white">por vendedor:</label>
           <select
-            className="p-2 border border-[#484E55] rounded-md"
+            className="p-1 border border-[#484E55] rounded-md"
             onChange={({ target }: any) =>
               setFilters((props) => ({ ...props, employee: target.value }))
             }
@@ -264,7 +268,7 @@ const OrdersContainer = () => {
 
         <div className="ml-10 inline-block">
           <div
-            className={`inline-block px-4 py-2 rounded-md border text-white select-none ${
+            className={`inline-block px-4 py-1 rounded-md border text-white select-none ${
               Boolean(filters.startDate.length) &&
               Boolean(filters.endDate.length) &&
               "bg-[#1b78e2] border-[#1b78e2] hover:cursor-pointer hover:opacity-80 transition-opacity"
@@ -284,7 +288,7 @@ const OrdersContainer = () => {
         </div>
       </div>
 
-      <div className="h-[8vh] relative p-2 border border-[#484E55] flex items-center">
+      <div className="h-12 relative p-2 border border-[#484E55] flex items-center">
         <div className="ml-4 inline-block">
           <label className="mr-2 text-white">Ordenar por Pedido:</label>
           <select
@@ -327,7 +331,7 @@ const OrdersContainer = () => {
 
         {Boolean(itemsIdSelected.length) && (
           <div
-            className="w-25 h-10 ml-2 bg-red-700 hover:bg-red-800 hover:cursor-pointer text-white px-4 py-2 rounded-md flex items-center justify-center select-none"
+            className="w-25 ml-2 bg-red-700 hover:bg-red-800 hover:cursor-pointer text-white px-4 py-1 rounded-md flex items-center justify-center select-none"
             onClick={() => {
               setItemsIdSelected([]);
               dispatchSale(
@@ -342,7 +346,7 @@ const OrdersContainer = () => {
         )}
       </div>
 
-      <div className="mt-5 h-[70vh] mx-auto max-w overflow-hidden overflow-y-auto overflow-x-auto">
+      <div className="mt-5 h-[74vh] mx-auto max-w overflow-hidden overflow-y-auto overflow-x-auto">
         <EditableTable
           data={ordersFiltered}
           columns={columns}

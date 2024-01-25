@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useEmployee } from "../contexts/EmployeeContext";
 import { saleActions, useSale } from "../contexts/SaleContext";
 import { formatCurrency } from "../utils/formatUtils";
 import Spinner from "../components/Spinner";
@@ -8,8 +7,10 @@ import KeyboardNum from "../components/KeyboardNum";
 import Toast from "../components/Toast";
 import EditableTable from "../components/EditableTable";
 import { FaPlus } from "react-icons/fa";
+import { GrPowerReset } from "react-icons/gr";
 import NewRowSale from "../containers/NewRowSale";
 import { cashflowActions, useCashflow } from "../contexts/CashflowContext";
+import NewNumOrder from "./NewNumOrder";
 
 const mappingConceptToUpdate: Record<string, string> = {
   cash: "Efectivo",
@@ -34,10 +35,11 @@ const SalesByDayContainer = () => {
   } = useUser();
 
   const {
-    state: { loading: loadingCashflow, incomes, outgoings },
+    state: { loading: incomes, outgoings },
     dispatch: dispatchCashflow,
   } = useCashflow();
   const [date, setDate] = useState("");
+  const [store, setStore] = useState(user.store);
   const [value, setValue] = useState(0);
   const [propSale, setPropSale] = useState({
     id: "",
@@ -45,6 +47,7 @@ const SalesByDayContainer = () => {
   });
   const [isModalKeyboardNumOpen, setIsModalKeyboardNumOpen] = useState(false);
   const [isModalNewRowSale, setIsModalNewRowSale] = useState(false);
+  const [isModalNewNumOrder, setIsModalNewNumOrder] = useState(false);
   const [itemsIdSelected, setItemsIdSelected] = useState<any[]>([]);
 
   const [editableRow, setEditableRow] = useState<number | null>(null);
@@ -58,6 +61,7 @@ const SalesByDayContainer = () => {
       dataIndex: "items",
       editableCell: true,
       type: "string",
+      sumAcc: true,
     },
     {
       title: "Total",
@@ -66,6 +70,7 @@ const SalesByDayContainer = () => {
       editableCell: true,
       type: "string",
       sumAcc: user.role === "ADMIN",
+      applyFormat: true,
     },
   ];
 
@@ -75,10 +80,15 @@ const SalesByDayContainer = () => {
       dataIndex: "employee",
     },
     {
+      title: "Detalle",
+      dataIndex: "description",
+    },
+    {
       title: "Importe",
       dataIndex: "amount",
       format: (number: any) => `$${formatCurrency(number)}`,
       sumAcc: user.role === "ADMIN",
+      applyFormat: true,
     },
   ];
 
@@ -92,6 +102,7 @@ const SalesByDayContainer = () => {
       dataIndex: "amount",
       format: (number: any) => `$${formatCurrency(number)}`,
       sumAcc: user.role === "ADMIN",
+      applyFormat: true,
     },
   ];
 
@@ -141,6 +152,11 @@ const SalesByDayContainer = () => {
     setIsModalNewRowSale(true);
   };
 
+  const handleCountNumOrderByEmployee = ({ emp }: any) => {
+    setEmployeeSelectedForNewRowSale(emp);
+    setIsModalNewNumOrder(true);
+  };
+
   return (
     <>
       <div className="h-10 relative p-2 border border-[#484E55] flex items-center">
@@ -154,6 +170,27 @@ const SalesByDayContainer = () => {
           />
         </div>
 
+        {user.store === "ALL" && (
+          <div className="ml-4 inline-block">
+            <label className="mr-2 text-white">Filtrar por sucursal:</label>
+            <select
+              className="p-2 border border-[#484E55] rounded-md"
+              onChange={({ target }: any) => setStore(target.value)}
+              defaultValue="ALL"
+            >
+              <option value="ALL" className="py-2">
+                Todos
+              </option>
+              <option value="BOGOTA" className="py-2">
+                Bogota
+              </option>
+              <option value="HELGUERA" className="py-2">
+                Helguera
+              </option>
+            </select>
+          </div>
+        )}
+
         <div
           className="ml-5
          inline-block"
@@ -166,13 +203,11 @@ const SalesByDayContainer = () => {
             onClick={() => {
               !loading &&
                 dispatchSale(
-                  saleActions.getSalesByDay({ date, store: user.store })(
-                    dispatchSale
-                  )
+                  saleActions.getSalesByDay({ date, store })(dispatchSale)
                 );
               !loading &&
                 dispatchCashflow(
-                  cashflowActions.getCashFlowByDay({ date, store: user.store })(
+                  cashflowActions.getCashFlowByDay({ date, store })(
                     dispatchCashflow
                   )
                 );
@@ -213,9 +248,15 @@ const SalesByDayContainer = () => {
                 return (
                   <div className="w-50" key={emp}>
                     <div className="mb-2 flex ">
-                      <label className="text-2xl text-white text-base font-bold mr-4">
+                      <label className="text-2xl text-white text-base font-bold mr-3 ml-auto">
                         {emp}
                       </label>
+                      <div
+                        className={`w-6 bg-red-800 hover:cursor-pointer hover:bg-red-900 flex items-center justify-center rounded-md mr-1`}
+                        onClick={() => handleCountNumOrderByEmployee({ emp })}
+                      >
+                        <GrPowerReset />
+                      </div>
                       <div
                         className={`w-6 bg-[#007c2f] hover:cursor-pointer hover:bg-[#006b29] flex items-center justify-center rounded-md`}
                         onClick={() => handleNewRowSale({ emp })}
@@ -294,6 +335,12 @@ const SalesByDayContainer = () => {
       <NewRowSale
         isModalNewRowSale={isModalNewRowSale}
         setIsModalNewRowSale={setIsModalNewRowSale}
+        employee={employeeSelectedForNewRowSale}
+      />
+
+      <NewNumOrder
+        isModalNewNumOrder={isModalNewNumOrder}
+        setIsModalNewNumOrder={setIsModalNewNumOrder}
         employee={employeeSelectedForNewRowSale}
       />
 

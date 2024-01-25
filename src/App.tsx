@@ -6,6 +6,7 @@ import {
   MdSell,
 } from "react-icons/md";
 import { FaList } from "react-icons/fa";
+import { TbReportSearch } from "react-icons/tb";
 
 import { PriceProvider, priceActions, usePrice } from "./contexts/PriceContext";
 import {
@@ -45,6 +46,7 @@ import { StoreProvider, storeActions, useStore } from "./contexts/StoreContext";
 import { CashflowProvider } from "./contexts/CashflowContext";
 import SalesByDayContainer from "./containers/SalesByDayContainer";
 import { ObservationProvider } from "./contexts/ObservationContext";
+import ReportsContainer from "./containers/ReportsContainer";
 
 setupIonicReact();
 
@@ -75,6 +77,12 @@ const mappingTabs = {
     container: <OrdersContainer />,
     permission: ["EMPLOYEE", "ADMIN"],
   },
+  Informes: {
+    title: "Informes",
+    icon: <TbReportSearch />,
+    container: <ReportsContainer />,
+    permission: ["ADMIN"],
+  },
 };
 
 const SalePointContainer = ({ role, store }: any) => {
@@ -99,7 +107,7 @@ const SalePointContainer = ({ role, store }: any) => {
         {mappingTabsByRole.map((tab: any) => (
           <button
             key={tab.title}
-            className={`flex-1 p-2 border-solid border-2 border-[#484E55] text-white text-lg ${
+            className={`flex-1 p-2 border-solid border-2 border-[#484E55] text-white text-base ${
               activeTab === tab.title
                 ? "bg-[#1BA1E2] "
                 : "bg-[#333333] hover:bg-[#484E55]"

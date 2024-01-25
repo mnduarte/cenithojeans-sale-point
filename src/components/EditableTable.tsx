@@ -153,22 +153,28 @@ const EditableTable = ({
             {enableSelectItem && (
               <th className="text-right p-2 px-3 border border-[#292A28] font-bold bg-[#1E1E1E]"></th>
             )}
-            {columns.map((column: any, idx: number) => (
-              <td
-                className="text-right p-2 px-3 border border-[#292A28] font-bold bg-[#1E1E1E]"
-                key={idx}
-              >
-                {idx === 0 && "TOTAL"}
-                {column.sumAcc &&
-                  `$${formatCurrency(
-                    data.reduce(
-                      (acc: any, current: any) =>
-                        acc + current[column.dataIndex],
-                      0
-                    )
-                  )}`}
-              </td>
-            ))}
+            {columns.map((column: any, idx: number) => {
+              const reduceValue =
+                column.sumAcc &&
+                data.reduce(
+                  (acc: any, current: any) =>
+                    acc + (current[column.dataIndex] || 0),
+                  0
+                );
+
+              return (
+                <td
+                  className="text-right p-2 px-3 border border-[#292A28] font-bold bg-[#1E1E1E]"
+                  key={idx}
+                >
+                  {idx === 0 && !Boolean(reduceValue) && "TOTAL"}
+                  {column.sumAcc &&
+                    (column.applyFormat
+                      ? `$${formatCurrency(reduceValue)}`
+                      : reduceValue)}
+                </td>
+              );
+            })}
           </tr>
         )}
       </tbody>

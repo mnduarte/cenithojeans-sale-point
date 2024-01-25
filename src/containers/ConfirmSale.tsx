@@ -12,7 +12,8 @@ const ConfirmSale = ({
   setIsModalSaleOpen,
   totalItems,
   totalDevolutionItems,
-  totalPrice,
+  totalPrices,
+  totalDevolutionPrices,
   onSale,
   isLoading,
   pricesSelected,
@@ -40,6 +41,7 @@ const ConfirmSale = ({
   const closeModalSale = () => {
     setSellerSelected("");
     setNumOrder(0);
+    setPercentageToDisccountOrAdd(0);
     setTypeSale("");
     setTypePayment("");
     setTypeShipment("");
@@ -74,7 +76,6 @@ const ConfirmSale = ({
   const onCleanAndClose = () => {
     setPricesSelected([]);
     setDevolutionPricesSelected([]);
-    setPercentageToDisccountOrAdd(0);
     closeModalSale();
   };
 
@@ -97,8 +98,8 @@ const ConfirmSale = ({
   const multiplyBy = percentageToDisccountOrAdd < 0 ? 1 : -1;
   const calculateTotalDiscount =
     multiplyBy *
-    (totalPrice -
-      totalPrice *
+    (totalPrices -
+      totalPrices *
         calculateTotalPercentage(Math.abs(percentageToDisccountOrAdd)));
 
   return (
@@ -262,8 +263,8 @@ const ConfirmSale = ({
                   <div
                     className={`w-20 text-white text-center flex items-center justify-center ml-2 `}
                   >
-                    <div className="w-10 h-12 pr-1 border border-[#484E55] text-white text-center flex items-center justify-center select-none">
-                      {percentageToDisccountOrAdd}
+                    <div className="w-12 h-12 pr-1 border border-[#484E55] text-white text-center flex items-center justify-center select-none">
+                      {percentageToDisccountOrAdd}%
                     </div>
 
                     <div className="w-10 h-12 flex flex-col">
@@ -292,53 +293,59 @@ const ConfirmSale = ({
             </div>
 
             <div className="mb-4 select-none">
-              <p className="mr-2 text-white">Total de prendas: {totalItems}</p>
+              <div className="mr-2 text-white">Prendas: {totalItems}</div>
               {Boolean(pricesWithconcepts.length) &&
                 pricesWithconcepts.map((price: any) => (
-                  <p className="mr-2 text-white" key={price.id}>
+                  <div className="mr-2 text-white" key={price.id}>
                     {mappingConceptWithIcon[price.concept].value}{" "}
                     <div className="inline-block">
                       {mappingConceptWithIcon[price.concept].icon}
                     </div>
                     : ${formatCurrency(price.price * price.quantity)}
-                  </p>
-                ))}
-              {Boolean(pricesDevolutionWithconcepts.length) &&
-                pricesDevolutionWithconcepts.map((price: any) => (
-                  <p className="mr-2 text-white" key={price.id}>
-                    {mappingConceptWithIcon[price.concept].value}{" "}
-                    <div className="inline-block">
-                      {mappingConceptWithIcon[price.concept].icon}
-                    </div>
-                    : ${formatCurrency(price.price * price.quantity)}
-                  </p>
+                  </div>
                 ))}
               {Boolean(totalDevolutionItems) && (
-                <p className="mr-2 text-white">
+                <div className="mr-2 text-white">
                   Devoluciones: {totalDevolutionItems}
-                </p>
+                </div>
               )}
-              <p className="mr-2 text-white text-base font-bold">
-                Total: ${formatCurrency(totalPrice)}
-              </p>
+              {Boolean(pricesDevolutionWithconcepts.length) &&
+                pricesDevolutionWithconcepts.map((price: any) => (
+                  <div className="mr-2 text-white" key={price.id}>
+                    {mappingConceptWithIcon[price.concept].value}{" "}
+                    <div className="inline-block">
+                      {mappingConceptWithIcon[price.concept].icon}
+                    </div>
+                    : ${formatCurrency(price.price * price.quantity)}
+                  </div>
+                ))}
+              <div className="mr-2 text-white text-base font-bold">
+                Total: ${formatCurrency(totalPrices)}
+              </div>
+              {Boolean(totalDevolutionPrices) && (
+                <div className="mr-2 text-white text-base font-bold">
+                  Total Devoluciones: ${formatCurrency(totalDevolutionPrices)}
+                </div>
+              )}
               <div className="h-[6vh]">
                 {percentageToDisccountOrAdd !== 0 && (
                   <>
-                    <p className="mr-2 text-white text-base">
+                    <div className="mr-2 text-white text-base">
                       {percentageToDisccountOrAdd > 0
                         ? "Gastos bancarios"
                         : "Descuentos"}
                       : ${formatCurrency(calculateTotalDiscount)}
-                    </p>
-                    <p className="mr-2 text-white text-base font-bold">
-                      Total Final: $
-                      {formatCurrency(
-                        totalPrice *
-                          calculateTotalPercentage(percentageToDisccountOrAdd)
-                      )}
-                    </p>
+                    </div>
                   </>
                 )}
+                <div className="mr-2 text-white text-lg font-bold">
+                  Total Final: $
+                  {formatCurrency(
+                    totalPrices *
+                      calculateTotalPercentage(percentageToDisccountOrAdd) -
+                      totalDevolutionPrices
+                  )}
+                </div>
               </div>
             </div>
 

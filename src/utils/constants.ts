@@ -1,3 +1,18 @@
+export const months = [
+  "Enero",
+  "Febrero",
+  "Marzo",
+  "Abril",
+  "Mayo",
+  "Junio",
+  "Julio",
+  "Agosto",
+  "Septiembre",
+  "Octubre",
+  "Noviembre",
+  "Diciembre",
+];
+
 export const concepts = [
   { value: "bolsas", description: "Bolsas", action: "addition" },
   { value: "envio", description: "Envío", action: "addition" },

@@ -15,6 +15,7 @@ import Toast from "../components/Toast";
 import KeyboardNum from "../components/KeyboardNum";
 import { useUser } from "../contexts/UserContext";
 import { concepts } from "../utils/constants";
+import { calculateTotalPercentage } from "../utils/formatUtils";
 
 const SalesContainer = () => {
   const {
@@ -51,7 +52,8 @@ const SalesContainer = () => {
   const [manualPrice, setManualPrice] = useState("");
   const [totalItems, setTotalItems] = useState(0);
   const [totalDevolutionItems, setTotalDevolutionItems] = useState(0);
-  const [totalPrice, setTotalPrice] = useState(0);
+  const [totalPrices, setTotalPrices] = useState(0);
+  const [totalDevolutionPrices, setTotalDevolutionPrices] = useState(0);
   const [percentageToDisccountOrAdd, setPercentageToDisccountOrAdd] =
     useState(0);
 
@@ -82,16 +84,18 @@ const SalesContainer = () => {
     );
     setTotalDevolutionItems(totalDevolutionItems);
 
-    const totalPrice = pricesSelected.reduce(
-      (acc, current) => current.price * current.quantity + acc,
-      0
+    setTotalPrices(
+      pricesSelected.reduce(
+        (acc, current) => current.price * current.quantity + acc,
+        0
+      )
     );
-    const totalDevolutionPrice = devolutionPricesSelected.reduce(
-      (acc, current) => current.price * current.quantity + acc,
-      0
+    setTotalDevolutionPrices(
+      devolutionPricesSelected.reduce(
+        (acc, current) => current.price * current.quantity + acc,
+        0
+      )
     );
-
-    setTotalPrice(totalPrice - totalDevolutionPrice);
   }, [pricesSelected, devolutionPricesSelected]);
 
   useEffect(() => {
@@ -114,20 +118,14 @@ const SalesContainer = () => {
 
   const onSale = (data: any) => {
     data.items = totalItems;
-    data.subTotalItems = pricesSelected.reduce(
-      (acc, current) =>
-        Number(current.quantity) * Number(current.price) + Number(acc),
-      0
-    );
+    data.subTotalItems = totalPrices;
     data.devolutionItems = totalDevolutionItems;
-    data.subTotalDevolutionItems = devolutionPricesSelected.reduce(
-      (acc, current) =>
-        Number(current.quantity) * Number(current.price) + Number(acc),
-      0
-    );
+    data.subTotalDevolutionItems = totalDevolutionPrices;
     data.percentageToDisccountOrAdd = percentageToDisccountOrAdd;
     data.username = user.username;
-    data.total = totalPrice;
+    data.total =
+      totalPrices * calculateTotalPercentage(percentageToDisccountOrAdd) -
+      totalDevolutionPrices;
     dispatchSale(saleActions.addSale(data)(dispatchSale));
   };
 
@@ -265,7 +263,9 @@ const SalesContainer = () => {
     dispatchSale(
       saleActions.printSale({
         pricesSelected: pricesSelected.filter((price: any) => !price.concept),
-        devolutionPricesSelected: devolutionPricesSelected.filter((price: any) => !price.concept),
+        devolutionPricesSelected: devolutionPricesSelected.filter(
+          (price: any) => !price.concept
+        ),
         percentageToDisccountOrAdd,
         username: user.username,
         seller: sellerSelected,
@@ -273,7 +273,11 @@ const SalesContainer = () => {
         numOrder,
         pricesWithconcepts,
         pricesDevolutionWithconcepts,
-        totalPrice,
+        totalPrices: totalPrices,
+        totalDevolutionPrices: totalDevolutionPrices,
+        total:
+          totalPrices * calculateTotalPercentage(percentageToDisccountOrAdd) -
+          totalDevolutionPrices,
       })(dispatchSale)
     );
 
@@ -286,7 +290,7 @@ const SalesContainer = () => {
           setManualPrice={setManualPrice}
           pricesSelected={pricesSelected}
           setPricesSelected={setPricesSelected}
-          totalPrice={totalPrice}
+          totalPrice={totalPrices - totalDevolutionPrices}
           totalItems={totalItems}
           devolutionModeActive={devolutionModeActive}
           devolutionPricesSelected={devolutionPricesSelected}
@@ -320,7 +324,8 @@ const SalesContainer = () => {
         setIsModalSaleOpen={setIsModalSaleOpen}
         totalItems={totalItems}
         totalDevolutionItems={totalDevolutionItems}
-        totalPrice={totalPrice}
+        totalPrices={totalPrices}
+        totalDevolutionPrices={totalDevolutionPrices}
         onSale={onSale}
         isLoading={loadingSales}
         pricesSelected={pricesSelected}

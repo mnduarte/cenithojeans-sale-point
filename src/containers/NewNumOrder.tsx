@@ -1,89 +1,69 @@
 import { useState } from "react";
 import { MdClose } from "react-icons/md";
 import KeyboardNum from "../components/KeyboardNum";
-import { useEmployee } from "../contexts/EmployeeContext";
-import { cashflowActions, useCashflow } from "../contexts/CashflowContext";
+import { employeeActions, useEmployee } from "../contexts/EmployeeContext";
 import Spinner from "../components/Spinner";
-import Toast from "../components/Toast";
-import { saleActions, useSale } from "../contexts/SaleContext";
 import { useUser } from "../contexts/UserContext";
+import Toast from "../components/Toast";
 
-const NewRowSale = ({
-  isModalNewRowSale,
-  setIsModalNewRowSale,
+const NewNumOrder = ({
+  isModalNewNumOrder,
+  setIsModalNewNumOrder,
   employee,
 }: any) => {
   const {
-    state: { employees },
+    state: {
+      employees,
+      loading,
+      showSuccessToast,
+      showErrorToast,
+      showSuccessToastMsg,
+    },
+    dispatch: dispatchEmployee,
   } = useEmployee();
 
   const {
     state: { user },
   } = useUser();
 
-  const {
-    state: { loading },
-    dispatch: dispatchSale,
-  } = useSale();
-
-  const [dataIndex, setDataIndex] = useState<any>("");
-  const [propSale, setPropSale] = useState<any>({
-    items: 0,
-    total: 0,
-  });
-
+  const [newNumOrder, setNewNumOrder] = useState(0);
   const [isModalKeyboardNumOpen, setIsModalKeyboardNumOpen] = useState(false);
 
   const closeModal = () => {
-    setPropSale({
-      items: 0,
-      total: 0,
-    });
-    setDataIndex("");
-    setIsModalNewRowSale(false);
+    setNewNumOrder(0);
+    setIsModalNewNumOrder(false);
   };
 
-  const handleNewSaleRow = () => {
+  const handleNewNumOrder = () => {
     const foundEmployee = employees.find((emp) => emp.name === employee);
 
-    dispatchSale(
-      saleActions.addNewSaleByEmployee({
-        ...propSale,
-        employee: foundEmployee.name,
-        store: foundEmployee.store,
-        username: user.username,
-      })(dispatchSale)
+    dispatchEmployee(
+      employeeActions.addNewNumOrder({
+        employeeId: foundEmployee.id,
+        newNumOrder,
+      })(dispatchEmployee)
     );
-
-    setPropSale({
-      items: 0,
-      total: 0,
-    });
-    setDataIndex("");
-    setIsModalNewRowSale(false);
   };
 
   const handleManualNumOrder = (item: any) => {
     if (item.action === "deleteLast") {
-      return setPropSale((currentValue: any) => ({
-        ...currentValue,
-        [dataIndex]: Number(String(currentValue[dataIndex]).slice(0, -1)),
-      }));
+      return setNewNumOrder((currentValue: any) =>
+        Number(String(currentValue).slice(0, -1))
+      );
     }
 
     if (item.action === "addPrice") {
       return setIsModalKeyboardNumOpen(false);
     }
 
-    setPropSale((currentValue: any) => ({
-      ...currentValue,
-      [dataIndex]: Number(String(currentValue[dataIndex]) + String(item.value)),
-    }));
+    setNewNumOrder((currentValue: any) =>
+      Number(String(currentValue) + String(item.value))
+    );
   };
 
   return (
     <>
-      {isModalNewRowSale && (
+      {isModalNewNumOrder && (
         <div className="fixed inset-0 bg-[#252525] bg-opacity-60 flex items-center justify-center">
           {/* Contenido del modal */}
           <div className="w-[50vh] bg-gray-800 border border-[#000000] p-8 rounded shadow-md relative">
@@ -96,34 +76,18 @@ const NewRowSale = ({
             </button>
 
             <h2 className="text-white text-lg font-bold mb-4">
-              Nueva Venta - {employee}
+              N° Orden - {employee}
             </h2>
 
             <div className="mb-4 h-[5vh] flex items-center justify-start">
-              <label className="mr-2 text-white">Agrege Prendas:</label>
+              <label className="mr-2 text-white">Establezca N° Orden:</label>
 
               <input
                 type="text"
                 className="w-[10vh] p-2 border border-[#484E55] rounded-md mr-2"
                 readOnly
-                value={propSale.items}
+                value={newNumOrder}
                 onFocus={() => {
-                  setDataIndex("items");
-                  setIsModalKeyboardNumOpen(true);
-                }}
-              />
-            </div>
-
-            <div className="mb-4 h-[5vh] flex items-center justify-start">
-              <label className="mr-2 text-white">Agrege Total:</label>
-
-              <input
-                type="text"
-                className="w-[10vh] p-2 border border-[#484E55] rounded-md mr-2"
-                readOnly
-                value={propSale.total}
-                onFocus={() => {
-                  setDataIndex("total");
                   setIsModalKeyboardNumOpen(true);
                 }}
               />
@@ -140,17 +104,15 @@ const NewRowSale = ({
               </div>
               <div
                 className={`${
-                  !Boolean(propSale.items) || !Boolean(propSale.total)
-                    ? "bg-gray-500"
-                    : "bg-green-800 hover:bg-green-800 hover:cursor-pointer"
+                  newNumOrder > 0 && newNumOrder <= 100
+                    ? "bg-green-800 hover:bg-green-800 hover:cursor-pointer"
+                    : "bg-gray-500"
                 } w-1/2 text-white px-4 py-2 rounded-md flex items-center justify-center mx-auto select-none `}
                 onClick={() =>
-                  Boolean(propSale.items) &&
-                  Boolean(propSale.total) &&
-                  handleNewSaleRow()
+                  newNumOrder > 0 && newNumOrder <= 100 && handleNewNumOrder()
                 }
               >
-                Agregar
+                Establecer nuevo N°
                 {loading && (
                   <div className="ml-2">
                     <Spinner />
@@ -161,15 +123,39 @@ const NewRowSale = ({
           </div>
           <KeyboardNum
             isModalKeyboardNumOpen={isModalKeyboardNumOpen}
-            manualNum={propSale[dataIndex]}
+            manualNum={newNumOrder}
             handleManualNum={handleManualNumOrder}
             closeModal={() => setIsModalKeyboardNumOpen(false)}
-            title={`Ingrese ${dataIndex}`}
+            title={`Ingrese nuevo N°`}
           />
+
+          {showSuccessToast && (
+            <Toast
+              type="success"
+              message={showSuccessToastMsg}
+              onClose={() =>
+                dispatchEmployee(
+                  employeeActions.setHideToasts()(dispatchEmployee)
+                )
+              }
+            />
+          )}
+
+          {showErrorToast && (
+            <Toast
+              type="error"
+              message={showSuccessToastMsg}
+              onClose={() =>
+                dispatchEmployee(
+                  employeeActions.setHideToasts()(dispatchEmployee)
+                )
+              }
+            />
+          )}
         </div>
       )}
     </>
   );
 };
 
-export default NewRowSale;
+export default NewNumOrder;

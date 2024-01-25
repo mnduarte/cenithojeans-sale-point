@@ -7,12 +7,17 @@ const actionTypes = {
   LOADING: "loading",
   ERROR: "error",
   LIST_EMPLOYEES: "list_employees",
+  SUCCESS_NEW_NUM_ORDER: "success_new_num_order",
+  SET_HIDE_TOAST: "set_hide_toast",
 };
 // Tipo de estado para el contexto de empleados
 type EmployeeState = {
   loading: boolean;
   error: any;
   employees: any[];
+  showSuccessToast: boolean;
+  showErrorToast: boolean;
+  showSuccessToastMsg: any;
 };
 // Crear el contexto de precios
 type EmployeeContextType = {
@@ -37,6 +42,9 @@ export const EmployeeProvider: React.FC<EmployeeProviderProps> = ({
     loading: false,
     error: null,
     employees: [],
+    showSuccessToast: false,
+    showErrorToast: false,
+    showSuccessToastMsg: "",
   };
 
   // Reducer para manejar acciones
@@ -54,6 +62,8 @@ export const EmployeeProvider: React.FC<EmployeeProviderProps> = ({
           ...state,
           loading: false,
           error: action.payload,
+          showErrorToast: true,
+          showSuccessToastMsg: "¡Error! Algo salió mal.",
         };
       }
       case actionTypes.LIST_EMPLOYEES: {
@@ -61,6 +71,23 @@ export const EmployeeProvider: React.FC<EmployeeProviderProps> = ({
           ...state,
           loading: false,
           employees: action.payload,
+        };
+      }
+      case actionTypes.SUCCESS_NEW_NUM_ORDER: {
+        return {
+          ...state,
+          error: null,
+          loading: false,
+          showSuccessToast: true,
+          showSuccessToastMsg: action.payload,
+        };
+      }
+      case actionTypes.SET_HIDE_TOAST: {
+        return {
+          ...state,
+          showSuccessToast: false,
+          showErrorToast: false,
+          showSuccessToastMsg: "",
         };
       }
       default:
@@ -160,6 +187,33 @@ export const employeeActions = {
         });
       }
     },
+  addNewNumOrder:
+    ({ employeeId, newNumOrder }: any) =>
+    async (dispatch: any) => {
+      dispatch({
+        type: actionTypes.LOADING,
+        payload: { loading: true },
+      });
+
+      try {
+        const { data } = await Api.addNewNumOrder({
+          employeeId,
+          newNumOrder,
+        });
+
+        dispatch({
+          type: actionTypes.SUCCESS_NEW_NUM_ORDER,
+          payload: data.results,
+        });
+      } catch (error) {
+        console.log(error);
+
+        dispatch({
+          type: actionTypes.ERROR,
+          payload: ERROR_MESSAGE_TIMEOUT,
+        });
+      }
+    },
   removeEmployee:
     ({ id }: any) =>
     async (dispatch: any) => {
@@ -184,4 +238,9 @@ export const employeeActions = {
         });
       }
     },
+  setHideToasts: () => async (dispatch: any) => {
+    dispatch({
+      type: actionTypes.SET_HIDE_TOAST,
+    });
+  },
 };

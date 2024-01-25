@@ -8,6 +8,7 @@ const actionTypes = {
   ERROR: "error",
   LIST_SALES: "list_sales",
   LIST_ORDERS: "list_orders",
+  LIST_REPORTS: "list_reports",
   LIST_SALES_BY_EMPLOYEES: "list_sales_by_employees",
   LIST_SALE_BY_EMPLOYEES: "list_sale_by_employees",
   ADD_SALE: "add_sale",
@@ -28,6 +29,7 @@ const actionTypes = {
 type SaleState = {
   loading: boolean;
   error: any;
+  reports: any;
   orders: any[];
   sales: any[];
   salesByEmployees: any[];
@@ -54,6 +56,10 @@ export const SaleProvider: React.FC<SaleProviderProps> = ({ children }) => {
   const initialState: SaleState = {
     loading: false,
     error: null,
+    reports: {
+      salesGeneral: [],
+      typeSale: null,
+    },
     orders: [],
     sales: [],
     salesByEmployees: [],
@@ -230,6 +236,13 @@ export const SaleProvider: React.FC<SaleProviderProps> = ({ children }) => {
           orders: action.payload,
         };
       }
+      case actionTypes.LIST_REPORTS: {
+        return {
+          ...state,
+          loading: false,
+          reports: { ...action.payload },
+        };
+      }
       case actionTypes.LIST_SALES_BY_EMPLOYEES: {
         return {
           ...state,
@@ -291,6 +304,35 @@ export const useSale = () => {
 
 // Acciones para modificar el estado del contexto de precios
 export const saleActions = {
+  getReports:
+    ({ month, year, store, typeSale }: any) =>
+    async (dispatch: any) => {
+      dispatch({
+        type: actionTypes.LOADING,
+        payload: { loading: true },
+      });
+
+      try {
+        const { data } = await Api.getReports({
+          month,
+          year,
+          store,
+          typeSale,
+        });
+
+        dispatch({
+          type: actionTypes.LIST_REPORTS,
+          payload: data.results,
+        });
+      } catch (error) {
+        console.log(error);
+
+        dispatch({
+          type: actionTypes.ERROR,
+          payload: ERROR_MESSAGE_TIMEOUT,
+        });
+      }
+    },
   getOrders:
     ({ startDate, endDate, typeSale, store, employee, typeShipment }: any) =>
     async (dispatch: any) => {
@@ -596,7 +638,9 @@ export const saleActions = {
       numOrder,
       pricesWithconcepts,
       pricesDevolutionWithconcepts,
-      totalPrice,
+      totalPrices,
+      totalDevolutionPrices,
+      total,
     }: any) =>
     async (dispatch: any) => {
       dispatch({
@@ -615,7 +659,9 @@ export const saleActions = {
           numOrder,
           pricesWithconcepts,
           pricesDevolutionWithconcepts,
-          totalPrice,
+          totalPrices,
+          totalDevolutionPrices,
+          total,
         });
 
         dispatch({

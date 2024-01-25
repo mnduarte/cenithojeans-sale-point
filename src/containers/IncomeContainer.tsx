@@ -5,6 +5,7 @@ import { useEmployee } from "../contexts/EmployeeContext";
 import { cashflowActions, useCashflow } from "../contexts/CashflowContext";
 import Spinner from "../components/Spinner";
 import Toast from "../components/Toast";
+import Keyboard from "../components/Keyboard";
 
 const IncomeContainer = ({ isModalIncomeOpen, setIsModalIncomeOpen }: any) => {
   const {
@@ -22,12 +23,14 @@ const IncomeContainer = ({ isModalIncomeOpen, setIsModalIncomeOpen }: any) => {
 
   const [amount, setAmount] = useState(0);
   const [sellerSelected, setSellerSelected] = useState("");
+  const [description, setDescription] = useState("");
   const [isModalKeyboardNumOpen, setIsModalKeyboardNumOpen] = useState(false);
 
   const closeModal = () => {
     setSellerSelected("");
     setAmount(0);
     setIsModalIncomeOpen(false);
+    setDescription("");
   };
 
   const handleIncome = () => {
@@ -37,12 +40,14 @@ const IncomeContainer = ({ isModalIncomeOpen, setIsModalIncomeOpen }: any) => {
       type: "ingreso",
       employee: sellerSelected,
       store: foundEmployee.store,
+      description,
       amount,
     };
 
     dispatchCashflow(cashflowActions.addCashflow(data)(dispatchCashflow));
     setSellerSelected("");
     setAmount(0);
+    setDescription("");
   };
 
   const handleManualNumOrder = (item: any) => {
@@ -114,6 +119,38 @@ const IncomeContainer = ({ isModalIncomeOpen, setIsModalIncomeOpen }: any) => {
               </select>
             </div>
 
+            <div className="mb-4">
+              <label className="mb-2 h-[5vh] flex items-center justify-start">
+                Descripcion:
+              </label>
+              <input
+                type="text"
+                value={description}
+                readOnly
+                className="w-[30vh] p-2 border border-[#484E55] rounded-md mr-2"
+              />
+            </div>
+
+            <Keyboard
+              onKeyPress={(e: any) => {
+                let newDescription = description;
+
+                if (e.action === "deleteLast") {
+                  newDescription = newDescription.slice(0, -1);
+                }
+
+                if (e.action === "addSpace") {
+                  newDescription = newDescription + " ";
+                }
+
+                if (!e.action) {
+                  newDescription = newDescription + e.value.toLowerCase();
+                }
+
+                setDescription(newDescription);
+              }}
+            />
+
             <br />
 
             <div className="flex space-x-4">
@@ -125,13 +162,16 @@ const IncomeContainer = ({ isModalIncomeOpen, setIsModalIncomeOpen }: any) => {
               </div>
               <div
                 className={`${
-                  !Boolean(sellerSelected.length) || !Boolean(amount)
+                  !Boolean(sellerSelected.length) ||
+                  !Boolean(amount) ||
+                  !Boolean(description.length)
                     ? "bg-gray-500"
                     : "bg-green-800 hover:bg-green-800 hover:cursor-pointer"
                 }  w-1/2 text-white px-4 py-2 rounded-md flex items-center justify-center mx-auto select-none `}
                 onClick={() =>
                   Boolean(sellerSelected.length) &&
                   Boolean(amount) &&
+                  Boolean(description.length) &&
                   handleIncome()
                 }
               >
