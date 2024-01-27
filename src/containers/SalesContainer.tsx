@@ -125,9 +125,10 @@ const SalesContainer = () => {
     data.username = user.username;
     data.total =
       data.typeSale === "pedido"
-        ? totalPrices
+        ? totalPrices *
+        calculateTotalPercentage(percentageToDisccountOrAdd)
         : (totalPrices - totalDevolutionPrices) *
-          calculateTotalPercentage(percentageToDisccountOrAdd);
+        calculateTotalPercentage(percentageToDisccountOrAdd);
 
     dispatchSale(saleActions.addSale(data)(dispatchSale));
   };
@@ -354,8 +355,8 @@ const SalesContainer = () => {
           itemIdFocusForQuantity
             ? "Agregar Cantidad al Item"
             : devolutionModeActive
-            ? "Añadir precio dev manual"
-            : "Añadir precio manual"
+              ? "Añadir precio dev manual"
+              : "Añadir precio manual"
         }
         concept={concept}
         setConcept={setConcept}
