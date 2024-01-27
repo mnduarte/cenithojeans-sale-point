@@ -7,6 +7,11 @@ import Spinner from "../components/Spinner";
 import Toast from "../components/Toast";
 import Keyboard from "../components/Keyboard";
 
+const initialValuesProps = {
+  amount: 0,
+  items: 0,
+};
+
 const IncomeContainer = ({ isModalIncomeOpen, setIsModalIncomeOpen }: any) => {
   const {
     state: { employees },
@@ -21,14 +26,16 @@ const IncomeContainer = ({ isModalIncomeOpen, setIsModalIncomeOpen }: any) => {
     dispatch: dispatchCashflow,
   } = useCashflow();
 
-  const [amount, setAmount] = useState(0);
+  const [propsValues, setPropsValues] = useState<any>(initialValuesProps);
+  const [dataIndex, setDataIndex] = useState("");
   const [sellerSelected, setSellerSelected] = useState("");
   const [description, setDescription] = useState("");
   const [isModalKeyboardNumOpen, setIsModalKeyboardNumOpen] = useState(false);
 
   const closeModal = () => {
     setSellerSelected("");
-    setAmount(0);
+    setDataIndex("");
+    setPropsValues(initialValuesProps);
     setIsModalIncomeOpen(false);
     setDescription("");
   };
@@ -41,29 +48,33 @@ const IncomeContainer = ({ isModalIncomeOpen, setIsModalIncomeOpen }: any) => {
       employee: sellerSelected,
       store: foundEmployee.store,
       description,
-      amount,
+      amount: propsValues.amount,
+      items: propsValues.items,
     };
 
     dispatchCashflow(cashflowActions.addCashflow(data)(dispatchCashflow));
     setSellerSelected("");
-    setAmount(0);
+    setDataIndex("");
+    setPropsValues(initialValuesProps);
     setDescription("");
   };
 
   const handleManualNumOrder = (item: any) => {
     if (item.action === "deleteLast") {
-      return setAmount((currentValue: any) =>
-        Number(String(currentValue).slice(0, -1))
-      );
+      return setPropsValues((currentValue: any) => ({
+        ...currentValue,
+        [dataIndex]: Number(String(currentValue[dataIndex]).slice(0, -1)),
+      }));
     }
 
     if (item.action === "addPrice") {
       return setIsModalKeyboardNumOpen(false);
     }
 
-    setAmount((currentValue: any) =>
-      Number(String(currentValue) + String(item.value))
-    );
+    setPropsValues((currentValue: any) => ({
+      ...currentValue,
+      [dataIndex]: Number(String(currentValue[dataIndex]) + String(item.value)),
+    }));
   };
 
   return (
@@ -84,19 +95,7 @@ const IncomeContainer = ({ isModalIncomeOpen, setIsModalIncomeOpen }: any) => {
               Agregar Ingreso
             </h2>
 
-            <div className="mb-4 h-[5vh] flex items-center justify-start">
-              <label className="mr-2 text-white">Agrege importe:</label>
-
-              <input
-                type="text"
-                className="w-[10vh] p-2 border border-[#484E55] rounded-md mr-2"
-                readOnly
-                value={amount}
-                onFocus={() => setIsModalKeyboardNumOpen(true)}
-              />
-            </div>
-
-            <div className="mb-4 inline-block">
+            <div className="mb-2 inline-block">
               <label className="mr-2 text-white">Seleccione Vendedor:</label>
               <select
                 className="p-2 border border-[#484E55] rounded-md"
@@ -119,7 +118,37 @@ const IncomeContainer = ({ isModalIncomeOpen, setIsModalIncomeOpen }: any) => {
               </select>
             </div>
 
-            <div className="mb-4">
+            <div className="mb-2 h-[5vh] flex items-center justify-start">
+              <label className="mr-2 text-white">Agrege items:</label>
+
+              <input
+                type="text"
+                className="w-[10vh] p-2 border border-[#484E55] rounded-md mr-2"
+                readOnly
+                value={propsValues.items}
+                onFocus={() => {
+                  setDataIndex("items");
+                  setIsModalKeyboardNumOpen(true);
+                }}
+              />
+            </div>
+
+            <div className="mb-2 h-[5vh] flex items-center justify-start">
+              <label className="mr-2 text-white">Agrege importe:</label>
+
+              <input
+                type="text"
+                className="w-[10vh] p-2 border border-[#484E55] rounded-md mr-2"
+                readOnly
+                value={propsValues.amount}
+                onFocus={() => {
+                  setDataIndex("amount");
+                  setIsModalKeyboardNumOpen(true);
+                }}
+              />
+            </div>
+
+            <div className="mb-2">
               <label className="mb-2 h-[5vh] flex items-center justify-start">
                 Descripcion:
               </label>
@@ -163,15 +192,15 @@ const IncomeContainer = ({ isModalIncomeOpen, setIsModalIncomeOpen }: any) => {
               <div
                 className={`${
                   !Boolean(sellerSelected.length) ||
-                  !Boolean(amount) ||
-                  !Boolean(description.length)
+                  !Boolean(propsValues.amount) ||
+                  !Boolean(propsValues.items)
                     ? "bg-gray-500"
                     : "bg-green-800 hover:bg-green-800 hover:cursor-pointer"
                 }  w-1/2 text-white px-4 py-2 rounded-md flex items-center justify-center mx-auto select-none `}
                 onClick={() =>
                   Boolean(sellerSelected.length) &&
-                  Boolean(amount) &&
-                  Boolean(description.length) &&
+                  Boolean(propsValues.amount) &&
+                  Boolean(propsValues.items) &&
                   handleIncome()
                 }
               >
@@ -186,10 +215,12 @@ const IncomeContainer = ({ isModalIncomeOpen, setIsModalIncomeOpen }: any) => {
           </div>
           <KeyboardNum
             isModalKeyboardNumOpen={isModalKeyboardNumOpen}
-            manualNum={amount}
+            manualNum={propsValues[dataIndex]}
             handleManualNum={handleManualNumOrder}
-            closeModal={() => setIsModalKeyboardNumOpen(false)}
-            title="Ingrese Monto"
+            closeModal={() => {
+              setIsModalKeyboardNumOpen(false);
+            }}
+            title={`Ingrese valor`}
           />
           {showSuccessToast && (
             <Toast

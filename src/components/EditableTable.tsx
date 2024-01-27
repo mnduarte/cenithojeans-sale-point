@@ -52,7 +52,7 @@ const EditableTable = ({
   columns,
   handleAction,
   editableRow,
-  handleEditClick,
+  handleEditClick = () => {},
   table = "0-",
   setItemInOnClick = false,
   enableSelectItem = false,

@@ -1,12 +1,24 @@
 import { useState } from "react";
 import { saleActions, useSale } from "../contexts/SaleContext";
-import { formatCurrency, formatDateToYYYYMMDD } from "../utils/formatUtils";
+import { formatCurrency } from "../utils/formatUtils";
 import { months } from "../utils/constants";
 import Spinner from "../components/Spinner";
 import EditableTable from "../components/EditableTable";
 import { cashflowActions, useCashflow } from "../contexts/CashflowContext";
+import OutgoingsByDayList from "./OutgoingsByDayList";
+import {
+  observationActions,
+  useObservation,
+} from "../contexts/ObservationContext";
+import ObservationsByMonth from "./ObservationsByMonth";
+import { FaEye } from "react-icons/fa";
 
 const ReportsContainer = () => {
+  const [isModalOutgoingsByDayList, setIsModalOutgoingsByDayList] =
+    useState(false);
+  const [isModalObservationsByMonth, setIsModalObservationsByMonth] =
+    useState(false);
+  const [dateSelected, setDateSelected] = useState("");
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
   const {
@@ -17,6 +29,10 @@ const ReportsContainer = () => {
     state: { outgoingsByDay, loading: loadingCashflow },
     dispatch: dispatchCashflow,
   } = useCashflow();
+  const {
+    state: { observations, loading: loadingObservation },
+    dispatch: dispatchObservation,
+  } = useObservation();
   const [filters, setFilters] = useState({
     month: Number(currentMonth),
     year: currentYear,
@@ -115,16 +131,18 @@ const ReportsContainer = () => {
   const handleOutGoings = ({ date, outgoings }: any) => {
     const [day, month, year] = date.split("/");
     const outputDate = `${year}-${month}-${day}`;
-    outgoings &&
+
+    if (outgoings) {
       dispatchCashflow(
         cashflowActions.getOutgoingsByDay({
           date: outputDate,
           store: filters.store,
         })(dispatchCashflow)
       );
+      setDateSelected(date);
+      setIsModalOutgoingsByDayList(true);
+    }
   };
-
-  console.log(outgoingsByDay);
 
   return (
     <>
@@ -214,6 +232,20 @@ const ReportsContainer = () => {
             )}
           </div>
         </div>
+
+        <div className="ml-10 inline-block">
+          <div
+            className={`inline-block px-4 py-2 rounded-md border text-white select-none bg-green-800 border-green-800 hover:cursor-pointer hover:opacity-80 transition-opacity flex items-center mx-auto`}
+            onClick={() => {
+              dispatchObservation(
+                observationActions.getObservations(filters)(dispatchObservation)
+              );
+              setIsModalObservationsByMonth(true);
+            }}
+          >
+            <FaEye />
+          </div>
+        </div>
       </div>
 
       <div className="mt-5 max-w h-[80vh] overflow-hidden overflow-y-auto overflow-x-auto">
@@ -244,8 +276,8 @@ const ReportsContainer = () => {
                     (saleByEmployee: any, idx: number) => (
                       <div
                         className={`${
-                          reports.typeSale === "local" ? "w-[25vh]" : "w-[50vh]"
-                        } mr-2`}
+                          reports.typeSale === "local" ? "max-w" : "max-w"
+                        } border-r border-green-900 mr-2`}
                         key={idx + "byEmployee"}
                       >
                         <div className="mb-2 flex items-center justify-center">
@@ -269,6 +301,20 @@ const ReportsContainer = () => {
               );
             })}
         </div>
+        <OutgoingsByDayList
+          isModalOutgoingsByDayList={isModalOutgoingsByDayList}
+          setIsModalOutgoingsByDayList={setIsModalOutgoingsByDayList}
+          loading={loadingCashflow}
+          outgoings={outgoingsByDay}
+          date={dateSelected}
+        />
+        <ObservationsByMonth
+          isModalObservationsByMonth={isModalObservationsByMonth}
+          setIsModalObservationsByMonth={setIsModalObservationsByMonth}
+          loading={loadingObservation}
+          observations={observations}
+          month={months.find((m: any, idx: number) => idx === filters.month)}
+        />
       </div>
     </>
   );

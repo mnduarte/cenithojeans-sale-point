@@ -80,6 +80,18 @@ const getReports = ({ month, year, store, typeSale }: any) => {
   return instance.get("/sale/reports", config);
 };
 
+const getObservations = ({ month, year, store }: any) => {
+  const config: AxiosRequestConfig = {
+    params: {
+      month,
+      year,
+      store,
+    },
+  };
+
+  return instance.get("/observation/observations", config);
+};
+
 const getSalesByDay = ({ date, store }: any) => {
   const config: AxiosRequestConfig = {
     params: {
@@ -203,13 +215,21 @@ const printSale = ({
     total,
   });
 
-const addCashflow = ({ type, amount, employee, store, description }: any) =>
+const addCashflow = ({
+  type,
+  amount,
+  employee,
+  store,
+  description,
+  items,
+}: any) =>
   instance.post("/cashflow/add-cashflow", {
     type,
     amount,
     employee,
     store,
     description,
+    items,
   });
 
 const addObservation = ({ observation, store, username }: any) =>
@@ -245,6 +265,7 @@ const Api = {
   getSales,
   getOrders,
   getReports,
+  getObservations,
   getSalesByDay,
   getCashflowByDay,
   getOutgoingsByDay,

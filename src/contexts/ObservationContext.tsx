@@ -92,7 +92,9 @@ export const ObservationProvider: React.FC<ObservationProviderProps> = ({
 export const useObservation = () => {
   const context = useContext(ObservationContext);
   if (!context) {
-    throw new Error("useObservation debe usarse dentro de un ObservationProvider");
+    throw new Error(
+      "useObservation debe usarse dentro de un ObservationProvider"
+    );
   }
   return context;
 };
@@ -100,9 +102,7 @@ export const useObservation = () => {
 // Acciones para modificar el estado del contexto de precios
 export const observationActions = {
   addObservation:
-    ({ observation,
-      store,
-      username }: any) =>
+    ({ observation, store, username }: any) =>
     async (dispatch: any) => {
       dispatch({
         type: actionTypes.LOADING,
@@ -129,8 +129,8 @@ export const observationActions = {
         });
       }
     },
-  getObservationByDay:
-    ({ date, store }: any) =>
+  getObservations:
+    ({ month, year, store }: any) =>
     async (dispatch: any) => {
       dispatch({
         type: actionTypes.LOADING,
@@ -138,15 +138,16 @@ export const observationActions = {
       });
 
       try {
-        /*const { data } = await Api.getObservationByDay({
-          date,
+        const { data } = await Api.getObservations({
+          month,
+          year,
           store,
         });
 
         dispatch({
           type: actionTypes.LIST_OBSERVATION,
           payload: data.results,
-        });*/
+        });
       } catch (error) {
         console.log(error);
 

@@ -80,8 +80,8 @@ const SalesByDayContainer = () => {
       dataIndex: "employee",
     },
     {
-      title: "Detalle",
-      dataIndex: "description",
+      title: "Prendas",
+      dataIndex: "items",
     },
     {
       title: "Importe",
@@ -89,6 +89,10 @@ const SalesByDayContainer = () => {
       format: (number: any) => `$${formatCurrency(number)}`,
       sumAcc: user.role === "ADMIN",
       applyFormat: true,
+    },
+    {
+      title: "Detalle",
+      dataIndex: "description",
     },
   ];
 

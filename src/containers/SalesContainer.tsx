@@ -124,8 +124,11 @@ const SalesContainer = () => {
     data.percentageToDisccountOrAdd = percentageToDisccountOrAdd;
     data.username = user.username;
     data.total =
-      (totalPrices - totalDevolutionPrices) *
-      calculateTotalPercentage(percentageToDisccountOrAdd);
+      data.typeSale === "pedido"
+        ? totalPrices
+        : (totalPrices - totalDevolutionPrices) *
+          calculateTotalPercentage(percentageToDisccountOrAdd);
+
     dispatchSale(saleActions.addSale(data)(dispatchSale));
   };
 
