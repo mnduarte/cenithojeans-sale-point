@@ -269,11 +269,11 @@ const AppContainer = () => {
     dispatch,
   } = useUser();
 
-  //const onLogin = (user: any) => dispatch(userActions.login(user)(dispatch));
+  const onLogin = (user: any) => dispatch(userActions.login(user)(dispatch));
 
-  /*if (!user.username) {
+  if (!user.username) {
     return <LoginContainer onLogin={onLogin} error={error} loading={loading} />;
-  }*/
+  }
 
   return <SalePointContainer role={user.role} store={user.store} />;
 };
