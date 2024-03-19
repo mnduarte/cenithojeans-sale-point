@@ -6,6 +6,8 @@ import { cashflowActions, useCashflow } from "../contexts/CashflowContext";
 import Spinner from "../components/Spinner";
 import Toast from "../components/Toast";
 import Keyboard from "../components/Keyboard";
+import { Select } from "antd";
+import { useTheme } from "../contexts/ThemeContext";
 
 const initialValuesProps = {
   amount: 0,
@@ -13,6 +15,9 @@ const initialValuesProps = {
 };
 
 const IncomeContainer = ({ isModalIncomeOpen, setIsModalIncomeOpen }: any) => {
+  const {
+    state: { theme, themeStyles },
+  } = useTheme();
   const {
     state: { employees },
   } = useEmployee();
@@ -82,48 +87,45 @@ const IncomeContainer = ({ isModalIncomeOpen, setIsModalIncomeOpen }: any) => {
       {isModalIncomeOpen && (
         <div className="fixed inset-0 bg-[#252525] bg-opacity-60 flex items-center justify-center">
           {/* Contenido del modal */}
-          <div className="w-[60vh] bg-gray-800 border border-[#000000] p-8 rounded shadow-md relative">
+          <div className={`w-[60vh] p-8 rounded-md shadow-md relative ${themeStyles[theme].tailwindcss.modal}`}>
             {/* Icono de cerrar en la esquina superior derecha */}
             <button
-              className="absolute top-4 right-4 text-white"
+              className="absolute top-4 right-4"
               onClick={closeModal}
             >
               <MdClose className="text-2xl" />
             </button>
 
-            <h2 className="text-white text-lg font-bold mb-4">
+            <h2 className="text-lg font-bold mb-4">
               Agregar Ingreso
             </h2>
 
             <div className="mb-2 inline-block">
-              <label className="mr-2 text-white">Seleccione Vendedor:</label>
-              <select
-                className="p-2 border border-[#484E55] rounded-md"
-                onChange={(e) => setSellerSelected(e.target.value)}
+              <label className="mr-2">Seleccione Vendedor:</label>
+
+              <Select
                 value={sellerSelected}
-                defaultValue=""
-              >
-                <option value="" className="py-2" disabled hidden>
-                  -
-                </option>
-                {employees.map((employee: any) => (
-                  <option
-                    value={employee.name}
-                    key={employee.id}
-                    className="py-2"
-                  >
-                    {employee.name}
-                  </option>
-                ))}
-              </select>
+                className={themeStyles[theme].classNameSelector}
+                dropdownStyle={{
+                  ...themeStyles[theme].dropdownStylesCustom,
+                  width: 160,
+                }}
+                popupClassName={themeStyles[theme].classNameSelectorItem}
+                style={{ width: 160 }}
+                onSelect={(value: any) => setSellerSelected(value)}
+                options={employees.map((data: any) => ({
+                  value: data.name,
+                  label: data.name,
+                }))}
+              />
             </div>
 
             <div className="mb-2 h-[5vh] flex items-center justify-start">
-              <label className="mr-2 text-white">Agrege items:</label>
+              <label className="mr-2">Agrege items:</label>
 
               <input
                 type="text"
-                className="w-[10vh] p-2 border border-[#484E55] rounded-md mr-2"
+                className={`w-[10vh] p-2 rounded-md mr-2 ${themeStyles[theme].tailwindcss.inputText}`}
                 readOnly
                 value={propsValues.items}
                 onFocus={() => {
@@ -134,11 +136,11 @@ const IncomeContainer = ({ isModalIncomeOpen, setIsModalIncomeOpen }: any) => {
             </div>
 
             <div className="mb-2 h-[5vh] flex items-center justify-start">
-              <label className="mr-2 text-white">Agrege importe:</label>
+              <label className="mr-2">Agrege importe:</label>
 
               <input
                 type="text"
-                className="w-[10vh] p-2 border border-[#484E55] rounded-md mr-2"
+                className={`w-[10vh] p-2 rounded-md mr-2 ${themeStyles[theme].tailwindcss.inputText}`}
                 readOnly
                 value={propsValues.amount}
                 onFocus={() => {
@@ -156,7 +158,7 @@ const IncomeContainer = ({ isModalIncomeOpen, setIsModalIncomeOpen }: any) => {
                 type="text"
                 value={description}
                 readOnly
-                className="w-[30vh] p-2 border border-[#484E55] rounded-md mr-2"
+                className={`w-[30vh] p-2 rounded-md mr-2 ${themeStyles[theme].tailwindcss.inputText}`}
               />
             </div>
 

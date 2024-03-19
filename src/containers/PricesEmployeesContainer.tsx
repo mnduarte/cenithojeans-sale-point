@@ -8,6 +8,7 @@ import { IoIosPricetags } from "react-icons/io";
 import { FaUsers } from "react-icons/fa";
 import { formatCurrency } from "../utils/formatUtils";
 import { useStore } from "../contexts/StoreContext";
+import { useTheme } from "../contexts/ThemeContext";
 
 const PricesContainer = () => {
   const {
@@ -36,7 +37,7 @@ const PricesContainer = () => {
   return (
     <div className="h-[73vh] mx-auto flex">
       <div className="w-4/5 p-2">
-        <h3 className="text-2xl text-white mb-4">Listado de Precios</h3>
+        <h3 className="text-2xl mb-4">Listado de Precios</h3>
 
         <div className="h-[5vh] flex">
           <div
@@ -135,7 +136,7 @@ const EmployeesContainer = () => {
   return (
     <div className="h-[73vh] mx-auto flex">
       <div className="w-4/5 p-2">
-        <h3 className="text-2xl text-white mb-4">Listado de Empleados</h3>
+        <h3 className="text-2xl mb-4">Listado de Empleados</h3>
         <div className="h-[65vh] mx-auto max-w overflow-hidden overflow-y-auto">
           <Table
             data={employees}
@@ -183,6 +184,9 @@ const mappingTabs = {
 
 const PricesEmployeesContainer = () => {
   const [activeTab, setActiveTab] = useState<TabKey>("Precios");
+  const {
+    state: { theme, themeStyles },
+  } = useTheme();
 
   return (
     <div className="max-w-5xl mx-auto mt-5 h-2/3 h-[90vh]">
@@ -190,10 +194,10 @@ const PricesEmployeesContainer = () => {
         {Object.values(mappingTabs).map((tab: any) => (
           <button
             key={tab.title}
-            className={`flex-1 border-solid border-2 border-[#484E55] text-white text-lg ${
+            className={`flex-1 text-lg ${
               activeTab === tab.title
-                ? "bg-[#1BA1E2] "
-                : "bg-[#333333] hover:bg-[#484E55]"
+              ? "bg-[#1BA1E2] text-white"
+                : themeStyles[theme].tailwindcss.menuTab
             }`}
             onClick={() => setActiveTab(tab.title)}
           >

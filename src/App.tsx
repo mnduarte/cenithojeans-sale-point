@@ -31,10 +31,11 @@ import "@ionic/react/css/text-transformation.css";
 import "@ionic/react/css/flex-utils.css";
 import "@ionic/react/css/display.css";
 
-/* Theme tailwind */
-import "./theme/tailwind.css";
 /* Theme variables */
 import "./theme/variables.css";
+/* Theme tailwind */
+import "./theme/tailwind.css";
+
 import PricesEmployeesContainer from "./containers/PricesEmployeesContainer";
 import SalesContainer from "./containers/SalesContainer";
 import OrdersContainer from "./containers/OrdersContainer";
@@ -47,6 +48,8 @@ import { CashflowProvider } from "./contexts/CashflowContext";
 import SalesByDayContainer from "./containers/SalesByDayContainer";
 import { ObservationProvider } from "./contexts/ObservationContext";
 import ReportsContainer from "./containers/ReportsContainer";
+import { Switch } from "antd";
+import { ThemeProvider, themeActions, useTheme } from "./contexts/ThemeContext";
 
 setupIonicReact();
 
@@ -85,11 +88,25 @@ const mappingTabs = {
   },
 };
 
+const lightTheme = {
+  body: "bg-[#ffffff] text-gray-500",
+  container: "bg-[#edf9ff] text-gray-500 hover:bg-[#b2b2b2] hover:text-white",
+};
+const darkTheme = {
+  body: "bg-[#252525] text-white",
+  container: "bg-[#333333] hover:bg-[#484E55]",
+};
+
 const SalePointContainer = ({ role, store }: any) => {
   const [activeTab, setActiveTab] = useState<TabKey>("Ventas");
   const { dispatch: dispatchPrice } = usePrice();
   const { dispatch: dispatchEmployee } = useEmployee();
   const { dispatch: dispatchStore } = useStore();
+
+  const {
+    state: { theme, themeStyles },
+    dispatch: dispatchTheme,
+  } = useTheme();
 
   useEffect(() => {
     dispatchPrice(priceActions.getAll()(dispatchPrice));
@@ -102,15 +119,17 @@ const SalePointContainer = ({ role, store }: any) => {
   );
 
   return (
-    <div className="max-w-5xl mx-auto mt-2 h-2/3 h-[90vh]">
-      <div className="flex mb-4">
+    <div
+      className={`max-w mx-auto pt-2 px-2 h-3/3 h-[100vh] ${themeStyles[theme].tailwindcss.body}`}
+    >
+      <div className="flex">
         {mappingTabsByRole.map((tab: any) => (
           <button
             key={tab.title}
-            className={`flex-1 p-2 border-solid border-2 border-[#484E55] text-white text-base ${
+            className={`flex-1 p-2 text-base ${
               activeTab === tab.title
-                ? "bg-[#1BA1E2] "
-                : "bg-[#333333] hover:bg-[#484E55]"
+                ? "bg-[#1BA1E2] text-white"
+                : themeStyles[theme].tailwindcss.menuTab
             }`}
             onClick={() => setActiveTab(tab.title)}
           >
@@ -120,6 +139,18 @@ const SalePointContainer = ({ role, store }: any) => {
             </div>
           </button>
         ))}
+      </div>
+      <div className="flex items-center justify-end">
+        <Switch
+          checkedChildren="🌙"
+          unCheckedChildren="🔆"
+          defaultChecked
+          onChange={() =>
+            dispatchTheme(themeActions.changeTheme()(dispatchTheme))
+          }
+          size="small"
+          className="mb-1"
+        />
       </div>
 
       {mappingTabs[activeTab].container}
@@ -238,32 +269,34 @@ const AppContainer = () => {
     dispatch,
   } = useUser();
 
-  const onLogin = (user: any) => dispatch(userActions.login(user)(dispatch));
+  //const onLogin = (user: any) => dispatch(userActions.login(user)(dispatch));
 
-  if (!user.username) {
+  /*if (!user.username) {
     return <LoginContainer onLogin={onLogin} error={error} loading={loading} />;
-  }
+  }*/
 
   return <SalePointContainer role={user.role} store={user.store} />;
 };
 
 const App: React.FC = () => {
   return (
-    <UserProvider>
-      <StoreProvider>
-        <SaleProvider>
-          <PriceProvider>
-            <EmployeeProvider>
-              <CashflowProvider>
-                <ObservationProvider>
-                  <AppContainer />
-                </ObservationProvider>
-              </CashflowProvider>
-            </EmployeeProvider>
-          </PriceProvider>
-        </SaleProvider>
-      </StoreProvider>
-    </UserProvider>
+    <ThemeProvider>
+      <UserProvider>
+        <StoreProvider>
+          <SaleProvider>
+            <PriceProvider>
+              <EmployeeProvider>
+                <CashflowProvider>
+                  <ObservationProvider>
+                    <AppContainer />
+                  </ObservationProvider>
+                </CashflowProvider>
+              </EmployeeProvider>
+            </PriceProvider>
+          </SaleProvider>
+        </StoreProvider>
+      </UserProvider>
+    </ThemeProvider>
   );
 };
 

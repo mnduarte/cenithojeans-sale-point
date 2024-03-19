@@ -6,11 +6,15 @@ import Spinner from "../components/Spinner";
 import Toast from "../components/Toast";
 import Keyboard from "../components/Keyboard";
 import { useUser } from "../contexts/UserContext";
+import { useTheme } from "../contexts/ThemeContext";
 
 const OutgoingContainer = ({
   isModalOutgoingOpen,
   setIsModalOutgoingOpen,
 }: any) => {
+  const {
+    state: { theme, themeStyles },
+  } = useTheme();
   const {
     state: { user },
   } = useUser();
@@ -68,25 +72,25 @@ const OutgoingContainer = ({
       {isModalOutgoingOpen && (
         <div className="fixed inset-0 bg-[#252525] bg-opacity-60 flex items-center justify-center">
           {/* Contenido del modal */}
-          <div className="w-[60vh] bg-gray-800 border border-[#000000] p-8 rounded shadow-md relative">
+          <div className={`w-[60vh] p-8 rounded-md shadow-md relative ${themeStyles[theme].tailwindcss.modal}`}>
             {/* Icono de cerrar en la esquina superior derecha */}
             <button
-              className="absolute top-4 right-4 text-white"
+              className="absolute top-4 right-4"
               onClick={closeModal}
             >
               <MdClose className="text-2xl" />
             </button>
 
-            <h2 className="text-white text-lg font-bold mb-4">
+            <h2 className="text-lg font-bold mb-4">
               Agregar Egreso
             </h2>
 
             <div className="mb-4 h-[5vh] flex items-center justify-start">
-              <label className="mr-2 text-white">Agrege importe:</label>
+              <label className="mr-2">Agrege importe:</label>
 
               <input
                 type="text"
-                className="w-[10vh] p-2 border border-[#484E55] rounded-md mr-2"
+                className={`w-[10vh] p-2 rounded-md mr-2 ${themeStyles[theme].tailwindcss.inputText}`}
                 readOnly
                 value={amount}
                 onFocus={() => setIsModalKeyboardNumOpen(true)}
@@ -101,7 +105,7 @@ const OutgoingContainer = ({
                 type="text"
                 value={description}
                 readOnly
-                className="w-[30vh] p-2 border border-[#484E55] rounded-md mr-2"
+                className={`w-[30vh] p-2 rounded-md mr-2 ${themeStyles[theme].tailwindcss.inputText}`}
               />
             </div>
 

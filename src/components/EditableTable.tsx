@@ -1,51 +1,13 @@
 import React from "react";
 import { MdOutlinePendingActions } from "react-icons/md";
-import { formatCurrency } from "../utils/formatUtils";
-
-const mappingInputType: any = {
-  button: ({ action }: any) => (
-    <div
-      className={`bg-blue-500 p-2 rounded-md flex items-center justify-center select-none`}
-      onClick={action}
-    >
-      <MdOutlinePendingActions />
-    </div>
-  ),
-  select: ({ value, action, dataSelect }: any) => (
-    <select
-      className="p-1 border border-[#484E55] rounded-md"
-      onChange={action}
-      value={value ? value : ""}
-    >
-      <option value="" className="py-2" disabled hidden>
-        -
-      </option>
-      {dataSelect.map((data: any, idx: number) => (
-        <option value={data} key={idx} className="py-2">
-          {data}
-        </option>
-      ))}
-    </select>
-  ),
-  string: ({ value, action }: any) => (
-    <input
-      type="text"
-      className="w-20 p-1 border border-[#484E55] rounded-md mr-2 text-right hover:cursor-pointer"
-      readOnly
-      value={value ? value.toString() : ""}
-      onFocus={action}
-    />
-  ),
-  date: ({ value, action }: any) => (
-    <input
-      type="date"
-      //value={value ? value.split("/").reverse().join("-") : ""}
-      value={value ? value : ""}
-      onChange={action}
-      className="p-1 border border-gray-300 rounded-md hover:cursor-pointer"
-    />
-  ),
-};
+import {
+  formatCurrency,
+  formatDateStringToYYYYMMDD,
+} from "../utils/formatUtils";
+import { darkTheme, dateFormat } from "../utils/constants";
+import dayjs from "dayjs";
+import { DatePicker, Select } from "antd";
+import { useTheme } from "../contexts/ThemeContext";
 
 const EditableTable = ({
   data,
@@ -60,15 +22,67 @@ const EditableTable = ({
   setItemsIdSelected = false,
   rowWithoutActions = "cancelled",
 }: any) => {
+  const {
+    state: { theme, themeStyles },
+  } = useTheme();
+
+  const mappingInputType: any = {
+    button: ({ action }: any) => (
+      <div
+        className={`bg-blue-700 w-5 text-white py-1 rounded-md flex items-center justify-center select-none`}
+        onClick={action}
+      >
+        <MdOutlinePendingActions />
+      </div>
+    ),
+    select: ({ value, action, dataSelect }: any) => (
+      <Select
+        value={value ? value : ""}
+        className={themeStyles[theme].classNameSelector}
+        dropdownStyle={themeStyles[theme].dropdownStylesCustom}
+        popupClassName={themeStyles[theme].classNameSelectorItem}
+        style={{ width: 110 }}
+        onSelect={(e: any) => action({ value: e })}
+        options={dataSelect.map((data: any) => ({ value: data, label: data }))}
+      />
+    ),
+    string: ({ value, action }: any) => (
+      <input
+        type="text"
+        className={`w-20 p-1 rounded-md text-right hover:cursor-pointer ${themeStyles[theme].tailwindcss.inputText}`}
+        readOnly
+        value={value ? value.toString() : ""}
+        onFocus={action}
+      />
+    ),
+    date: ({ value, action }: any) => (
+      <DatePicker
+        onChange={action}
+        className={`${themeStyles[theme].datePickerIndicator} w-24`}
+        style={themeStyles[theme].datePicker}
+        popupClassName={themeStyles[theme].classNameDatePicker}
+        allowClear={false}
+        format={dateFormat}
+        placeholder="Seleccione Fecha"
+        value={value ? dayjs(formatDateStringToYYYYMMDD(value)) : ""}
+      />
+    ),
+  };
+
   return (
-    <table className="w-full bg-[#252525] border border-[#2A2B2A]">
+    <table className={`w-full ${themeStyles[theme].tailwindcss.table.main}`}>
       <thead>
         <tr className="border-b-2 border-[#1BA1E2]">
-          {enableSelectItem && <th className="p-2 px-5"></th>}
+          {enableSelectItem && (
+            <th
+              className={`${themeStyles[theme].tailwindcss.table.thead.th} `}
+              style={{ width: '100px' }} 
+            ></th>
+          )}
           {columns.map((column: any, columnIndex: any) => (
             <th
               key={columnIndex}
-              className="text-left font-normal border border-[#333333] p-2 px-5"
+              className={`text-center font-normal  ${themeStyles[theme].tailwindcss.table.thead.th}`}
             >
               {column.title}
             </th>
@@ -82,15 +96,17 @@ const EditableTable = ({
               className={` ${
                 rowIndex % 2 === 0 &&
                 editableRow !== table + rowIndex &&
-                "bg-[#1E1E1E]"
+                themeStyles[theme].tailwindcss.table.impar
               } ${
                 editableRow === table + rowIndex
-                  ? "bg-[#01557c]"
-                  : "hover:bg-[#1E1E1E]"
-              } ${row[rowWithoutActions] && "bg-red-700 hover:bg-red-700"}`}
+                  ? themeStyles[theme].tailwindcss.table.par
+                  : themeStyles[theme].tailwindcss.table.hover
+              } ${row[rowWithoutActions] && "bg-red-500 hover:bg-red-700 text-white"}`}
             >
               {enableSelectItem && (
-                <td className="p-2 pl-2 border border-[#292A28]">
+                <td
+                  className={`pt-1 ${themeStyles[theme].tailwindcss.table.tbody.td}`}
+                >
                   {!row[rowWithoutActions] && (
                     <input
                       type="checkbox"
@@ -107,7 +123,11 @@ const EditableTable = ({
                           return items.filter((i: any) => i.id !== row.id);
                         });
                       }}
-                      className="form-checkbox h-5 w-5 text-[#1BA1E2] focus:ring-[#1BA1E2] border-gray-300 rounded"
+                      className={`form-checkbox h-4 w-4 border border-gray-300 ${
+                        Boolean(
+                          !itemsIdSelected.find((i: any) => i.id === row.id)
+                        ) && themeStyles[theme].tailwindcss.table.checkbox
+                      } rounded p-2`}
                     />
                   )}
                 </td>
@@ -115,7 +135,7 @@ const EditableTable = ({
               {columns.map((column: any, columnIndex: any) => (
                 <td
                   key={columnIndex}
-                  className="text-right p-1 px-2 border border-[#292A28] hover:cursor-pointer"
+                  className={`text-right py-1 ${themeStyles[theme].tailwindcss.table.tbody.td}`}
                   onClick={() =>
                     !row[rowWithoutActions] &&
                     handleEditClick(setItemInOnClick ? row : table + rowIndex)
@@ -153,7 +173,9 @@ const EditableTable = ({
         {columns.find(({ sumAcc }: any) => sumAcc) && (
           <tr>
             {enableSelectItem && (
-              <th className="text-right p-2 px-3 border border-[#292A28] font-bold bg-[#1E1E1E]"></th>
+              <th
+                className={`text-right p-2 px-3 ${themeStyles[theme].tailwindcss.table.thead.th}`}
+              ></th>
             )}
             {columns.map((column: any, idx: number) => {
               const reduceValue =
@@ -166,7 +188,7 @@ const EditableTable = ({
 
               return (
                 <td
-                  className="text-right p-2 px-3 border border-[#292A28] font-bold bg-[#1E1E1E]"
+                  className={`text-right font-bold ${themeStyles[theme].tailwindcss.table.thead.th}`}
                   key={idx}
                 >
                   {idx === 0 && !Boolean(reduceValue) && "TOTAL"}

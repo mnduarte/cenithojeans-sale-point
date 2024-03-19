@@ -12,8 +12,13 @@ import {
 } from "../contexts/ObservationContext";
 import ObservationsByMonth from "./ObservationsByMonth";
 import { FaEye } from "react-icons/fa";
+import { Select } from "antd";
+import { useTheme } from "../contexts/ThemeContext";
 
 const ReportsContainer = () => {
+  const {
+    state: { theme, themeStyles },
+  } = useTheme();
   const [isModalOutgoingsByDayList, setIsModalOutgoingsByDayList] =
     useState(false);
   const [isModalObservationsByMonth, setIsModalObservationsByMonth] =
@@ -146,79 +151,92 @@ const ReportsContainer = () => {
 
   return (
     <>
-      <div className="h-15 relative p-1 border border-[#484E55] flex justify-center">
+      <div className={`h-15 relative p-1 border ${themeStyles[theme].tailwindcss.border} flex justify-center`}>
         <div className="inline-block">
-          <label className="mr-2 text-white">Mes y Año:</label>
-          <select
-            className="px-4 py-2 border border-gray-300 rounded-md"
-            onChange={({ target }: any) =>
+          <label className="mr-2">Mes y Año:</label>
+
+          <Select
+            value={months[filters.month]}
+            className={themeStyles[theme].classNameSelector}
+            dropdownStyle={{
+              ...themeStyles[theme].dropdownStylesCustom,
+              width: 110,
+            }}
+            popupClassName={themeStyles[theme].classNameSelectorItem}
+            style={{ width: 110 }}
+            onSelect={(value: any) =>
               setFilters((props) => ({
                 ...props,
-                month: Number(target.value),
+                month: Number(value),
               }))
             }
-            value={filters.month}
-          >
-            {months.map((month, index) => (
-              <option key={index} value={index}>
-                {month}
-              </option>
-            ))}
-          </select>
+            options={months.map((month, index: any) => ({
+              value: index,
+              label: month,
+            }))}
+          />
 
-          <select
-            className="px-4 py-2 border border-gray-300 rounded-md ml-2"
-            onChange={({ target }: any) =>
-              setFilters((props) => ({ ...props, year: target.value }))
-            }
+          <Select
             value={filters.year}
-          >
-            {Array.from({ length: 8 }, (_, i) => (
-              <option key={i} value={currentYear + i}>
-                {currentYear + i}
-              </option>
-            ))}
-          </select>
+            className={themeStyles[theme].classNameSelector}
+            dropdownStyle={{
+              ...themeStyles[theme].dropdownStylesCustom,
+              width: 80,
+            }}
+            popupClassName={themeStyles[theme].classNameSelectorItem}
+            style={{ width: 80, marginLeft: 5 }}
+            onSelect={(value: any) =>
+              setFilters((props) => ({
+                ...props,
+                year: Number(value),
+              }))
+            }
+            options={Array.from({ length: 8 }, (_, i) => ({
+              value: currentYear + i,
+              label: currentYear + i,
+            }))}
+          />
         </div>
         <div className="ml-4 inline-block">
-          <label className="mr-2 text-white">por sucursal:</label>
-          <select
-            className="p-2 border border-[#484E55] rounded-md"
-            onChange={({ target }: any) =>
-              setFilters((props) => ({ ...props, store: target.value }))
-            }
+          <label className="mr-2">por sucursal:</label>
+
+          <Select
             defaultValue="BOGOTA"
-          >
-            <option value="BOGOTA" className="py-2">
-              Bogota
-            </option>
-            <option value="HELGUERA" className="py-2">
-              Helguera
-            </option>
-          </select>
+            className={themeStyles[theme].classNameSelector}
+            dropdownStyle={themeStyles[theme].dropdownStylesCustom}
+            popupClassName={themeStyles[theme].classNameSelectorItem}
+            style={{ width: 110 }}
+            onSelect={(value: any) =>
+              setFilters((props) => ({ ...props, store: value }))
+            }
+            options={[
+              { label: "Bogota", value: "BOGOTA" },
+              { label: "Helguera", value: "HELGUERA" },
+            ]}
+          />
         </div>
 
         <div className="ml-4 inline-block">
-          <label className="mr-2 text-white">por tipo de pago:</label>
-          <select
-            className="p-2 border border-[#484E55] rounded-md"
-            onChange={({ target }: any) =>
-              setFilters((props) => ({ ...props, typeSale: target.value }))
-            }
+          <label className="mr-2">por tipo de pago:</label>
+          <Select
             defaultValue="local"
-          >
-            <option value="local" className="py-2">
-              Local
-            </option>
-            <option value="pedido" className="py-2">
-              Pedido
-            </option>
-          </select>
+            className={themeStyles[theme].classNameSelector}
+            dropdownStyle={themeStyles[theme].dropdownStylesCustom}
+            popupClassName={themeStyles[theme].classNameSelectorItem}
+            style={{ width: 110 }}
+            onSelect={(value: any) =>
+              setFilters((props) => ({ ...props, typeSale: value }))
+            }
+            options={[
+              { value: "local", label: "Local" },
+              { value: "pedido", label: "Pedido" },
+            ]}
+          />
         </div>
 
         <div className="ml-10 inline-block">
           <div
-            className={`inline-block px-4 py-2 rounded-md border text-white select-none bg-[#1b78e2] border-[#1b78e2] hover:cursor-pointer hover:opacity-80 transition-opacity flex items-center mx-auto`}
+            className={`inline-block px-4 py-1 rounded-md border text-white select-none bg-[#1b78e2] border-[#1b78e2] hover:cursor-pointer hover:opacity-80 transition-opacity flex items-center mx-auto`}
             onClick={() =>
               !loading &&
               dispatchSale(saleActions.getReports(filters)(dispatchSale))
@@ -256,7 +274,7 @@ const ReportsContainer = () => {
                 <div className="flex mb-5">
                   <div className="w-50 mr-10" key={idx + "byDay"}>
                     <div className="mb-2 flex ">
-                      <label className="text-2xl text-white text-base font-bold">
+                      <label className="text-2xl text-base font-bold">
                         SEMANA {report.week}
                       </label>
                     </div>

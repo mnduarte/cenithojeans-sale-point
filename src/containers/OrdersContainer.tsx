@@ -8,6 +8,16 @@ import KeyboardNum from "../components/KeyboardNum";
 import Toast from "../components/Toast";
 import EditableTable from "../components/EditableTable";
 import { MdOutlinePendingActions } from "react-icons/md";
+import dayjs from "dayjs";
+import { DatePicker, Select } from "antd";
+import {
+  darkTheme,
+  dateFormat,
+  listStore,
+  mappingListStore,
+  mappingTypeShipment,
+} from "../utils/constants";
+import { useTheme } from "../contexts/ThemeContext";
 
 const mappingConceptToUpdate: Record<string, string> = {
   order: "N° Pedido",
@@ -18,6 +28,9 @@ const mappingConceptToUpdate: Record<string, string> = {
 };
 
 const OrdersContainer = () => {
+  const {
+    state: { theme, themeStyles },
+  } = useTheme();
   const {
     state: { employees },
   } = useEmployee();
@@ -35,8 +48,8 @@ const OrdersContainer = () => {
     state: { user },
   } = useUser();
   const [filters, setFilters] = useState({
-    startDate: "",
-    endDate: "",
+    startDate: formatDateToYYYYMMDD(new Date()),
+    endDate: formatDateToYYYYMMDD(new Date()),
     store: user.store === "ALL" ? "" : user.store,
     employee: "",
     typeSale: "pedido",
@@ -159,15 +172,30 @@ const OrdersContainer = () => {
       setIsModalKeyboardNumOpen(true);
     }
 
-    if (inputType === "date" || inputType === "select") {
+    if (inputType === "date") {
       dispatchSale(
         saleActions.updateOrder({
           dataIndex,
           id,
-          value: inputValue.target.value,
+          value: formatDateToYYYYMMDD(new Date(inputValue)),
         })(dispatchSale)
       );
-      setEditableRow(null);
+      setTimeout(() => {
+        setEditableRow(null);
+      }, 50);
+    }
+
+    if (inputType === "select") {
+      dispatchSale(
+        saleActions.updateOrder({
+          dataIndex,
+          id,
+          value: inputValue.value,
+        })(dispatchSale)
+      );
+      setTimeout(() => {
+        setEditableRow(null);
+      }, 50);
     }
 
     if (inputType === "button") {
@@ -184,89 +212,103 @@ const OrdersContainer = () => {
     }
   };
 
-  const onOrderAscDesc = (e: any) => {
+  const onOrderAscDesc = (value: any) => {
     setOrdersFiltered((items: any) =>
       items
         .slice()
         .sort((a: any, b: any) =>
-          e.target.value === "lower" ? a.order - b.order : b.order - a.order
+          value === "lower" ? a.order - b.order : b.order - a.order
         )
     );
   };
 
   useEffect(() => {
-    if (orders.length) {
-      setOrdersFiltered(orders);
-    }
+    setOrdersFiltered(orders);
   }, [orders]);
 
   return (
     <>
-      <div className="h-12 relative p-2 border border-[#484E55] flex justify-center">
+      <div className={`h-12 relative p-2 border-x border-t ${themeStyles[theme].tailwindcss.border} flex justify-center`}>
         <div className="inline-block">
-          <label className="mr-2 text-white">Desde:</label>
-          <input
-            type="date"
-            value={filters.startDate}
-            onChange={({ target }: any) =>
-              setFilters((props) => ({ ...props, startDate: target.value }))
+          <label className="mr-2">Desde:</label>
+          <DatePicker
+            onChange={(date: any) =>
+              setFilters((props) => ({
+                ...props,
+                startDate: date.format("YYYY-MM-DD"),
+              }))
             }
-            className="p-1 border border-gray-300 rounded-md"
+            className={themeStyles[theme].datePickerIndicator}
+            style={themeStyles[theme].datePicker}
+            popupClassName={themeStyles[theme].classNameDatePicker}
+            allowClear={false}
+            format={dateFormat}
+            value={dayjs(filters.startDate)}
           />
-          <label className="ml-2 mr-2 text-white">Hasta:</label>
-          <input
-            type="date"
-            value={filters.endDate}
-            onChange={({ target }: any) =>
-              setFilters((props) => ({ ...props, endDate: target.value }))
+          <label className="ml-2 mr-2">Hasta:</label>
+
+          <DatePicker
+            onChange={(date: any) =>
+              setFilters((props) => ({
+                ...props,
+                endDate: date.format("YYYY-MM-DD"),
+              }))
             }
-            className="p-1 border border-gray-300 rounded-md"
+            className={themeStyles[theme].datePickerIndicator}
+            style={themeStyles[theme].datePicker}
+            popupClassName={themeStyles[theme].classNameDatePicker}
+            allowClear={false}
+            format={dateFormat}
+            value={dayjs(filters.endDate)}
           />
         </div>
 
         {user.store === "ALL" && (
           <div className="ml-4 inline-block">
-            <label className="mr-2 text-white">Filtrar por sucursal:</label>
-            <select
-              className="p-1 border border-[#484E55] rounded-md"
-              onChange={({ target }: any) =>
-                setFilters((props) => ({ ...props, store: target.value }))
+            <label className="mr-2">Filtrar por sucursal:</label>
+
+            <Select
+              value={mappingListStore[filters.store]}
+              className={themeStyles[theme].classNameSelector}
+              dropdownStyle={themeStyles[theme].dropdownStylesCustom}
+              popupClassName={themeStyles[theme].classNameSelectorItem}
+              style={{ width: 110 }}
+              onSelect={(value: any) =>
+                setFilters((props) => ({ ...props, store: value }))
               }
-              defaultValue=""
-            >
-              <option value="" className="py-2">
-                Todos
-              </option>
-              <option value="BOGOTA" className="py-2">
-                Bogota
-              </option>
-              <option value="HELGUERA" className="py-2">
-                Helguera
-              </option>
-            </select>
+              options={listStore.map((data: any) => ({
+                value: data.value === "ALL" ? "" : data.value,
+                label: data.name,
+              }))}
+            />
           </div>
         )}
         <div className="ml-4 inline-block">
-          <label className="mr-2 text-white">por vendedor:</label>
-          <select
-            className="p-1 border border-[#484E55] rounded-md"
-            onChange={({ target }: any) =>
-              setFilters((props) => ({ ...props, employee: target.value }))
+          <label className="mr-2">por vendedor:</label>
+
+          <Select
+            value={filters.employee === "" ? "Todos" : filters.employee}
+            className={themeStyles[theme].classNameSelector}
+            dropdownStyle={themeStyles[theme].dropdownStylesCustom}
+            popupClassName={themeStyles[theme].classNameSelectorItem}
+            style={{ width: 120 }}
+            onSelect={(value: any) =>
+              setFilters((props) => ({
+                ...props,
+                employee: value,
+              }))
             }
-            defaultValue=""
-          >
-            <option value="" className="py-2">
-              Todos
-            </option>
-            {employees.map((employee: any) => (
-              <option value={employee.name} key={employee.id} className="py-2">
-                {employee.name}
-              </option>
-            ))}
-          </select>
+            options={[
+              { label: "Todos", value: "" },
+              ...employees.map((data: any) => ({
+                value: data.name,
+                label: data.name,
+              })),
+            ]}
+          />
         </div>
 
-        <div className="ml-10 inline-block">
+        <div className="ml-2 inline-block">
           <div
             className={`inline-block px-4 py-1 rounded-md border text-white select-none ${
               Boolean(filters.startDate.length) &&
@@ -288,45 +330,44 @@ const OrdersContainer = () => {
         </div>
       </div>
 
-      <div className="h-12 relative p-2 border border-[#484E55] flex items-center">
+      <div className={`h-12 relative p-2 border ${themeStyles[theme].tailwindcss.border} flex items-center`}>
         <div className="ml-4 inline-block">
-          <label className="mr-2 text-white">Ordenar por Pedido:</label>
-          <select
-            className="p-1 border border-[#484E55] rounded-md"
-            onChange={onOrderAscDesc}
-            defaultValue=""
-          >
-            <option value="" className="py-2" disabled hidden>
-              -
-            </option>
-            <option value="higher" className="py-2">
-              Mayor
-            </option>
-            <option value="lower" className="py-2">
-              Menor
-            </option>
-          </select>
+          <label className="mr-2">Ordenar por Pedido:</label>
+
+          <Select
+            className={themeStyles[theme].classNameSelector}
+            dropdownStyle={themeStyles[theme].dropdownStylesCustom}
+            popupClassName={themeStyles[theme].classNameSelectorItem}
+            style={{ width: 120 }}
+            onSelect={onOrderAscDesc}
+            options={[
+              { label: "Mayor", value: "higher" },
+              { label: "Menor", value: "lower" },
+            ]}
+          />
         </div>
 
         <div className="ml-4 inline-block">
-          <label className="mr-2 text-white">Filtrar por Tipo:</label>
-          <select
-            className="p-1 border border-[#484E55] rounded-md"
-            onChange={({ target }: any) =>
-              setFilters((props) => ({ ...props, typeShipment: target.value }))
+          <label className="mr-2">Filtrar por Tipo:</label>
+
+          <Select
+            value={mappingTypeShipment[filters.typeShipment]}
+            className={themeStyles[theme].classNameSelector}
+            dropdownStyle={themeStyles[theme].dropdownStylesCustom}
+            popupClassName={themeStyles[theme].classNameSelectorItem}
+            style={{ width: 120 }}
+            onSelect={(value: any) =>
+              setFilters((props) => ({
+                ...props,
+                typeShipment: value,
+              }))
             }
-            defaultValue=""
-          >
-            <option value="" className="py-2">
-              Todos
-            </option>
-            <option value="retiraLocal" className="py-2">
-              Retira local
-            </option>
-            <option value="envio" className="py-2">
-              Envio
-            </option>
-          </select>
+            options={[
+              { label: "Todos", value: "" },
+              { label: "Retira local", value: "retiraLocal" },
+              { label: "Envio", value: "envio" },
+            ]}
+          />
         </div>
 
         {Boolean(itemsIdSelected.length) && (

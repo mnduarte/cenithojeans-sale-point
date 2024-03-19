@@ -149,6 +149,14 @@ http://ionicframework.com/docs/theming/ */
     --ion-color-light-tint: #383a3e;
   }
 
+  .ant-select-selector {
+    background-color: green;
+  }
+
+  option {
+    min-height: 30;
+  }
+
   /*
    * iOS Dark Theme
    * -------------------------------------------

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { FaPlus } from "react-icons/fa";
 import Spinner from "./Spinner";
+import { useTheme } from "../contexts/ThemeContext";
 
 const PriceForm = ({
   itemSelected,
@@ -15,6 +16,9 @@ const PriceForm = ({
   priceValues,
   setPriceValues,
 }: any) => {
+  const {
+    state: { theme, themeStyles },
+  } = useTheme();
   const titleForm = `${isNewPrice ? "Carga de" : "Editar"} precio`;
 
   const handleAction = (action: any) => {
@@ -39,11 +43,11 @@ const PriceForm = ({
 
   return (
     <div className="p-4 rounded-md">
-      <h3 className="text-2xl text-white mb-4 flex items-center justify-center gap-2">
+      <h3 className="text-2xl mb-4 flex items-center justify-center gap-2">
         <label>{titleForm}</label>
         {!isNewPrice && (
           <div
-            className="w-[4vh] h-[4vh] bg-[#007c2f] hover:cursor-pointer hover:bg-[#006b29] flex items-center justify-center rounded-md"
+            className="w-[4vh] h-[4vh] bg-[#007c2f] text-white hover:cursor-pointer hover:bg-[#006b29] flex items-center justify-center rounded-md"
             onClick={() => {
               setPriceValues(initialValues);
               setIsNewPrice(true);
@@ -56,17 +60,17 @@ const PriceForm = ({
       </h3>
 
       <div className="mb-4">
-        <label className="block text-white mb-2">Precio:</label>
+        <label className="block mb-2">Precio:</label>
         <input
           type="text"
           value={priceValues.price}
-          onChange={handlePrice}
-          className="bg-gray-700 text-white p-2 rounded-md w-full"
+          onChange={handlePrice}          
+          className={`p-1 rounded-md w-full ${themeStyles[theme].tailwindcss.inputText}`}
         />
       </div>
 
       <div className="mb-4">
-        <label className="block text-white mb-2 cursor-pointer">
+        <label className="block mb-2 cursor-pointer">
           <input
             type="checkbox"
             checked={priceValues.active}
@@ -75,7 +79,7 @@ const PriceForm = ({
             }
             className="mr-2"
           />
-          <span className="text-white">Activo</span>
+          <span>Activo</span>
         </label>
       </div>
 
@@ -84,7 +88,7 @@ const PriceForm = ({
           <button
             className={`${
               !Boolean(priceValues.price)
-                ? "bg-[#333333]"
+                ? "bg-gray-600"
                 : "bg-[#007c2f] hover:opacity-80 transition-opacity"
             } text-white px-4 py-2 rounded-md flex items-center mx-auto`}
             disabled={!Boolean(priceValues.price)}

@@ -6,6 +6,17 @@ export const formatDateToYYYYMMDD = (date: any) => {
   return `${year}-${month}-${day}`;
 };
 
+export const formatDateStringToYYYYMMDD = (date: any) => {
+  const parts = date.split("/");
+  const newDate = new Date(parts[2], parts[1] - 1, parts[0]);
+  const newFormat = `${newDate.getFullYear()}-${(
+    "0" +
+    (newDate.getMonth() + 1)
+  ).slice(-2)}-${("0" + newDate.getDate()).slice(-2)}`;
+
+  return newFormat;
+};
+
 export const formatCurrency = (number: any) => {
   // Convierte el número a un entero
   const integerNumber = Math.trunc(number);

@@ -14,6 +14,7 @@ export const months = [
 ];
 
 export const concepts = [
+  { value: "", description: "Sin concepto", action: "" },
   { value: "bolsas", description: "Bolsas", action: "addition" },
   { value: "envio", description: "Envío", action: "addition" },
   {
@@ -37,3 +38,36 @@ export const concepts = [
     action: "subtraction",
   },
 ];
+
+export const listStore = [
+  { name: "Todos", value: "ALL" },
+  { name: "Bogota", value: "BOGOTA" },
+  { name: "Helguera", value: "HELGUERA" },
+];
+
+export const mappingListStore = {
+  "": "Todos",
+  ALL: "Todos",
+  BOGOTA: "Bogota",
+  HELGUERA: "Helguera",
+};
+
+export const darkTheme = {
+  backgroundColor: "#3B3B3B",
+  color: "#fff",
+  width: 120,
+};
+
+export const dateFormat = "DD/MM/YYYY";
+
+export const mappingOrderSort = {
+  "": "-",
+  higher: "Mayor",
+  lower: "Menor",
+};
+
+export const mappingTypeShipment = {
+  "": "Todos",
+  retiraLocal: "Retira local",
+  envio: "Envio",
+};

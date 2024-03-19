@@ -8,11 +8,15 @@ import {
   observationActions,
   useObservation,
 } from "../contexts/ObservationContext";
+import { useTheme } from "../contexts/ThemeContext";
 
 const ObservationContainer = ({
   isModalObservationOpen,
   setIsModalObservationOpen,
 }: any) => {
+  const {
+    state: { theme, themeStyles },
+  } = useTheme();
   const {
     state: { user },
   } = useUser();
@@ -51,24 +55,22 @@ const ObservationContainer = ({
       {isModalObservationOpen && (
         <div className="fixed inset-0 bg-[#252525] bg-opacity-60 flex items-center justify-center">
           {/* Contenido del modal */}
-          <div className="w-[60vh] bg-gray-800 border border-[#000000] p-8 rounded shadow-md relative">
+          <div className={`w-[60vh] p-8 rounded-md shadow-md relative  ${themeStyles[theme].tailwindcss.modal}`}>
             {/* Icono de cerrar en la esquina superior derecha */}
             <button
-              className="absolute top-4 right-4 text-white"
+              className="absolute top-4 right-4"
               onClick={closeModal}
             >
               <MdClose className="text-2xl" />
             </button>
 
-            <h2 className="text-white text-lg font-bold mb-4">
-              Agregar Observacion
-            </h2>
+            <h2 className=" text-lg font-bold mb-4">Agregar Observacion</h2>
 
             <div className="mb-4">
               <textarea
                 value={observation}
                 readOnly
-                className="w-[50vh] p-2 border border-[#484E55] rounded-md mr-2 text-lg"
+                className={`w-[50vh] p-2 rounded-md mr-2 text-lg ${themeStyles[theme].tailwindcss.inputText}`}
               />
             </div>
 

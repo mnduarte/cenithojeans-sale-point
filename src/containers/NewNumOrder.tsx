@@ -3,8 +3,8 @@ import { MdClose } from "react-icons/md";
 import KeyboardNum from "../components/KeyboardNum";
 import { employeeActions, useEmployee } from "../contexts/EmployeeContext";
 import Spinner from "../components/Spinner";
-import { useUser } from "../contexts/UserContext";
 import Toast from "../components/Toast";
+import { useTheme } from "../contexts/ThemeContext";
 
 const NewNumOrder = ({
   isModalNewNumOrder,
@@ -23,8 +23,8 @@ const NewNumOrder = ({
   } = useEmployee();
 
   const {
-    state: { user },
-  } = useUser();
+    state: { theme, themeStyles },
+  } = useTheme();
 
   const [newNumOrder, setNewNumOrder] = useState(0);
   const [isModalKeyboardNumOpen, setIsModalKeyboardNumOpen] = useState(false);
@@ -75,16 +75,16 @@ const NewNumOrder = ({
               <MdClose className="text-2xl" />
             </button>
 
-            <h2 className="text-white text-lg font-bold mb-4">
+            <h2 className="text-lg font-bold mb-4">
               N° Orden - {employee}
             </h2>
 
             <div className="mb-4 h-[5vh] flex items-center justify-start">
-              <label className="mr-2 text-white">Establezca N° Orden:</label>
+              <label className="mr-2">Establezca N° Orden:</label>
 
               <input
-                type="text"
-                className="w-[10vh] p-2 border border-[#484E55] rounded-md mr-2"
+                type="text"                
+                className={`w-[10vh] p-2 rounded-md mr-2 ${themeStyles[theme].tailwindcss.inputText}`}
                 readOnly
                 value={newNumOrder}
                 onFocus={() => {

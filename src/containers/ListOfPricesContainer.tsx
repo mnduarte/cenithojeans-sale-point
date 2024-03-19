@@ -1,11 +1,12 @@
 import { formatCurrency } from "../utils/formatUtils";
-import { FaSearch } from "react-icons/fa";
 import { Price } from "../types";
 import Spinner from "../components/Spinner";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import IncomeContainer from "./IncomeContainer";
 import OutgoingContainer from "./OutgoingContainer";
 import ObservationContainer from "./ObservationContainer";
+import { Select } from "antd";
+import { useTheme } from "../contexts/ThemeContext";
 
 const ListOfPricesContainer = ({
   prices,
@@ -21,27 +22,12 @@ const ListOfPricesContainer = ({
   setDevolutionPricesSelected,
   isLoading,
 }: any) => {
-  const [isVertical, setIsVertical] = useState(
-    window.matchMedia("(orientation: portrait)").matches
-  );
-
   const [isModalIncomeOpen, setIsModalIncomeOpen] = useState(false);
   const [isModalOutgoingOpen, setIsModalOutgoingOpen] = useState(false);
   const [isModalObservationOpen, setIsModalObservationOpen] = useState(false);
-
-  useEffect(() => {
-    const handleOrientationChange = () => {
-      setIsVertical(window.matchMedia("(orientation: portrait)").matches);
-    };
-
-    // Agregar el event listener para el cambio de orientación
-    window.addEventListener("orientationchange", handleOrientationChange);
-
-    return () => {
-      // Remover el event listener al desmontar el componente
-      window.removeEventListener("orientationchange", handleOrientationChange);
-    };
-  }, []);
+  const {
+    state: { theme, themeStyles },
+  } = useTheme();
 
   const pricesItems = devolutionModeActive
     ? devolutionPricesSelected
@@ -63,12 +49,12 @@ const ListOfPricesContainer = ({
     }
   };
 
-  const onOrderProducts = (e: any) => {
+  const onOrderProducts = (value: any) => {
     setPricesFiltered((items: any) =>
       items
         .slice()
         .sort((a: Price, b: Price) =>
-          e.target.value === "lower" ? a.price - b.price : b.price - a.price
+          value === "lower" ? a.price - b.price : b.price - a.price
         )
     );
   };
@@ -108,29 +94,12 @@ const ListOfPricesContainer = ({
       };
       return [...items, newItem];
     });
-
-    /*const foundItem = pricesItems.find(
-      (itemSelected: any) => itemSelected.id === item.id
-    );
-
-    if (!foundItem) {
-      item.quantity = 1;
-      return setPricesItems((items: any) => [...items, item]);
-    }
-
-    const productsUpdated = pricesItems.map((item: any) => {
-      return foundItem.id === item.id
-        ? { ...item, quantity: item.quantity + 1 }
-        : item;
-    });
-
-    setPricesItems(productsUpdated);*/
   };
 
   return (
     <>
-      <div className={`h-[6vh] relative p-2 border border-[#484E55]`}>
-        <input
+      <div className={`p-2 border ${themeStyles[theme].tailwindcss.border}`}>
+        {/* <input
           type="text"
           placeholder="Buscar"
           className="w-1/4 p-1 border border-[#484E55] rounded-md pl-10"
@@ -139,31 +108,27 @@ const ListOfPricesContainer = ({
         />
         <div className="absolute top-5 left-5">
           <FaSearch className="text-white" />
-        </div>
+        </div> */}
         <div className="ml-4 inline-block">
-          <label className="mr-2 text-white">Ordenar:</label>
-          <select
-            className="p-1 border border-[#484E55] rounded-md"
-            onChange={onOrderProducts}
-            defaultValue=""
-          >
-            <option value="" className="py-2" disabled hidden>
-              -
-            </option>
-            <option value="higher" className="py-2">
-              Mayor
-            </option>
-            <option value="lower" className="py-2">
-              Menor
-            </option>
-          </select>
+          <label className="mr-2">Ordenar:</label>
+          <Select
+            className={themeStyles[theme].classNameSelector}
+            dropdownStyle={themeStyles[theme].dropdownStylesCustom}
+            popupClassName={themeStyles[theme].classNameSelectorItem}
+            style={{ width: 100 }}
+            onSelect={onOrderProducts}
+            options={[
+              { label: "Mayor", value: "higher" },
+              { label: "Menor", value: "lower" },
+            ]}
+          />
         </div>
 
         <div className="ml-5 inline-block">
           <div
             className={`cursor-pointer inline-block px-4 py-1 rounded-md border ${
-              devolutionModeActive && "bg-red-600"
-            } border-red-500 text-white`}
+              devolutionModeActive && "bg-red-600 text-white"
+            } border-red-500 `}
             onClick={() => {
               setDevolutionModeActive((currentMode: boolean) => !currentMode);
             }}
@@ -173,9 +138,9 @@ const ListOfPricesContainer = ({
         </div>
       </div>
 
-      <div className={`h-[6vh] relative p-2 border border-[#484E55]`}>
+      <div className={` relative p-2 border-x ${themeStyles[theme].tailwindcss.border}`}>
         <div
-          className={`cursor-pointer inline-block px-4 py-1 rounded-md border bg-green-800 border-green-800 text-white`}
+          className={`cursor-pointer inline-block px-4 py-1 rounded-md bg-green-600 text-white`}
           onClick={() => {
             setIsModalIncomeOpen(true);
           }}
@@ -183,7 +148,7 @@ const ListOfPricesContainer = ({
           INGRESOS
         </div>
         <div
-          className={`ml-2 cursor-pointer inline-block px-4 py-1 rounded-md border bg-red-800 border-red-800 text-white`}
+          className={`ml-2 cursor-pointer inline-block px-4 py-1 rounded-md bg-red-600 text-white`}
           onClick={() => {
             setIsModalOutgoingOpen(true);
           }}
@@ -191,7 +156,7 @@ const ListOfPricesContainer = ({
           EGRESOS
         </div>
         <div
-          className={`ml-2 cursor-pointer inline-block px-4 py-1 rounded-md border bg-blue-800 border-blue-800 text-white`}
+          className={`ml-2 cursor-pointer inline-block px-4 py-1 rounded-md bg-blue-600 text-white`}
           onClick={() => {
             setIsModalObservationOpen(true);
           }}
@@ -199,7 +164,7 @@ const ListOfPricesContainer = ({
           OBSERVACIONES
         </div>
       </div>
-      <div className="h-[75vh] p-2 border border-[#484E55] overflow-hidden overflow-y-auto">
+      <div className={`h-[78vh] p-2 border ${themeStyles[theme].tailwindcss.border} overflow-hidden overflow-y-auto`}>
         {isLoading ? (
           <div className="flex items-center justify-center h-[70vh]">
             <Spinner size="lg" />
@@ -214,14 +179,12 @@ const ListOfPricesContainer = ({
                 ? devolutionModeActive
                   ? "border-red-500"
                   : "border-[#1BA1E2]"
-                : "border-[#484E55]";
+                : themeStyles[theme].tailwindcss.border;
 
               return (
                 <div
                   key={item.id}
-                  className={`${
-                    isVertical ? "w-[8vh] h-[6vh]" : "w-[13vh] h-[10vh]"
-                  } p-2 border ${boxBorderStyle} bg-[#333333] text-white text-center transition-all hover:bg-[#484E55] hover:cursor-pointer flex items-center justify-center text-lg font-bold select-none`}
+                  className={`w-[13vh] h-[10vh] p-2 border ${boxBorderStyle} text-center transition-all  ${themeStyles[theme].tailwindcss.priceBox} hover:cursor-pointer flex items-center justify-center text-lg font-bold select-none`}
                   onClick={() => onProductSelect(item)}
                 >
                   {formatCurrency(item.price)}

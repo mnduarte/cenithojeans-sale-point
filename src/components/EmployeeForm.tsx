@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { FaPlus } from "react-icons/fa";
 import Spinner from "./Spinner";
+import { Select } from "antd";
+import { darkTheme } from "../utils/constants";
+import { useTheme } from "../contexts/ThemeContext";
 
 const EmployeeForm = ({
   itemSelected,
@@ -11,6 +14,9 @@ const EmployeeForm = ({
   isLoading,
   stores,
 }: any) => {
+  const {
+    state: { theme, themeStyles },
+  } = useTheme();
   const initialValues = {
     id: "",
     name: "",
@@ -37,7 +43,7 @@ const EmployeeForm = ({
 
   return (
     <div className="p-4 rounded-md">
-      <h3 className="text-2xl text-white mb-4 flex items-center justify-center gap-2">
+      <h3 className="text-2xl mb-4 flex items-center justify-center gap-2">
         <label>{titleForm}</label>
         {!isNewEmployee && (
           <div
@@ -48,45 +54,43 @@ const EmployeeForm = ({
               setItemSelected({});
             }}
           >
-            <FaPlus className="text-2xl" />
+            <FaPlus className="text-2xl text-white" />
           </div>
         )}
       </h3>
 
       <div className="mb-4">
-        <label className="block text-white mb-2">Nombre:</label>
+        <label className="block mb-2">Nombre:</label>
         <input
           type="text"
           value={employeeValues.name}
           onChange={(e) =>
             setEmployeeValues({ ...employeeValues, name: e.target.value })
           }
-          className="bg-gray-700 text-white p-2 rounded-md w-full"
+          className={`p-1 rounded-md w-full ${themeStyles[theme].tailwindcss.inputText}`}
         />
       </div>
 
       <div className="mb-4">
-        <label className="block text-white mb-2">Sucursal:</label>
-        <select
-          className="bg-gray-700 text-white p-2 rounded-md w-full"
-          onChange={(e) =>
-            setEmployeeValues({ ...employeeValues, store: e.target.value })
-          }
+        <label className="block mb-2">Sucursal:</label>
+
+        <Select
           value={employeeValues.store}
-        >
-          <option value="" className="py-2" disabled hidden>
-            -
-          </option>
-          {stores.map((store: any) => (
-            <option value={store.name} key={store.name} className="py-2">
-              {store.name}
-            </option>
-          ))}
-        </select>
+          className={`${themeStyles[theme].classNameSelector} w-full`}
+          dropdownStyle={themeStyles[theme].dropdownStylesCustom}
+          popupClassName={themeStyles[theme].classNameSelectorItem}
+          onSelect={(value: any) =>
+            setEmployeeValues({ ...employeeValues, store: value })
+          }
+          options={stores.map((data: any) => ({
+            value: data.name,
+            label: data.name,
+          }))}
+        />
       </div>
 
       <div className="mb-4">
-        <label className="block text-white mb-2 cursor-pointer">
+        <label className="block mb-2 cursor-pointer">
           <input
             type="checkbox"
             checked={employeeValues.active}
@@ -95,7 +99,7 @@ const EmployeeForm = ({
             }
             className="mr-2"
           />
-          <span className="text-white">Activo</span>
+          <span>Activo</span>
         </label>
       </div>
 
@@ -104,7 +108,7 @@ const EmployeeForm = ({
           <button
             className={`${
               !Boolean(employeeValues.name) || !Boolean(employeeValues.store)
-                ? "bg-[#333333]"
+                ? "bg-gray-600"
                 : "bg-[#007c2f] hover:opacity-80 transition-opacity"
             } text-white px-4 py-2 rounded-md flex items-center mx-auto`}
             disabled={

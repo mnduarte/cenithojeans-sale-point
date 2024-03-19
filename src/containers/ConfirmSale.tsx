@@ -5,6 +5,8 @@ import Spinner from "../components/Spinner";
 import { FaMinus, FaPlus } from "react-icons/fa";
 import { mappingConceptWithIcon } from "../utils/mappings";
 import KeyboardNum from "../components/KeyboardNum";
+import { Select } from "antd";
+import { useTheme } from "../contexts/ThemeContext";
 
 const ConfirmSale = ({
   employees,
@@ -26,6 +28,9 @@ const ConfirmSale = ({
   percentageToDisccountOrAdd,
   setPercentageToDisccountOrAdd,
 }: any) => {
+  const {
+    state: { theme, themeStyles },
+  } = useTheme();
   const [sellerSelected, setSellerSelected] = useState("");
   const [numOrder, setNumOrder] = useState(0);
   const [typeSale, setTypeSale] = useState("");
@@ -107,73 +112,70 @@ const ConfirmSale = ({
       {isModalSaleOpen && (
         <div className="fixed inset-0 bg-[#252525] bg-opacity-60 flex items-center justify-center">
           {/* Contenido del modal */}
-          <div className="w-[65vh] bg-gray-800 border border-[#000000] p-8 rounded shadow-md relative">
+          <div className={`w-[65vh] p-8 rounded-md shadow-md relative ${themeStyles[theme].tailwindcss.modal}`}>
             {/* Icono de cerrar en la esquina superior derecha */}
             <button
-              className="absolute top-4 right-4 text-white"
+              className="absolute top-4 right-4"
               onClick={closeModalSale}
             >
               <MdClose className="text-2xl" />
             </button>
 
-            <h2 className="text-white text-lg font-bold mb-4">
+            <h2 className="text-lg font-bold mb-4">
               Confirmar Venta
             </h2>
 
             <div className="mb-4 inline-block">
-              <label className="mr-2 text-white">Seleccione Vendedor:</label>
-              <select
-                className="p-2 border border-[#484E55] rounded-md"
-                onChange={(e) => setSellerSelected(e.target.value)}
-                defaultValue=""
-              >
-                <option value="" className="py-2" disabled hidden>
-                  -
-                </option>
-                {employees.map((employee: any) => (
-                  <option
-                    value={employee.name}
-                    key={employee.id}
-                    className="py-2"
-                  >
-                    {employee.name}
-                  </option>
-                ))}
-              </select>
+              <label className="mr-2 ">Seleccione Vendedor:</label>
+
+              <Select
+                value={sellerSelected}
+                className={themeStyles[theme].classNameSelector}
+                dropdownStyle={{
+                  ...themeStyles[theme].dropdownStylesCustom,
+                  width: 160,
+                }}
+                popupClassName={themeStyles[theme].classNameSelectorItem}
+                style={{ width: 160 }}
+                onSelect={(value: any) => setSellerSelected(value)}
+                options={employees.map((data: any) => ({
+                  value: data.name,
+                  label: data.name,
+                }))}
+              />
             </div>
             <br />
 
             <div className="mb-4 inline-block">
-              <label className="mr-2 text-white">Tipo de venta:</label>
-              <select
-                className="p-2 border border-[#484E55] rounded-md"
-                onChange={(e) => {
+              <label className="mr-2">Tipo de venta:</label>
+              <Select
+                className={themeStyles[theme].classNameSelector}
+                dropdownStyle={{
+                  ...themeStyles[theme].dropdownStylesCustom,
+                  width: 160,
+                }}
+                popupClassName={themeStyles[theme].classNameSelectorItem}
+                style={{ width: 160 }}
+                onSelect={(value) => {
                   setPercentageToDisccountOrAdd(0);
                   setTypePayment("efectivo");
-                  setTypeSale(e.target.value);
+                  setTypeSale(value);
                 }}
-                defaultValue=""
-              >
-                <option value="" className="py-2" disabled hidden>
-                  -
-                </option>
-                <option value="local" className="py-2">
-                  Local
-                </option>
-                <option value="pedido" className="py-2">
-                  Pedido
-                </option>
-              </select>
+                options={[
+                  { value: "local", label: "Local" },
+                  { value: "pedido", label: "Pedido" },
+                ]}
+              />
             </div>
 
             <div className="mb-4 h-[5vh] flex items-center justify-start">
               {typeSale === "pedido" && (
                 <>
-                  <label className="mr-2 text-white">Num de Pedido:</label>
+                  <label className="mr-2">Num de Pedido:</label>
 
                   <input
                     type="text"
-                    className="w-[10vh] p-2 border border-[#484E55] rounded-md mr-2"
+                    className={`w-[10vh] p-2 rounded-md mr-2 ${themeStyles[theme].tailwindcss.inputText}`}
                     readOnly
                     value={numOrder}
                     onFocus={() => setIsModalKeyboardNumOpen(true)}
@@ -191,7 +193,7 @@ const ConfirmSale = ({
                   />
                   <label
                     htmlFor="retiraLocalRadio"
-                    className="text-white select-none hover:cursor-pointer"
+                    className="select-none hover:cursor-pointer"
                   >
                     Retira local
                   </label>
@@ -208,7 +210,7 @@ const ConfirmSale = ({
                   />
                   <label
                     htmlFor="envioRadio"
-                    className="text-white select-none hover:cursor-pointer"
+                    className="select-none hover:cursor-pointer"
                   >
                     Envio
                   </label>
@@ -233,7 +235,7 @@ const ConfirmSale = ({
                   />
                   <label
                     htmlFor="efectivoRadio"
-                    className="text-white select-none hover:cursor-pointer"
+                    className="select-none hover:cursor-pointer"
                   >
                     Efectivo
                   </label>
@@ -253,7 +255,7 @@ const ConfirmSale = ({
                       />
                       <label
                         htmlFor="transferenciaRadio"
-                        className="text-white select-none hover:cursor-pointer"
+                        className=" select-none hover:cursor-pointer"
                       >
                         Transferencia
                       </label>
@@ -261,15 +263,15 @@ const ConfirmSale = ({
                   )}
 
                   <div
-                    className={`w-20 text-white text-center flex items-center justify-center ml-2 `}
+                    className={`w-20 text-center flex items-center justify-center ml-2 `}
                   >
-                    <div className="w-12 h-12 pr-1 border border-[#484E55] text-white text-center flex items-center justify-center select-none">
+                    <div className="w-12 h-12 pr-1 text-center flex items-center justify-center select-none">
                       {percentageToDisccountOrAdd}%
                     </div>
 
                     <div className="w-10 h-12 flex flex-col">
                       <div
-                        className="h-1/2 flex items-center justify-center border border-[#484E55] hover:bg-[#484E55] hover:cursor-pointer"
+                        className="h-1/2 flex items-center justify-center hover:bg-gray-600 hover:text-white hover:cursor-pointer"
                         onClick={() =>
                           Boolean(typePayment) &&
                           setPercentageToDisccountOrAdd((per: any) => per + 1)
@@ -278,7 +280,7 @@ const ConfirmSale = ({
                         <FaPlus />
                       </div>
                       <div
-                        className="h-1/2 flex items-center justify-center border border-[#484E55] hover:bg-[#484E55] hover:cursor-pointer"
+                        className="h-1/2 flex items-center justify-center hover:bg-gray-600 hover:text-white hover:cursor-pointer"
                         onClick={() =>
                           Boolean(typePayment) &&
                           setPercentageToDisccountOrAdd((per: any) => per - 1)
@@ -293,10 +295,10 @@ const ConfirmSale = ({
             </div>
 
             <div className="mb-4 select-none">
-              <div className="mr-2 text-white">Prendas: {totalItems}</div>
+              <div className="mr-2">Prendas: {totalItems}</div>
               {Boolean(pricesWithconcepts.length) &&
                 pricesWithconcepts.map((price: any) => (
-                  <div className="mr-2 text-white" key={price.id}>
+                  <div className="mr-2" key={price.id}>
                     {mappingConceptWithIcon[price.concept].value}{" "}
                     <div className="inline-block">
                       {mappingConceptWithIcon[price.concept].icon}
@@ -304,18 +306,18 @@ const ConfirmSale = ({
                     : ${formatCurrency(price.price * price.quantity)}
                   </div>
                 ))}
-              <div className="mr-2 text-white text-base font-bold">
+              <div className="mr-2 text-base font-bold">
                 Total: ${formatCurrency(totalPrices)}
               </div>
               <br />
               {Boolean(totalDevolutionItems) && (
-                <div className="mr-2 text-white">
+                <div className="mr-2">
                   Devoluciones: {totalDevolutionItems}
                 </div>
               )}
               {Boolean(pricesDevolutionWithconcepts.length) &&
                 pricesDevolutionWithconcepts.map((price: any) => (
-                  <div className="mr-2 text-white" key={price.id}>
+                  <div className="mr-2" key={price.id}>
                     {mappingConceptWithIcon[price.concept].value}{" "}
                     <div className="inline-block">
                       {mappingConceptWithIcon[price.concept].icon}
@@ -325,7 +327,7 @@ const ConfirmSale = ({
                 ))}
               {Boolean(totalDevolutionPrices) && (
                 <>
-                  <div className="mr-2 text-white text-base font-bold">
+                  <div className="mr-2 text-base font-bold">
                     Total Devoluciones: ${formatCurrency(totalDevolutionPrices)}
                   </div>
                   <br />
@@ -334,7 +336,7 @@ const ConfirmSale = ({
               <div className="h-[6vh]">
                 {percentageToDisccountOrAdd !== 0 && (
                   <>
-                    <div className="mr-2 text-white text-base">
+                    <div className="mr-2 text-base">
                       {percentageToDisccountOrAdd > 0
                         ? "Gastos bancarios"
                         : "Descuentos"}
@@ -342,7 +344,7 @@ const ConfirmSale = ({
                     </div>
                   </>
                 )}
-                <div className="mr-2 text-white text-lg font-bold">
+                <div className="mr-2 text-lg font-bold">
                   Total Final: $
                   {formatCurrency(
                     (totalPrices - totalDevolutionPrices) *

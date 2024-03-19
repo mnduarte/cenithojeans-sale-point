@@ -155,14 +155,15 @@ export const SaleProvider: React.FC<SaleProviderProps> = ({ children }) => {
           error: null,
           showSuccessToast: true,
           showSuccessToastMsg: "Pedidos anulados",
-          sales: state.sales.map((sale: any) => {
+          orders: state.orders.map((order: any) => {
             const foundItem = action.payload.find(
-              (order: any) => order.id === sale.id
+              (orderUpdated: any) => orderUpdated.id === order.id
             );
+
             if (foundItem) {
-              return { ...sale, ...foundItem };
+              return { ...order, ...foundItem };
             }
-            return sale;
+            return order;
           }),
         };
       }

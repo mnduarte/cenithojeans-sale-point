@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { saleActions, useSale } from "../contexts/SaleContext";
-import { formatCurrency } from "../utils/formatUtils";
+import { formatCurrency, formatDateToYYYYMMDD } from "../utils/formatUtils";
 import Spinner from "../components/Spinner";
 import { useUser } from "../contexts/UserContext";
 import KeyboardNum from "../components/KeyboardNum";
@@ -11,6 +11,17 @@ import { GrPowerReset } from "react-icons/gr";
 import NewRowSale from "../containers/NewRowSale";
 import { cashflowActions, useCashflow } from "../contexts/CashflowContext";
 import NewNumOrder from "./NewNumOrder";
+import dayjs from "dayjs";
+
+import { DatePicker, Select } from "antd";
+import SelectCustom from "../components/SelectCustom";
+import {
+  darkTheme,
+  dateFormat,
+  listStore,
+  mappingListStore,
+} from "../utils/constants";
+import { useTheme } from "../contexts/ThemeContext";
 
 const mappingConceptToUpdate: Record<string, string> = {
   cash: "Efectivo",
@@ -20,6 +31,10 @@ const mappingConceptToUpdate: Record<string, string> = {
 };
 
 const SalesByDayContainer = () => {
+  const {
+    state: { theme, themeStyles },
+  } = useTheme();
+
   const {
     state: {
       salesByEmployees,
@@ -38,7 +53,7 @@ const SalesByDayContainer = () => {
     state: { loading: loadingCashflow, incomes, outgoings },
     dispatch: dispatchCashflow,
   } = useCashflow();
-  const [date, setDate] = useState("");
+  const [date, setDate] = useState(formatDateToYYYYMMDD(new Date()));
   const [store, setStore] = useState(user.store);
   const [value, setValue] = useState(0);
   const [propSale, setPropSale] = useState({
@@ -55,7 +70,7 @@ const SalesByDayContainer = () => {
     useState("");
 
   const columns = [
-    { title: "N°", dataIndex: "order" },
+    { title: "N°", dataIndex: "order", size: "w-5" },
     {
       title: "Prendas",
       dataIndex: "items",
@@ -163,35 +178,37 @@ const SalesByDayContainer = () => {
 
   return (
     <>
-      <div className="h-10 relative p-2 border border-[#484E55] flex items-center">
+      <div className={`h-10 relative p-2 border ${themeStyles[theme].tailwindcss.border} flex items-center`}>
         <div className="inline-block">
-          <label className="mr-2 text-white">Fecha:</label>
-          <input
-            type="date"
-            value={date}
-            onChange={({ target }: any) => setDate(target.value)}
-            className="p-1 border border-gray-300 rounded-md"
+          <label className="mr-2">Fecha:</label>
+
+          <DatePicker
+            onChange={(date: any) => setDate(date.format("YYYY-MM-DD"))}
+            className={themeStyles[theme].datePickerIndicator}
+            style={themeStyles[theme].datePicker}
+            popupClassName={themeStyles[theme].classNameDatePicker}
+            allowClear={false}
+            format={dateFormat}
+            value={dayjs(date)}
           />
         </div>
 
         {user.store === "ALL" && (
           <div className="ml-4 inline-block">
-            <label className="mr-2 text-white">Filtrar por sucursal:</label>
-            <select
-              className="p-2 border border-[#484E55] rounded-md"
-              onChange={({ target }: any) => setStore(target.value)}
-              defaultValue="ALL"
-            >
-              <option value="ALL" className="py-2">
-                Todos
-              </option>
-              <option value="BOGOTA" className="py-2">
-                Bogota
-              </option>
-              <option value="HELGUERA" className="py-2">
-                Helguera
-              </option>
-            </select>
+            <label className="mr-2">Filtrar por sucursal:</label>
+
+            <Select
+              value={mappingListStore[store]}
+              className={themeStyles[theme].classNameSelector}
+              dropdownStyle={themeStyles[theme].dropdownStylesCustom}
+              popupClassName={themeStyles[theme].classNameSelectorItem}
+              style={{ width: 110 }}
+              onSelect={(value: any) => setStore(value)}
+              options={listStore.map((data: any) => ({
+                value: data.value,
+                label: data.name,
+              }))}
+            />
           </div>
         )}
 
@@ -252,17 +269,17 @@ const SalesByDayContainer = () => {
                 return (
                   <div className="w-50" key={emp}>
                     <div className="mb-2 flex ">
-                      <label className="text-2xl text-white text-base font-bold mr-3 ml-auto">
+                      <label className="text-2xl text-base font-bold mr-3 ml-auto">
                         {emp}
                       </label>
                       <div
-                        className={`w-6 bg-red-800 hover:cursor-pointer hover:bg-red-900 flex items-center justify-center rounded-md mr-1`}
+                        className={`w-6 text-white bg-red-600 hover:cursor-pointer hover:bg-red-700 flex items-center justify-center rounded-md mr-1`}
                         onClick={() => handleCountNumOrderByEmployee({ emp })}
                       >
                         <GrPowerReset />
                       </div>
                       <div
-                        className={`w-6 bg-[#007c2f] hover:cursor-pointer hover:bg-[#006b29] flex items-center justify-center rounded-md`}
+                        className={`w-6 text-white bg-green-600 hover:cursor-pointer hover:bg-green-700 flex items-center justify-center rounded-md`}
                         onClick={() => handleNewRowSale({ emp })}
                       >
                         <FaPlus />
@@ -290,7 +307,7 @@ const SalesByDayContainer = () => {
           {Boolean(incomes.length) && (
             <div className="w-50">
               <div className="mb-2 flex ">
-                <label className="text-2xl text-white text-base font-bold mr-4">
+                <label className="text-2xl text-base font-bold mr-4">
                   Ingresos
                 </label>
               </div>
@@ -304,7 +321,7 @@ const SalesByDayContainer = () => {
           {Boolean(outgoings.length) && (
             <div className="w-50">
               <div className="mb-2 flex ">
-                <label className="text-2xl text-white text-base font-bold mr-4">
+                <label className="text-2xl text-base font-bold mr-4">
                   Egresos
                 </label>
               </div>

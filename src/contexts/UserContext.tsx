@@ -33,11 +33,17 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   const initialState: UserState = {
     loading: false,
     error: null,
-    user: {
+    /*user: {
       username: null,
       role: null,
       store: null,
+    },*/
+    user: {
+      username: "admin",
+      role: "ADMIN",
+      store: "ALL",
     },
+    
   };
 
   // Reducer para manejar acciones
