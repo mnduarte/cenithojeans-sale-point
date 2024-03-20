@@ -172,7 +172,7 @@ const ConfirmSale = ({
                   { value: "pedido", label: "Pedido" },
                 ]}
               />
-              {Boolean(lastNumOrder) && (
+              {Boolean(lastNumOrder) && typeSale === "local" && (
                 <label className="ml-2">N° Orden: {lastNumOrder}</label>
               )}
             </div>
