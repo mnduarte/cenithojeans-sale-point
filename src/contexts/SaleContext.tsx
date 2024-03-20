@@ -23,6 +23,7 @@ const actionTypes = {
   UPDATE_ORDER: "update_order",
   UPDATE_SALE_BY_EMPLOYEE: "update_sale_by_employee",
   CANCEL_ORDERS: "cancel_orders",
+  LAST_NUM_ORDER_BY_SELLER: "last_num_order_by_seller",
 };
 
 // Tipo de estado para el contexto de precios
@@ -37,6 +38,7 @@ type SaleState = {
   showErrorToast: boolean;
   showSuccessToastMsg: any;
   inboundSale: boolean;
+  lastNumOrder: any;
 };
 
 // Crear el contexto de precios
@@ -67,6 +69,7 @@ export const SaleProvider: React.FC<SaleProviderProps> = ({ children }) => {
     showErrorToast: false,
     showSuccessToastMsg: "",
     inboundSale: false,
+    lastNumOrder: null,
   };
 
   // Reducer para manejar acciones
@@ -220,6 +223,15 @@ export const SaleProvider: React.FC<SaleProviderProps> = ({ children }) => {
         return {
           ...state,
           inboundSale: false,
+          lastNumOrder: null,
+        };
+      }
+      case actionTypes.LAST_NUM_ORDER_BY_SELLER: {
+        return {
+          ...state,
+          loading: false,
+          error: null,
+          lastNumOrder: action.payload,
         };
       }
       case actionTypes.LIST_SALES: {
@@ -686,5 +698,29 @@ export const saleActions = {
     dispatch({
       type: actionTypes.NEW_SALE,
     });
+  },
+  getLastNumOrder: (seller: any) => async (dispatch: any) => {
+    dispatch({
+      type: actionTypes.LOADING,
+      payload: { loading: true },
+    });
+
+    try {
+      const { data } = await Api.getLastNumOrder({
+        seller,
+      });
+
+      dispatch({
+        type: actionTypes.LAST_NUM_ORDER_BY_SELLER,
+        payload: data.results,
+      });
+    } catch (error) {
+      console.log(error);
+
+      dispatch({
+        type: actionTypes.ERROR,
+        payload: ERROR_MESSAGE_TIMEOUT,
+      });
+    }
   },
 };

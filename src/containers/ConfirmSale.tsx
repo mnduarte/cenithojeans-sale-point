@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { MdClose } from "react-icons/md";
 import { calculateTotalPercentage, formatCurrency } from "../utils/formatUtils";
 import Spinner from "../components/Spinner";
@@ -25,6 +25,8 @@ const ConfirmSale = ({
   setDevolutionModeActive,
   percentageToDisccountOrAdd,
   setPercentageToDisccountOrAdd,
+  getLastNumOrder,
+  lastNumOrder,
 }: any) => {
   const [sellerSelected, setSellerSelected] = useState("");
   const [numOrder, setNumOrder] = useState(0);
@@ -96,11 +98,18 @@ const ConfirmSale = ({
   };
 
   const multiplyBy = percentageToDisccountOrAdd < 0 ? 1 : -1;
+  const totalToPay = totalPrices - (totalDevolutionPrices || 0);
   const calculateTotalDiscount =
     multiplyBy *
-    (totalPrices -
-      totalPrices *
+    (totalToPay -
+      totalToPay *
         calculateTotalPercentage(Math.abs(percentageToDisccountOrAdd)));
+
+  useEffect(() => {
+    if (typeSale === "local" && sellerSelected) {
+      getLastNumOrder(sellerSelected);
+    }
+  }, [typeSale, sellerSelected]);
 
   return (
     <>
@@ -164,6 +173,9 @@ const ConfirmSale = ({
                   Pedido
                 </option>
               </select>
+              {Boolean(lastNumOrder) && (
+                <label className="ml-2">N° Orden: {lastNumOrder}</label>
+              )}
             </div>
 
             <div className="mb-4 h-[5vh] flex items-center justify-start">
@@ -330,7 +342,12 @@ const ConfirmSale = ({
                   </div>
                   <br />
                 </>
-              )}
+              )}{" "}
+              <>
+                <div className="mr-2 text-white text-base font-bold">
+                  Total a pagar: ${formatCurrency(totalToPay)}
+                </div>
+              </>
               <div className="h-[6vh]">
                 {percentageToDisccountOrAdd !== 0 && (
                   <>
@@ -345,7 +362,7 @@ const ConfirmSale = ({
                 <div className="mr-2 text-white text-lg font-bold">
                   Total Final: $
                   {formatCurrency(
-                    (totalPrices - totalDevolutionPrices) *
+                    totalToPay *
                       calculateTotalPercentage(percentageToDisccountOrAdd)
                   )}
                 </div>

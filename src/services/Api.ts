@@ -186,6 +186,9 @@ const updatSaleByEmployee = ({ id, dataIndex, value }: any) =>
 const cancelOrders = ({ itemsIdSelected }: any) =>
   instance.post("/sale/cancel-order", { itemsIdSelected });
 
+const getLastNumOrder = ({ seller }: any) =>
+  instance.post("/sale/last-num-order-by-seller", { seller });
+
 const printSale = ({
   pricesSelected,
   devolutionPricesSelected,
@@ -272,6 +275,8 @@ const Api = {
 
   addCashflow,
   addObservation,
+
+  getLastNumOrder,
 };
 
 export default Api;

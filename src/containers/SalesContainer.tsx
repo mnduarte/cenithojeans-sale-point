@@ -36,6 +36,7 @@ const SalesContainer = () => {
       showErrorToast,
       showSuccessToastMsg,
       inboundSale,
+      lastNumOrder,
     },
     dispatch: dispatchSale,
   } = useSale();
@@ -117,6 +118,8 @@ const SalesContainer = () => {
   }, [isModalSaleOpen]);
 
   const onSale = (data: any) => {
+    const totalToPay = totalPrices - (totalDevolutionPrices || 0);
+
     data.items = totalItems - totalDevolutionItems;
     data.subTotalItems = totalPrices;
     data.devolutionItems = totalDevolutionItems;
@@ -124,11 +127,7 @@ const SalesContainer = () => {
     data.percentageToDisccountOrAdd = percentageToDisccountOrAdd;
     data.username = user.username;
     data.total =
-      data.typeSale === "pedido"
-        ? totalPrices *
-        calculateTotalPercentage(percentageToDisccountOrAdd)
-        : (totalPrices - totalDevolutionPrices) *
-        calculateTotalPercentage(percentageToDisccountOrAdd);
+      totalToPay * calculateTotalPercentage(percentageToDisccountOrAdd);
 
     dispatchSale(saleActions.addSale(data)(dispatchSale));
   };
@@ -285,6 +284,9 @@ const SalesContainer = () => {
       })(dispatchSale)
     );
 
+  const getLastNumOrder = (seller: any) =>
+    dispatchSale(saleActions.getLastNumOrder(seller)(dispatchSale));
+
   return (
     <div className="flex gap-4 h-[80vh]">
       <div className="w-1/3">
@@ -341,6 +343,8 @@ const SalesContainer = () => {
         setPercentageToDisccountOrAdd={setPercentageToDisccountOrAdd}
         handlePrintSale={handlePrintSale}
         inboundSale={inboundSale}
+        lastNumOrder={lastNumOrder}
+        getLastNumOrder={getLastNumOrder}
       />
       <KeyboardNum
         isModalKeyboardNumOpen={isModalKeyboardNumOpen}
@@ -355,8 +359,8 @@ const SalesContainer = () => {
           itemIdFocusForQuantity
             ? "Agregar Cantidad al Item"
             : devolutionModeActive
-              ? "Añadir precio dev manual"
-              : "Añadir precio manual"
+            ? "Añadir precio dev manual"
+            : "Añadir precio manual"
         }
         concept={concept}
         setConcept={setConcept}
