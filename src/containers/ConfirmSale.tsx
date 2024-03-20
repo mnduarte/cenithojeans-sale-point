@@ -320,7 +320,24 @@ const ConfirmSale = ({
               </div>
               <br />
               {Boolean(totalDevolutionItems) && (
-                <div className="mr-2">Devoluciones: {totalDevolutionItems}</div>
+                <>
+                  <div className="mr-2">
+                    Devoluciones: {totalDevolutionItems}
+                  </div>
+                  <div className="mr-2 text-base font-bold">
+                    Total: $
+                    {formatCurrency(
+                      devolutionPricesSelected.reduce(
+                        (acc: any, current: any) =>
+                          Number(acc) +
+                          (!Boolean(current.concept)
+                            ? current.price * current.quantity
+                            : 0),
+                        0
+                      )
+                    )}
+                  </div>
+                </>
               )}
               {Boolean(pricesDevolutionWithconcepts.length) &&
                 pricesDevolutionWithconcepts.map((price: any) => (
@@ -335,13 +352,14 @@ const ConfirmSale = ({
               {Boolean(totalDevolutionPrices) && (
                 <>
                   <div className="mr-2 text-base font-bold">
-                    Total Devoluciones: ${formatCurrency(totalDevolutionPrices)}
+                    Total a descontar: ${formatCurrency(totalDevolutionPrices)}
                   </div>
+
                   <br />
                 </>
               )}{" "}
               <>
-                <div className="mr-2 text-white text-base font-bold">
+                <div className="mr-2 text-base font-bold">
                   Total a pagar: ${formatCurrency(totalToPay)}
                 </div>
               </>
