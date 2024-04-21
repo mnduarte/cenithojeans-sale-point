@@ -4,6 +4,7 @@ import { formatCurrency } from "../utils/formatUtils";
 import { Price, PriceSelected } from "../types";
 import { mappingConceptWithIcon } from "../utils/mappings";
 import { useTheme } from "../contexts/ThemeContext";
+import { useEffect, useRef } from "react";
 
 const ShoppingPrices = ({
   prices,
@@ -13,6 +14,8 @@ const ShoppingPrices = ({
   increaseQuantity,
   decrementQuantity,
   isDevolution,
+  enableDisplaced,
+  setEnableDisplaced,
 }: any) => {
   const {
     state: { theme, themeStyles },
@@ -26,8 +29,20 @@ const ShoppingPrices = ({
 
   const withBorder = false;
 
+  const listRef = useRef(null);
+
+  useEffect(() => {
+    if (enableDisplaced) {
+      setEnableDisplaced(false);
+      listRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "end",
+      });
+    }
+  }, [enableDisplaced]);
+
   return (
-    <>
+    <div ref={listRef}>
       {prices.map((item: any, idx: any) => (
         <div
           key={idx}
@@ -83,7 +98,7 @@ const ShoppingPrices = ({
           </div>
         </div>
       ))}
-    </>
+    </div>
   );
 };
 
@@ -103,6 +118,10 @@ const ShoppingCartContainer = ({
   setIsModalKeyboardNumOpen,
   handleQuantityByPrice,
   handleOpenKeyboardNum,
+  enabledDisplacedPrices,
+  setEnabledDisplacedPrices,
+  enabledDisplacedDevolutions,
+  setEnabledDisplacedDevolutions,
 }: any) => {
   const setPricesItems = devolutionModeActive
     ? setDevolutionPricesSelected
@@ -215,6 +234,8 @@ const ShoppingCartContainer = ({
             handleOpenKeyboardNum={handleOpenKeyboardNum}
             increaseQuantity={increaseQuantity}
             decrementQuantity={decrementQuantity}
+            enableDisplaced={enabledDisplacedPrices}
+            setEnableDisplaced={setEnabledDisplacedPrices}
           />
         </div>
 
@@ -239,6 +260,8 @@ const ShoppingCartContainer = ({
               increaseQuantity={increaseQuantity}
               decrementQuantity={decrementQuantity}
               isDevolution={true}
+              enableDisplaced={enabledDisplacedDevolutions}
+              setEnableDisplaced={setEnabledDisplacedDevolutions}
             />
           </div>
 

@@ -88,15 +88,6 @@ const mappingTabs = {
   },
 };
 
-const lightTheme = {
-  body: "bg-[#ffffff] text-gray-500",
-  container: "bg-[#edf9ff] text-gray-500 hover:bg-[#b2b2b2] hover:text-white",
-};
-const darkTheme = {
-  body: "bg-[#252525] text-white",
-  container: "bg-[#333333] hover:bg-[#484E55]",
-};
-
 const SalePointContainer = ({ role, store }: any) => {
   const [activeTab, setActiveTab] = useState<TabKey>("Ventas");
   const { dispatch: dispatchPrice } = usePrice();

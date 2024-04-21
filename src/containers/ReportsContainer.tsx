@@ -14,6 +14,107 @@ import ObservationsByMonth from "./ObservationsByMonth";
 import { FaEye } from "react-icons/fa";
 import { Select } from "antd";
 import { useTheme } from "../contexts/ThemeContext";
+import { MdClose } from "react-icons/md";
+
+const ModalDetailByEmployee = ({
+  isModalListOutgoingOpen,
+  setIsModalDetailByEmployeeOpen,
+  week,
+  report,
+  reports = [],
+}: any) => {
+  const {
+    state: { theme, themeStyles },
+  } = useTheme();
+  const columnsLocalSalesByEmployee = [
+    { title: "Prendas", dataIndex: "items", sumAcc: true },
+    {
+      title: "Venta",
+      dataIndex: "total",
+      format: (number: any) => `$${formatCurrency(number)}`,
+      sumAcc: true,
+      applyFormat: true,
+    },
+  ];
+
+  const columnsLocalPedidosByEmployee = [
+    { title: "Prendas", dataIndex: "items", sumAcc: true },
+    {
+      title: "Efectivo",
+      dataIndex: "cash",
+      format: (number: any) => `$${formatCurrency(number)}`,
+      sumAcc: true,
+      applyFormat: true,
+    },
+    {
+      title: "Transferencia",
+      dataIndex: "transfer",
+      format: (number: any) => `$${formatCurrency(number)}`,
+      sumAcc: true,
+      applyFormat: true,
+    },
+    {
+      title: "Venta",
+      dataIndex: "total",
+      format: (number: any) => `$${formatCurrency(number)}`,
+      sumAcc: true,
+      applyFormat: true,
+    },
+  ];
+
+  return (
+    <>
+      {isModalListOutgoingOpen && (
+        <div className="fixed inset-0 bg-[#252525] bg-opacity-60 flex items-center justify-center">
+          {/* Contenido del modal */}
+          <div
+            className={`w-[65vh] h-[60vh] p-8 rounded-md shadow-md relative ${themeStyles[theme].tailwindcss.modal}`}
+          >
+            {/* Icono de cerrar en la esquina superior derecha */}
+            <button
+              className="absolute top-4 right-4"
+              onClick={() => setIsModalDetailByEmployeeOpen(false)}
+            >
+              <MdClose className="text-2xl" />
+            </button>
+
+            <h2 className="text-lg font-bold mb-4">
+              Detalle del la semana - {week}
+            </h2>
+            <div className="mt-5 h-[43vh] mx-auto max-w overflow-hidden overflow-y-auto overflow-x-auto">
+              {report.salesByEmployees &&
+                report.salesByEmployees.map(
+                  (saleByEmployee: any, idx: number) => (
+                    <div
+                      className={`mt-5 ${
+                        reports.typeSale === "local" ? "max-w" : "max-w"
+                      } border-r border-green-900 mr-2`}
+                      key={idx + "byEmployee"}
+                    >
+                      <div className="mb-2 flex items-center justify-center">
+                        <label className="text-2xl text-base font-bold">
+                          {saleByEmployee.employee}
+                        </label>
+                      </div>
+                      <EditableTable
+                        data={saleByEmployee.sales}
+                        columns={
+                          reports.typeSale === "local"
+                            ? columnsLocalSalesByEmployee
+                            : columnsLocalPedidosByEmployee
+                        }
+                        table={`-byEmployee`}
+                      />
+                    </div>
+                  )
+                )}
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+};
 
 const ReportsContainer = () => {
   const {
@@ -23,6 +124,14 @@ const ReportsContainer = () => {
     useState(false);
   const [isModalObservationsByMonth, setIsModalObservationsByMonth] =
     useState(false);
+  const [isModalListOutgoingOpen, setIsModalDetailByEmployeeOpen] =
+    useState(false);
+
+  const [detailByWeek, setDetailByWeek] = useState({
+    week: 0,
+    report: {},
+    reports: {},
+  });
   const [dateSelected, setDateSelected] = useState("");
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
@@ -97,42 +206,6 @@ const ReportsContainer = () => {
     },
   ];
 
-  const columnsLocalSalesByEmployee = [
-    { title: "Prendas", dataIndex: "items", sumAcc: true },
-    {
-      title: "Venta",
-      dataIndex: "total",
-      format: (number: any) => `$${formatCurrency(number)}`,
-      sumAcc: true,
-      applyFormat: true,
-    },
-  ];
-
-  const columnsLocalPedidosByEmployee = [
-    { title: "Prendas", dataIndex: "items", sumAcc: true },
-    {
-      title: "Efectivo",
-      dataIndex: "cash",
-      format: (number: any) => `$${formatCurrency(number)}`,
-      sumAcc: true,
-      applyFormat: true,
-    },
-    {
-      title: "Transferencia",
-      dataIndex: "transfer",
-      format: (number: any) => `$${formatCurrency(number)}`,
-      sumAcc: true,
-      applyFormat: true,
-    },
-    {
-      title: "Venta",
-      dataIndex: "total",
-      format: (number: any) => `$${formatCurrency(number)}`,
-      sumAcc: true,
-      applyFormat: true,
-    },
-  ];
-
   const handleOutGoings = ({ date, outgoings }: any) => {
     const [day, month, year] = date.split("/");
     const outputDate = `${year}-${month}-${day}`;
@@ -151,7 +224,9 @@ const ReportsContainer = () => {
 
   return (
     <>
-      <div className={`h-15 relative p-1 border ${themeStyles[theme].tailwindcss.border} flex justify-center`}>
+      <div
+        className={`h-15 relative p-1 border ${themeStyles[theme].tailwindcss.border} flex justify-center`}
+      >
         <div className="inline-block">
           <label className="mr-2">Mes y Año:</label>
 
@@ -271,8 +346,8 @@ const ReportsContainer = () => {
           {Boolean(reports.salesGeneral.length) &&
             reports.salesGeneral.map((report: any, idx: number) => {
               return (
-                <div className="flex mb-5">
-                  <div className="w-50 mr-10" key={idx + "byDay"}>
+                <div className="flex mb-5"  key={idx + "byDay"}>
+                  <div className="w-[50vh] mr-10" key={idx + "byDay"}>
                     <div className="mb-2 flex ">
                       <label className="text-2xl text-base font-bold">
                         SEMANA {report.week}
@@ -290,35 +365,31 @@ const ReportsContainer = () => {
                       table={`-byDay`}
                     />
                   </div>
-                  {report.salesByEmployees.map(
-                    (saleByEmployee: any, idx: number) => (
-                      <div
-                        className={`${
-                          reports.typeSale === "local" ? "max-w" : "max-w"
-                        } border-r border-green-900 mr-2`}
-                        key={idx + "byEmployee"}
-                      >
-                        <div className="mb-2 flex items-center justify-center">
-                          <label className="text-2xl text-white text-base font-bold">
-                            {saleByEmployee.employee}
-                          </label>
-                        </div>
-                        <EditableTable
-                          data={saleByEmployee.sales}
-                          columns={
-                            reports.typeSale === "local"
-                              ? columnsLocalSalesByEmployee
-                              : columnsLocalPedidosByEmployee
-                          }
-                          table={`-byEmployee`}
-                        />
-                      </div>
-                    )
-                  )}
+
+                  <div
+                    className={`h-8 ml-2 cursor-pointer inline-block px-4 py-1 rounded-md bg-blue-600 text-white`}
+                    onClick={() => {
+                      setDetailByWeek({
+                        week: report.week,
+                        report:  report ,
+                        reports:  reports ,
+                      });
+                      setIsModalDetailByEmployeeOpen(true);
+                    }}
+                  >
+                    Ver detalle por empleado
+                  </div>
                 </div>
               );
             })}
         </div>
+        <ModalDetailByEmployee
+          isModalListOutgoingOpen={isModalListOutgoingOpen}
+          setIsModalDetailByEmployeeOpen={setIsModalDetailByEmployeeOpen}
+          week={detailByWeek.week}
+          report={detailByWeek.report}
+          reports={detailByWeek.reports}
+        />
         <OutgoingsByDayList
           isModalOutgoingsByDayList={isModalOutgoingsByDayList}
           setIsModalOutgoingsByDayList={setIsModalOutgoingsByDayList}

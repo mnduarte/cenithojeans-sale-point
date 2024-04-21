@@ -129,6 +129,7 @@ const EmployeesContainer = () => {
       title: "Nombre",
       dataIndex: "name",
     },
+    { title: "Posicion", dataIndex: "position" },
     { title: "Sucursal", dataIndex: "store" },
     { title: "Activo", dataIndex: "active" },
   ];
@@ -161,6 +162,7 @@ const EmployeesContainer = () => {
           }
           isLoading={loading}
           stores={stores}
+          totalPositions={employees.length}
         />
       </div>
     </div>

@@ -71,3 +71,9 @@ export const mappingTypeShipment = {
   retiraLocal: "Retira local",
   envio: "Envio",
 };
+
+export const mappingCheckoutDate = {
+  "": "Todos",
+  with: "Con Salida",
+  wihtout: "Sin Salida",
+};

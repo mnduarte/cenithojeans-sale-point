@@ -10,17 +10,17 @@ import { useTheme } from "../contexts/ThemeContext";
 
 const ListOfPricesContainer = ({
   prices,
-  setSearchAmount,
   setPricesFiltered,
   pricesSelected,
   setPricesSelected,
-  searchAmount,
   pricesFiltered,
   devolutionModeActive,
   setDevolutionModeActive,
   devolutionPricesSelected,
   setDevolutionPricesSelected,
   isLoading,
+  setEnabledDisplacedPrices,
+  setEnabledDisplacedDevolutions,
 }: any) => {
   const [isModalIncomeOpen, setIsModalIncomeOpen] = useState(false);
   const [isModalOutgoingOpen, setIsModalOutgoingOpen] = useState(false);
@@ -35,19 +35,9 @@ const ListOfPricesContainer = ({
   const setPricesItems = devolutionModeActive
     ? setDevolutionPricesSelected
     : setPricesSelected;
-
-  const handleSearchAmount = (event: any) => {
-    const inputValue = event.target.value;
-    if (/^\d*$/.test(inputValue)) {
-      setSearchAmount(inputValue);
-
-      setPricesFiltered(
-        prices.filter((item: any) =>
-          item.price.toString().includes(String(inputValue))
-        )
-      );
-    }
-  };
+  const setEnabledDisplaced = devolutionModeActive
+  ? setEnabledDisplacedDevolutions
+  : setEnabledDisplacedPrices
 
   const onOrderProducts = (value: any) => {
     setPricesFiltered((items: any) =>
@@ -61,6 +51,8 @@ const ListOfPricesContainer = ({
 
   const onProductSelect = (item: any) => {
     const lastItem = [...pricesItems].pop();
+
+    setEnabledDisplaced(true)
 
     //if (lastItem && lastItem.id === item.id) {
     if (lastItem && lastItem.price === item.price) {
@@ -99,16 +91,6 @@ const ListOfPricesContainer = ({
   return (
     <>
       <div className={`p-2 border ${themeStyles[theme].tailwindcss.border}`}>
-        {/* <input
-          type="text"
-          placeholder="Buscar"
-          className="w-1/4 p-1 border border-[#484E55] rounded-md pl-10"
-          value={searchAmount}
-          onChange={handleSearchAmount}
-        />
-        <div className="absolute top-5 left-5">
-          <FaSearch className="text-white" />
-        </div> */}
         <div className="ml-4 inline-block">
           <label className="mr-2">Ordenar:</label>
           <Select

@@ -1,5 +1,5 @@
 import React from "react";
-import { MdOutlinePendingActions } from "react-icons/md";
+import { MdOutlinePendingActions, MdAssignmentAdd } from "react-icons/md";
 import {
   formatCurrency,
   formatDateStringToYYYYMMDD,
@@ -51,7 +51,7 @@ const EditableTable = ({
         type="text"
         className={`w-20 p-1 rounded-md text-right hover:cursor-pointer ${themeStyles[theme].tailwindcss.inputText}`}
         readOnly
-        value={value ? value.toString() : ""}
+        value={value ? Math.trunc(value).toString() : ""}
         onFocus={action}
       />
     ),
@@ -76,7 +76,6 @@ const EditableTable = ({
           {enableSelectItem && (
             <th
               className={`${themeStyles[theme].tailwindcss.table.thead.th} `}
-              style={{ width: '100px' }} 
             ></th>
           )}
           {columns.map((column: any, columnIndex: any) => (
@@ -135,7 +134,7 @@ const EditableTable = ({
               {columns.map((column: any, columnIndex: any) => (
                 <td
                   key={columnIndex}
-                  className={`text-right py-1 ${themeStyles[theme].tailwindcss.table.tbody.td}`}
+                  className={`text-center py-1 ${themeStyles[theme].tailwindcss.table.tbody.td}`}
                   onClick={() =>
                     !row[rowWithoutActions] &&
                     handleEditClick(setItemInOnClick ? row : table + rowIndex)
@@ -188,10 +187,10 @@ const EditableTable = ({
 
               return (
                 <td
-                  className={`text-right font-bold ${themeStyles[theme].tailwindcss.table.thead.th}`}
+                  className={`text-center font-bold ${themeStyles[theme].tailwindcss.table.thead.th}`}
                   key={idx}
                 >
-                  {idx === 0 && !Boolean(reduceValue) && "TOTAL"}
+                {idx === 0 && !Boolean(reduceValue) && <MdAssignmentAdd />}
                   {column.sumAcc &&
                     (column.applyFormat
                       ? `$${formatCurrency(reduceValue)}`

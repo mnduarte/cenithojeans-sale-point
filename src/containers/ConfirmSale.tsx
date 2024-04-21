@@ -38,11 +38,20 @@ const ConfirmSale = ({
   const [typeSale, setTypeSale] = useState("");
   const [typePayment, setTypePayment] = useState("");
   const [typeShipment, setTypeShipment] = useState("");
+  const [payment, setPayment] = useState({ cash: "", transfer: "" });
+  const [
+    percentageToDisccountOrAddPayment,
+    setPercentageToDisccountOrAddPayment,
+  ] = useState({ cash: 0, transfer: 0 });
+  const [isWithPrepaid, setIsWithPrepaid] = useState(false);
   const [isModalKeyboardNumOpen, setIsModalKeyboardNumOpen] = useState(false);
+  const [isModalKeyboardCashOpen, setIsModalKeyboardCashOpen] = useState(false);
+  const [isModalKeyboardTransferOpen, setIsModalKeyboardTransferOpen] =
+    useState(false);
 
   const availableAction =
     Boolean(sellerSelected.length) &&
-    ((typeSale === "pedido" && Boolean(typePayment.length)) ||
+    ((typeSale === "pedido" && Boolean(typeShipment.length)) ||
       typeSale === "local");
 
   const closeModalSale = () => {
@@ -52,6 +61,12 @@ const ConfirmSale = ({
     setTypeSale("");
     setTypePayment("");
     setTypeShipment("");
+    setPercentageToDisccountOrAddPayment({
+      cash: 0,
+      transfer: 0,
+    });
+    setPayment({ transfer: "", cash: "" });
+    setIsWithPrepaid(false);
     setDevolutionModeActive(false);
     setIsModalSaleOpen(false);
   };
@@ -63,22 +78,6 @@ const ConfirmSale = ({
   const pricesDevolutionWithconcepts = devolutionPricesSelected.filter(
     (price: any) => Boolean(price.concept)
   );
-
-  const handleSale = () => {
-    const [objEmployee] = employees.filter(
-      (employee: any) => employee.name === sellerSelected
-    );
-
-    const data = {
-      employee: sellerSelected,
-      store: objEmployee.store,
-      typeSale,
-      typePayment,
-      numOrder,
-      typeShipment,
-    };
-    onSale(data);
-  };
 
   const onCleanAndClose = () => {
     setPricesSelected([]);
@@ -102,7 +101,72 @@ const ConfirmSale = ({
     );
   };
 
+  const handleManualPayment = (item: any, typePay: any) => {
+    const mappingPayment = {
+      cash: {
+        operationDelete: (current: any) => {
+          const amountCash = Number(String(current.cash).slice(0, -1));
+          const amountTransfer = totalToPay - amountCash;
+
+          return {
+            transfer: isWithPrepaid ? current.transfer : amountTransfer,
+            cash: amountCash,
+          };
+        },
+        operationAdd: (current: any) => {
+          const amountCash = Number(String(current.cash) + String(item.value));
+          const amountTransfer = totalToPay - amountCash;
+
+          return {
+            transfer: isWithPrepaid ? current.transfer : amountTransfer,
+            cash: amountCash,
+          };
+        },
+      },
+      transfer: {
+        operationDelete: (current: any) => {
+          const amountTransfer = Number(String(current.transfer).slice(0, -1));
+          const amountCash = totalToPay - amountTransfer;
+
+          return {
+            transfer: amountTransfer,
+            cash: isWithPrepaid ? current.cash : amountCash,
+          };
+        },
+        operationAdd: (current: any) => {
+          const amountTransfer = Number(
+            String(current.transfer) + String(item.value)
+          );
+          const amountCash = totalToPay - amountTransfer;
+
+          return {
+            transfer: amountTransfer,
+            cash: isWithPrepaid ? current.cash : amountCash,
+          };
+        },
+      },
+    };
+
+    if (item.action === "deleteLast") {
+      return setPayment((current: any) =>
+        mappingPayment[typePay].operationDelete(current)
+      );
+    }
+
+    if (item.action === "addPrice") {
+      return typePay === "cash"
+        ? setIsModalKeyboardCashOpen(false)
+        : setIsModalKeyboardTransferOpen(false);
+    }
+
+    setPayment((current: any) => mappingPayment[typePay].operationAdd(current));
+  };
+
   const multiplyBy = percentageToDisccountOrAdd < 0 ? 1 : -1;
+  const multiplyByPercentageCash =
+    percentageToDisccountOrAddPayment.cash < 0 ? 1 : -1;
+  const multiplyByPercentageTranfer =
+    percentageToDisccountOrAddPayment.transfer < 0 ? 1 : -1;
   const totalToPay = totalPrices - (totalDevolutionPrices || 0);
   const calculateTotalDiscount =
     multiplyBy *
@@ -115,6 +179,58 @@ const ConfirmSale = ({
       getLastNumOrder(sellerSelected);
     }
   }, [typeSale, sellerSelected]);
+
+  const cashWithDisccount =
+    multiplyByPercentageCash *
+    Math.trunc(
+      Number(payment.cash) -
+        Number(payment.cash) *
+          calculateTotalPercentage(
+            Math.abs(percentageToDisccountOrAddPayment.cash)
+          )
+    );
+
+  const totalCash = Number(payment.cash) + cashWithDisccount;
+
+  const transferWithRecharge =
+    multiplyByPercentageTranfer *
+    Math.trunc(
+      Number(payment.transfer) -
+        Number(payment.transfer) *
+          calculateTotalPercentage(
+            Math.abs(percentageToDisccountOrAddPayment.transfer)
+          )
+    );
+
+  const totalTransfer = Number(payment.transfer) + transferWithRecharge;
+
+  const totalFinal = isWithPrepaid
+    ? totalToPay + cashWithDisccount + transferWithRecharge
+    : totalCash + totalTransfer;
+
+  const handleSale = () => {
+    const [objEmployee] = employees.filter(
+      (employee: any) => employee.name === sellerSelected
+    );
+
+    const data = {
+      employee: sellerSelected,
+      store: objEmployee.store,
+      typeSale,
+      typePayment,
+      numOrder: numOrder || (typeSale === "local" ? lastNumOrder : 0),
+      typeShipment,
+      percentageCash: percentageToDisccountOrAddPayment.cash,
+      percentageTransfer: percentageToDisccountOrAddPayment.transfer,
+      cashWithDisccount,
+      transferWithRecharge,
+      totalCash,
+      totalTransfer,
+      totalToPay,
+      totalFinal,
+    };
+    onSale(data);
+  };
 
   return (
     <>
@@ -132,10 +248,10 @@ const ConfirmSale = ({
             <h2 className="text-lg font-bold mb-4">Confirmar Venta</h2>
 
             <div className="mb-4 inline-block">
-              <label className="mr-2 ">Seleccione Vendedor:</label>
+              <label className="mr-2 "> Vendedor (Local):</label>
 
               <Select
-                value={sellerSelected}
+                value={typeSale === "local" ? sellerSelected : "-"}
                 className={themeStyles[theme].classNameSelector}
                 dropdownStyle={{
                   ...themeStyles[theme].dropdownStylesCustom,
@@ -143,7 +259,37 @@ const ConfirmSale = ({
                 }}
                 popupClassName={themeStyles[theme].classNameSelectorItem}
                 style={{ width: 160 }}
-                onSelect={(value: any) => setSellerSelected(value)}
+                onSelect={(value: any) => {
+                  setPercentageToDisccountOrAdd(0);
+                  setSellerSelected(value);
+                  setNumOrder(0);
+                  setPayment({ transfer: "", cash: String(totalToPay) });
+                  setTypeSale("local");
+                }}
+                options={employees.map((data: any) => ({
+                  value: data.name,
+                  label: data.name,
+                }))}
+              />
+              <label className="mx-2 "> (Pedido):</label>
+
+              <Select
+                value={typeSale === "pedido" ? sellerSelected : "-"}
+                className={themeStyles[theme].classNameSelector}
+                dropdownStyle={{
+                  ...themeStyles[theme].dropdownStylesCustom,
+                  width: 160,
+                }}
+                popupClassName={themeStyles[theme].classNameSelectorItem}
+                style={{ width: 160 }}
+                onSelect={(value: any) => {
+                  setPercentageToDisccountOrAdd(0);
+                  setSellerSelected(value);
+                  setNumOrder(0);
+                  setPayment({ transfer: "", cash: String(totalToPay) });
+                  setTypeSale("pedido");
+                  setTypeShipment("retiraLocal");
+                }}
                 options={employees.map((data: any) => ({
                   value: data.name,
                   label: data.name,
@@ -152,35 +298,23 @@ const ConfirmSale = ({
             </div>
             <br />
 
-            <div className="mb-4 inline-block">
-              <label className="mr-2">Tipo de venta:</label>
-              <Select
-                className={themeStyles[theme].classNameSelector}
-                dropdownStyle={{
-                  ...themeStyles[theme].dropdownStylesCustom,
-                  width: 160,
-                }}
-                popupClassName={themeStyles[theme].classNameSelectorItem}
-                style={{ width: 160 }}
-                onSelect={(value) => {
-                  setPercentageToDisccountOrAdd(0);
-                  setTypePayment("efectivo");
-                  setTypeSale(value);
-                }}
-                options={[
-                  { value: "local", label: "Local" },
-                  { value: "pedido", label: "Pedido" },
-                ]}
-              />
-              {Boolean(lastNumOrder) && typeSale === "local" && (
-                <label className="ml-2">N° Orden: {lastNumOrder}</label>
-              )}
-            </div>
-
             <div className="mb-4 h-[5vh] flex items-center justify-start">
+              {Boolean(lastNumOrder) && typeSale === "local" && (
+                <>
+                  <label className="mr-2">N° Orden:</label>
+                  <input
+                    type="text"
+                    className={`w-[10vh] p-2 rounded-md mr-2 ${themeStyles[theme].tailwindcss.inputText}`}
+                    readOnly
+                    value={numOrder || lastNumOrder}
+                    onFocus={() => setIsModalKeyboardNumOpen(true)}
+                  />
+                </>
+              )}
+
               {typeSale === "pedido" && (
                 <>
-                  <label className="mr-2">Num de Pedido:</label>
+                  <label className="mr-2">N° Pedido:</label>
 
                   <input
                     type="text"
@@ -196,6 +330,7 @@ const ConfirmSale = ({
                     name="tipoEnvio"
                     className="ml-4 mr-2 hover:cursor-pointer"
                     value="retiraLocal"
+                    checked={typeShipment === "retiraLocal"}
                     onChange={(e) => {
                       setTypeShipment(e.target.value);
                     }}
@@ -213,6 +348,7 @@ const ConfirmSale = ({
                     name="tipoEnvio"
                     className="ml-4 mr-2 hover:cursor-pointer"
                     value="envio"
+                    checked={typeShipment === "envio"}
                     onChange={(e) => {
                       setTypeShipment(e.target.value);
                     }}
@@ -223,82 +359,6 @@ const ConfirmSale = ({
                   >
                     Envio
                   </label>
-                </>
-              )}
-            </div>
-
-            <div className="mb-4 h-[5vh] flex items-center justify-start">
-              {typeSale && (
-                <>
-                  <input
-                    type="radio"
-                    id="efectivoRadio"
-                    name="tipoPago"
-                    className="ml-4 mr-2 hover:cursor-pointer"
-                    checked={typeSale === "local" || typePayment === "efectivo"}
-                    value="efectivo"
-                    onChange={(e) => {
-                      setPercentageToDisccountOrAdd(0);
-                      setTypePayment(e.target.value);
-                    }}
-                  />
-                  <label
-                    htmlFor="efectivoRadio"
-                    className="select-none hover:cursor-pointer"
-                  >
-                    Efectivo
-                  </label>
-
-                  {typeSale === "pedido" && (
-                    <>
-                      <input
-                        type="radio"
-                        id="transferenciaRadio"
-                        name="tipoPago"
-                        className="ml-4 mr-2 hover:cursor-pointer"
-                        value="transferencia"
-                        onChange={(e) => {
-                          setPercentageToDisccountOrAdd(0);
-                          setTypePayment(e.target.value);
-                        }}
-                      />
-                      <label
-                        htmlFor="transferenciaRadio"
-                        className=" select-none hover:cursor-pointer"
-                      >
-                        Transferencia
-                      </label>
-                    </>
-                  )}
-
-                  <div
-                    className={`w-20 text-center flex items-center justify-center ml-2 `}
-                  >
-                    <div className="w-12 h-12 pr-1 text-center flex items-center justify-center select-none">
-                      {percentageToDisccountOrAdd}%
-                    </div>
-
-                    <div className="w-10 h-12 flex flex-col">
-                      <div
-                        className="h-1/2 flex items-center justify-center hover:bg-gray-600 hover:text-white hover:cursor-pointer"
-                        onClick={() =>
-                          Boolean(typePayment) &&
-                          setPercentageToDisccountOrAdd((per: any) => per + 1)
-                        }
-                      >
-                        <FaPlus />
-                      </div>
-                      <div
-                        className="h-1/2 flex items-center justify-center hover:bg-gray-600 hover:text-white hover:cursor-pointer"
-                        onClick={() =>
-                          Boolean(typePayment) &&
-                          setPercentageToDisccountOrAdd((per: any) => per - 1)
-                        }
-                      >
-                        <FaMinus />
-                      </div>
-                    </div>
-                  </div>
                 </>
               )}
             </div>
@@ -357,13 +417,167 @@ const ConfirmSale = ({
 
                   <br />
                 </>
-              )}{" "}
-              <>
-                <div className="mr-2 text-base font-bold">
-                  Total a pagar: ${formatCurrency(totalToPay)}
+              )}
+              <div className="mr-2 text-base font-bold">
+                Total a pagar: ${formatCurrency(totalToPay)}
+              </div>
+
+              {Boolean(typeSale === "pedido") && (
+                <>
+                  <div className="text-base font-bold flex items-center justify-end">
+                    <input
+                      type="checkbox"
+                      checked={isWithPrepaid}
+                      className="mr-2"
+                      onClick={() => setIsWithPrepaid((current) => !current)}
+                    />
+                    <label
+                      className="mr-2"
+                      onClick={() => setIsWithPrepaid((current) => !current)}
+                    >
+                      Seña
+                    </label>
+                  </div>
+                </>
+              )}
+
+              <div className="mt-2 h-[5vh] flex items-center justify-start">
+                <label
+                  onClick={() => {
+                    setPercentageToDisccountOrAddPayment({
+                      cash: 0,
+                      transfer: 0,
+                    });
+                    setPayment({ transfer: "", cash: String(totalToPay) });
+                  }}
+                >
+                  Efectivo:
+                </label>
+
+                <input
+                  type="checkbox"
+                  checked={
+                    payment.transfer === "" &&
+                    payment.cash === String(totalToPay)
+                  }
+                  onChange={() => {
+                    setPercentageToDisccountOrAddPayment({
+                      cash: 0,
+                      transfer: 0,
+                    });
+                    setPayment({ transfer: "", cash: String(totalToPay) });
+                  }}
+                  className="ml-1 mr-2"
+                />
+                <input
+                  type="text"
+                  className={`w-[10vh] p-2 rounded-md ${themeStyles[theme].tailwindcss.inputText}`}
+                  readOnly
+                  value={payment.cash}
+                  onFocus={() => setIsModalKeyboardCashOpen(true)}
+                />
+                <div
+                  className={`text-center flex items-center justify-center `}
+                >
+                  <div className="w-12 h-12 pr-1 text-center flex items-center justify-center select-none">
+                    {percentageToDisccountOrAddPayment.cash}%
+                  </div>
+                  <div className="w-10 h-12 flex flex-col">
+                    <div
+                      className="h-1/2 flex items-center justify-center hover:bg-gray-600 hover:text-white hover:cursor-pointer"
+                      onClick={() =>
+                        setPercentageToDisccountOrAddPayment((per: any) => ({
+                          ...per,
+                          cash: per.cash + 1,
+                        }))
+                      }
+                    >
+                      <FaPlus />
+                    </div>
+                    <div
+                      className="h-1/2 flex items-center justify-center hover:bg-gray-600 hover:text-white hover:cursor-pointer"
+                      onClick={() =>
+                        setPercentageToDisccountOrAddPayment((per: any) => ({
+                          ...per,
+                          cash: per.cash - 1,
+                        }))
+                      }
+                    >
+                      <FaMinus />
+                    </div>
+                  </div>
+                  ({cashWithDisccount})
                 </div>
-              </>
-              <div className="h-[6vh]">
+              </div>
+
+              <div className="mb-2 h-[5vh] flex items-center justify-start">
+                <label
+                  onClick={() => {
+                    setPercentageToDisccountOrAddPayment({
+                      cash: 0,
+                      transfer: 0,
+                    });
+                    setPayment({ cash: "", transfer: String(totalToPay) });
+                  }}
+                >
+                  Transfer:
+                </label>
+
+                <input
+                  type="checkbox"
+                  checked={
+                    payment.cash === "" &&
+                    payment.transfer === String(totalToPay)
+                  }
+                  onChange={() => {
+                    setPercentageToDisccountOrAddPayment({
+                      cash: 0,
+                      transfer: 0,
+                    });
+                    setPayment({ cash: "", transfer: String(totalToPay) });
+                  }}
+                  className="ml-1 mr-2"
+                />
+
+                <input
+                  type="text"
+                  className={`w-[10vh] p-2 rounded-md ${themeStyles[theme].tailwindcss.inputText}`}
+                  readOnly
+                  value={payment.transfer}
+                  onFocus={() => setIsModalKeyboardTransferOpen(true)}
+                />
+                <div className={`center flex items-center justify-center`}>
+                  <div className="w-12 h-12 pr-1 text-center flex items-center justify-center select-none">
+                    {percentageToDisccountOrAddPayment.transfer}%
+                  </div>
+                  <div className="w-10 h-12 flex flex-col">
+                    <div
+                      className="h-1/2 flex items-center justify-center hover:bg-gray-600 hover:text-white hover:cursor-pointer"
+                      onClick={() =>
+                        setPercentageToDisccountOrAddPayment((per: any) => ({
+                          ...per,
+                          transfer: per.transfer + 1,
+                        }))
+                      }
+                    >
+                      <FaPlus />
+                    </div>
+                    <div
+                      className="h-1/2 flex items-center justify-center hover:bg-gray-600 hover:text-white hover:cursor-pointer"
+                      onClick={() =>
+                        setPercentageToDisccountOrAddPayment((per: any) => ({
+                          ...per,
+                          transfer: per.transfer - 1,
+                        }))
+                      }
+                    >
+                      <FaMinus />
+                    </div>
+                  </div>
+                  ({transferWithRecharge})
+                </div>
+              </div>
+              <div className="h-[10vh]">
                 {percentageToDisccountOrAdd !== 0 && (
                   <>
                     <div className="mr-2 text-base">
@@ -374,12 +588,17 @@ const ConfirmSale = ({
                     </div>
                   </>
                 )}
+
+                <div className="mr-2 text-base">
+                  {`${isWithPrepaid ? "Seña" : "Total"}`} en Efectivo: $
+                  {formatCurrency(totalCash)}
+                </div>
+                <div className="mr-2 text-base">
+                  {`${isWithPrepaid ? "Seña" : "Total"}`} en Transferencia: $
+                  {formatCurrency(totalTransfer)}
+                </div>
                 <div className="mr-2 text-lg font-bold">
-                  Total Final: $
-                  {formatCurrency(
-                    totalToPay *
-                      calculateTotalPercentage(percentageToDisccountOrAdd)
-                  )}
+                  Total Final: ${formatCurrency(totalFinal)}
                 </div>
               </div>
             </div>
@@ -394,6 +613,15 @@ const ConfirmSale = ({
                     numOrder,
                     pricesWithconcepts,
                     pricesDevolutionWithconcepts,
+                    percentageCash: percentageToDisccountOrAddPayment.cash,
+                    percentageTransfer:
+                      percentageToDisccountOrAddPayment.transfer,
+                    cashWithDisccount,
+                    transferWithRecharge,
+                    totalCash,
+                    totalTransfer,
+                    totalToPay,
+                    totalFinal,
                   })
                 }
               >
@@ -408,7 +636,7 @@ const ConfirmSale = ({
                     : "bg-green-600 hover:bg-green-700 hover:cursor-pointer"
                 } w-1/2 text-white px-4 py-2 rounded-md flex items-center justify-center mx-auto select-none`}
                 onClick={() =>
-                  !isLoading && !inboundSale && availableAction && handleSale()
+                  !isLoading && availableAction && !inboundSale && handleSale()
                 }
               >
                 {inboundSale
@@ -436,7 +664,23 @@ const ConfirmSale = ({
             manualNum={numOrder}
             handleManualNum={handleManualNumOrder}
             closeModal={() => setIsModalKeyboardNumOpen(false)}
-            title="Ingrese Num"
+            title={`Ingrese N° ${typeSale === "local" ? "Orden" : "Pedido"}`}
+          />
+          <KeyboardNum
+            isModalKeyboardNumOpen={isModalKeyboardCashOpen}
+            manualNum={payment.cash}
+            handleManualNum={(item: any) => handleManualPayment(item, "cash")}
+            closeModal={() => setIsModalKeyboardCashOpen(false)}
+            title={`Ingrese monto Efectivo`}
+          />
+          <KeyboardNum
+            isModalKeyboardNumOpen={isModalKeyboardTransferOpen}
+            manualNum={payment.transfer}
+            handleManualNum={(item: any) =>
+              handleManualPayment(item, "transfer")
+            }
+            closeModal={() => setIsModalKeyboardTransferOpen(false)}
+            title={`Ingrese monto Transferencia`}
           />
         </div>
       )}

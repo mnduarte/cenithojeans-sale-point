@@ -140,7 +140,7 @@ export const employeeActions = {
       }
     },
   addEmployee:
-    ({ name, store, active }: any) =>
+    ({ name, store, position, active }: any) =>
     async (dispatch: any) => {
       dispatch({
         type: actionTypes.LOADING,
@@ -148,7 +148,12 @@ export const employeeActions = {
       });
 
       try {
-        const { data } = await Api.addEmployee({ name, store, active });
+        const { data } = await Api.addEmployee({
+          name,
+          store,
+          position,
+          active,
+        });
 
         dispatch({
           type: actionTypes.LIST_EMPLOYEES,
@@ -164,7 +169,7 @@ export const employeeActions = {
       }
     },
   updateEmployee:
-    ({ id, name, store, active }: any) =>
+    ({ id, name, store, position, active }: any) =>
     async (dispatch: any) => {
       dispatch({
         type: actionTypes.LOADING,
@@ -172,7 +177,13 @@ export const employeeActions = {
       });
 
       try {
-        const { data } = await Api.updateEmployee({ id, name, store, active });
+        const { data } = await Api.updateEmployee({
+          id,
+          name,
+          store,
+          position,
+          active,
+        });
 
         dispatch({
           type: actionTypes.LIST_EMPLOYEES,

@@ -23,11 +23,17 @@ const deleteSelectedPrices = ({ itemsIdSelected, deleteAll }: any) =>
 
 const getEmployees = ({ store }: any) =>
   instance.post("/employee/employees/", { store });
-const addEmployee = ({ name, store, active }: any) =>
-  instance.post("/employee/add-employee", { name, store, active });
+const addEmployee = ({ name, store, position, active }: any) =>
+  instance.post("/employee/add-employee", { name, store, position, active });
 
-const updateEmployee = ({ id, name, store, active }: any) =>
-  instance.put("/employee/update-employee", { id, name, store, active });
+const updateEmployee = ({ id, name, store, position, active }: any) =>
+  instance.put("/employee/update-employee", {
+    id,
+    name,
+    store,
+    position,
+    active,
+  });
 
 const removeEmployee = ({ id }: any) =>
   instance.delete(`/employee/remove-employee/${id}`);
@@ -52,6 +58,7 @@ const getOrders = ({
   store,
   employee,
   typeShipment,
+  checkoutDate,
 }: any) => {
   const config: AxiosRequestConfig = {
     params: {
@@ -61,6 +68,7 @@ const getOrders = ({
       store,
       employee,
       typeShipment,
+      checkoutDate,
     },
   };
 
@@ -92,7 +100,7 @@ const getObservations = ({ month, year, store }: any) => {
   return instance.get("/observation/observations", config);
 };
 
-const getSalesByDay = ({ date, store }: any) => {
+const getSalesCashByDay = ({ date, store }: any) => {
   const config: AxiosRequestConfig = {
     params: {
       date,
@@ -100,7 +108,18 @@ const getSalesByDay = ({ date, store }: any) => {
     },
   };
 
-  return instance.get("/sale/sales-by-employees", config);
+  return instance.get("/sale/sales-cash-by-employees", config);
+};
+
+const getSalesTranferByDay = ({ date, store }: any) => {
+  const config: AxiosRequestConfig = {
+    params: {
+      date,
+      store,
+    },
+  };
+
+  return instance.get("/sale/sales-transfer-by-employees", config);
 };
 
 const getCashflowByDay = ({ date, store }: any) => {
@@ -138,7 +157,14 @@ const addSale = ({
   username,
   numOrder,
   typeShipment,
-  total,
+  percentageCash,
+  percentageTransfer,
+  cashWithDisccount,
+  transferWithRecharge,
+  totalCash,
+  totalTransfer,
+  totalToPay,
+  totalFinal,
 }: any) =>
   instance.post("/sale/add-sale", {
     store,
@@ -153,7 +179,14 @@ const addSale = ({
     username,
     numOrder,
     typeShipment,
-    total,
+    percentageCash,
+    percentageTransfer,
+    cashWithDisccount,
+    transferWithRecharge,
+    totalCash,
+    totalTransfer,
+    totalToPay,
+    totalFinal,
   });
 
 const addNewNumOrder = ({ employeeId, newNumOrder }: any) =>
@@ -164,6 +197,7 @@ const addNewNumOrder = ({ employeeId, newNumOrder }: any) =>
 
 const addNewSaleByEmployee = ({
   items,
+  cash,
   total,
   employee,
   store,
@@ -171,6 +205,7 @@ const addNewSaleByEmployee = ({
 }: any) =>
   instance.post("/sale/add-sale-by-employee", {
     items,
+    cash,
     total,
     employee,
     store,
@@ -183,8 +218,17 @@ const updateOrder = ({ id, dataIndex, value }: any) =>
 const updatSaleByEmployee = ({ id, dataIndex, value }: any) =>
   instance.put("/sale/update-sale-by-employee", { id, dataIndex, value });
 
+const updateCashflow = ({ id, dataIndex, value }: any) =>
+  instance.put("/cashflow/update-cashflow", { id, dataIndex, value });
+
 const cancelOrders = ({ itemsIdSelected }: any) =>
   instance.post("/sale/cancel-order", { itemsIdSelected });
+
+const removeSales = ({ salesIds, cashflowIds }: any) =>
+  instance.post("/sale/remove-sale", { salesIds, cashflowIds });
+
+const removeCashflows = ({ cashflowIds }: any) =>
+  instance.post("/cashflow/remove-cashflow", { cashflowIds });
 
 const getLastNumOrder = ({ seller }: any) =>
   instance.post("/sale/last-num-order-by-seller", { seller });
@@ -201,6 +245,13 @@ const printSale = ({
   pricesDevolutionWithconcepts,
   totalPrices,
   totalDevolutionPrices,
+  percentageCash,
+  percentageTransfer,
+  cashWithDisccount,
+  transferWithRecharge,
+  totalCash,
+  totalTransfer,
+  totalToPay,
   total,
 }: any) =>
   instance.post("/sale/print-sale", {
@@ -215,6 +266,13 @@ const printSale = ({
     pricesDevolutionWithconcepts,
     totalPrices,
     totalDevolutionPrices,
+    percentageCash,
+    percentageTransfer,
+    cashWithDisccount,
+    transferWithRecharge,
+    totalCash,
+    totalTransfer,
+    totalToPay,
     total,
   });
 
@@ -263,13 +321,17 @@ const Api = {
   addNewSaleByEmployee,
   updateOrder,
   updatSaleByEmployee,
+  updateCashflow,
   cancelOrders,
+  removeSales,
+  removeCashflows,
   printSale,
   getSales,
   getOrders,
   getReports,
   getObservations,
-  getSalesByDay,
+  getSalesCashByDay,
+  getSalesTranferByDay,
   getCashflowByDay,
   getOutgoingsByDay,
 

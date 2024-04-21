@@ -15,7 +15,6 @@ import Toast from "../components/Toast";
 import KeyboardNum from "../components/KeyboardNum";
 import { useUser } from "../contexts/UserContext";
 import { concepts } from "../utils/constants";
-import { calculateTotalPercentage } from "../utils/formatUtils";
 
 const SalesContainer = () => {
   const {
@@ -49,7 +48,6 @@ const SalesContainer = () => {
     any[]
   >([]);
 
-  const [searchAmount, setSearchAmount] = useState("");
   const [manualPrice, setManualPrice] = useState("");
   const [totalItems, setTotalItems] = useState(0);
   const [totalDevolutionItems, setTotalDevolutionItems] = useState(0);
@@ -65,6 +63,9 @@ const SalesContainer = () => {
   const [itemIdFocusForQuantity, setItemIdFocusForQuantity] = useState("");
   const [quantityForItem, setQuantityForItem] = useState("");
   const [concept, setConcept] = useState("");
+  const [enabledDisplacedPrices, setEnabledDisplacedPrices] = useState(false);
+  const [enabledDisplacedDevolutions, setEnabledDisplacedDevolutions] =
+    useState(false);
 
   const openModalSale = () => {
     setIsModalSaleOpen(true);
@@ -118,16 +119,12 @@ const SalesContainer = () => {
   }, [isModalSaleOpen]);
 
   const onSale = (data: any) => {
-    const totalToPay = totalPrices - (totalDevolutionPrices || 0);
-
     data.items = totalItems - totalDevolutionItems;
     data.subTotalItems = totalPrices;
     data.devolutionItems = totalDevolutionItems;
     data.subTotalDevolutionItems = totalDevolutionPrices;
     data.percentageToDisccountOrAdd = percentageToDisccountOrAdd;
     data.username = user.username;
-    data.total =
-      totalToPay * calculateTotalPercentage(percentageToDisccountOrAdd);
 
     dispatchSale(saleActions.addSale(data)(dispatchSale));
   };
@@ -262,6 +259,14 @@ const SalesContainer = () => {
     numOrder,
     pricesWithconcepts,
     pricesDevolutionWithconcepts,
+    percentageCash,
+    percentageTransfer,
+    cashWithDisccount,
+    transferWithRecharge,
+    totalCash,
+    totalTransfer,
+    totalToPay,
+    totalFinal,
   }: any) =>
     dispatchSale(
       saleActions.printSale({
@@ -273,14 +278,19 @@ const SalesContainer = () => {
         username: user.username,
         seller: sellerSelected,
         typeSale,
-        numOrder,
+        numOrder: numOrder || (typeSale === "local" ? lastNumOrder : 0),
         pricesWithconcepts,
         pricesDevolutionWithconcepts,
         totalPrices: totalPrices,
         totalDevolutionPrices: totalDevolutionPrices,
-        total:
-          (totalPrices - totalDevolutionPrices) *
-          calculateTotalPercentage(percentageToDisccountOrAdd),
+        percentageCash,
+        percentageTransfer,
+        cashWithDisccount,
+        transferWithRecharge,
+        totalCash,
+        totalTransfer,
+        totalToPay,
+        total: totalFinal,
       })(dispatchSale)
     );
 
@@ -306,22 +316,26 @@ const SalesContainer = () => {
           setIsModalKeyboardNumOpen={setIsModalKeyboardNumOpen}
           handleQuantityByPrice={handleQuantityByPrice}
           handleOpenKeyboardNum={handleOpenKeyboardNum}
+          enabledDisplacedPrices={enabledDisplacedPrices}
+          setEnabledDisplacedPrices={setEnabledDisplacedPrices}
+          enabledDisplacedDevolutions={enabledDisplacedDevolutions}
+          setEnabledDisplacedDevolutions={setEnabledDisplacedDevolutions}
         />
       </div>
       <div className="w-4/5">
         <ListOfPricesContainer
           prices={prices}
-          setSearchAmount={setSearchAmount}
           setPricesFiltered={setPricesFiltered}
           pricesSelected={pricesSelected}
           setPricesSelected={setPricesSelected}
           devolutionPricesSelected={devolutionPricesSelected}
           setDevolutionPricesSelected={setDevolutionPricesSelected}
-          searchAmount={searchAmount}
           pricesFiltered={pricesFiltered}
           devolutionModeActive={devolutionModeActive}
           setDevolutionModeActive={setDevolutionModeActive}
           isLoading={loadingPrices || loadingEmployees}
+          setEnabledDisplacedPrices={setEnabledDisplacedPrices}
+          setEnabledDisplacedDevolutions={setEnabledDisplacedDevolutions}
         />
       </div>
       <ConfirmSale

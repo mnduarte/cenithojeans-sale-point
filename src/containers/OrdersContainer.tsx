@@ -14,6 +14,7 @@ import {
   darkTheme,
   dateFormat,
   listStore,
+  mappingCheckoutDate,
   mappingListStore,
   mappingTypeShipment,
 } from "../utils/constants";
@@ -54,6 +55,7 @@ const OrdersContainer = () => {
     employee: "",
     typeSale: "pedido",
     typeShipment: "",
+    checkoutDate: "",
   });
   const [ordersFiltered, setOrdersFiltered] = useState<any[]>([]);
 
@@ -228,9 +230,11 @@ const OrdersContainer = () => {
 
   return (
     <>
-      <div className={`h-12 relative p-2 border-x border-t ${themeStyles[theme].tailwindcss.border} flex justify-center`}>
+      <div
+        className={`h-12 relative p-2 border-x border-t ${themeStyles[theme].tailwindcss.border} flex justify-center`}
+      >
         <div className="inline-block">
-          <label className="mr-2">Desde:</label>
+          <label className="mr-1">Desde:</label>
           <DatePicker
             onChange={(date: any) =>
               setFilters((props) => ({
@@ -245,7 +249,7 @@ const OrdersContainer = () => {
             format={dateFormat}
             value={dayjs(filters.startDate)}
           />
-          <label className="ml-2 mr-2">Hasta:</label>
+          <label className="ml-1 mr-1">Hasta:</label>
 
           <DatePicker
             onChange={(date: any) =>
@@ -264,8 +268,8 @@ const OrdersContainer = () => {
         </div>
 
         {user.store === "ALL" && (
-          <div className="ml-4 inline-block">
-            <label className="mr-2">Filtrar por sucursal:</label>
+          <div className="ml-2 inline-block">
+            <label className="mr-1">Sucursal:</label>
 
             <Select
               value={mappingListStore[filters.store]}
@@ -283,8 +287,8 @@ const OrdersContainer = () => {
             />
           </div>
         )}
-        <div className="ml-4 inline-block">
-          <label className="mr-2">por vendedor:</label>
+        <div className="ml-2 inline-block">
+          <label className="mr-1">Vendedor:</label>
 
           <Select
             value={filters.employee === "" ? "Todos" : filters.employee}
@@ -304,6 +308,51 @@ const OrdersContainer = () => {
                 value: data.name,
                 label: data.name,
               })),
+            ]}
+          />
+        </div>
+
+        <div className="ml-2 inline-block">
+          <label className="mr-1">Tipo:</label>
+
+          <Select
+            value={mappingTypeShipment[filters.typeShipment]}
+            className={themeStyles[theme].classNameSelector}
+            dropdownStyle={themeStyles[theme].dropdownStylesCustom}
+            popupClassName={themeStyles[theme].classNameSelectorItem}
+            style={{ width: 120 }}
+            onSelect={(value: any) =>
+              setFilters((props) => ({
+                ...props,
+                typeShipment: value,
+              }))
+            }
+            options={[
+              { label: "Todos", value: "" },
+              { label: "Retira local", value: "retiraLocal" },
+              { label: "Envio", value: "envio" },
+            ]}
+          />
+        </div>
+        <div className="ml-2 inline-block">
+          <label className="mr-1">Salida:</label>
+
+          <Select
+            value={mappingCheckoutDate[filters.checkoutDate]}
+            className={themeStyles[theme].classNameSelector}
+            dropdownStyle={themeStyles[theme].dropdownStylesCustom}
+            popupClassName={themeStyles[theme].classNameSelectorItem}
+            style={{ width: 120 }}
+            onSelect={(value: any) =>
+              setFilters((props) => ({
+                ...props,
+                checkoutDate: value,
+              }))
+            }
+            options={[
+              { label: "Todos", value: "" },
+              { label: "Con Salida", value: "with" },
+              { label: "Sin Salida", value: "wihtout" },
             ]}
           />
         </div>
@@ -330,9 +379,11 @@ const OrdersContainer = () => {
         </div>
       </div>
 
-      <div className={`h-12 relative p-2 border ${themeStyles[theme].tailwindcss.border} flex items-center`}>
-        <div className="ml-4 inline-block">
-          <label className="mr-2">Ordenar por Pedido:</label>
+      <div
+        className={`h-12 relative p-2 border ${themeStyles[theme].tailwindcss.border} flex items-center`}
+      >
+        <div className="ml-2 inline-block">
+          <label className="mr-2">Ordenar:</label>
 
           <Select
             className={themeStyles[theme].classNameSelector}
@@ -343,29 +394,6 @@ const OrdersContainer = () => {
             options={[
               { label: "Mayor", value: "higher" },
               { label: "Menor", value: "lower" },
-            ]}
-          />
-        </div>
-
-        <div className="ml-4 inline-block">
-          <label className="mr-2">Filtrar por Tipo:</label>
-
-          <Select
-            value={mappingTypeShipment[filters.typeShipment]}
-            className={themeStyles[theme].classNameSelector}
-            dropdownStyle={themeStyles[theme].dropdownStylesCustom}
-            popupClassName={themeStyles[theme].classNameSelectorItem}
-            style={{ width: 120 }}
-            onSelect={(value: any) =>
-              setFilters((props) => ({
-                ...props,
-                typeShipment: value,
-              }))
-            }
-            options={[
-              { label: "Todos", value: "" },
-              { label: "Retira local", value: "retiraLocal" },
-              { label: "Envio", value: "envio" },
             ]}
           />
         </div>

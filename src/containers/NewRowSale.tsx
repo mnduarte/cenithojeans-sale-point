@@ -53,6 +53,7 @@ const NewRowSale = ({
     dispatchSale(
       saleActions.addNewSaleByEmployee({
         ...propSale,
+        cash: propSale.total,
         employee: foundEmployee.name,
         store: foundEmployee.store,
         username: user.username,
@@ -119,7 +120,7 @@ const NewRowSale = ({
             </div>
 
             <div className="mb-4 h-[5vh] flex items-center justify-start">
-              <label className="mr-2">Agrege Total:</label>
+              <label className="mr-2">Agrege Efectivo/Total:</label>
 
               <input
                 type="text"

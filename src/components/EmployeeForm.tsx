@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { FaPlus } from "react-icons/fa";
 import Spinner from "./Spinner";
 import { Select } from "antd";
-import { darkTheme } from "../utils/constants";
 import { useTheme } from "../contexts/ThemeContext";
 
 const EmployeeForm = ({
@@ -13,6 +12,7 @@ const EmployeeForm = ({
   onDeleteEmployee,
   isLoading,
   stores,
+  totalPositions,
 }: any) => {
   const {
     state: { theme, themeStyles },
@@ -21,6 +21,7 @@ const EmployeeForm = ({
     id: "",
     name: "",
     store: "",
+    position: null,
     active: true,
   };
   const [isNewEmployee, setIsNewEmployee] = useState(true);
@@ -29,9 +30,9 @@ const EmployeeForm = ({
   const titleForm = `${isNewEmployee ? "Carga de" : "Editar"} empleado`;
 
   const handleAction = (action: any) => {
+    action(employeeValues);
     setEmployeeValues(initialValues);
     setIsNewEmployee(true);
-    action(employeeValues);
   };
 
   useEffect(() => {
@@ -85,6 +86,27 @@ const EmployeeForm = ({
           options={stores.map((data: any) => ({
             value: data.name,
             label: data.name,
+          }))}
+        />
+      </div>
+
+      <div className="mb-4">
+        <label className="block mb-2">Position:</label>
+
+        <Select
+          value={employeeValues.position}
+          className={`${themeStyles[theme].classNameSelector} w-full`}
+          dropdownStyle={themeStyles[theme].dropdownStylesCustom}
+          popupClassName={themeStyles[theme].classNameSelectorItem}
+          onSelect={(value: any) =>
+            setEmployeeValues({ ...employeeValues, position: value })
+          }
+          options={Array.from(
+            { length: totalPositions + 1 },
+            (_, index) => index
+          ).map((data: any) => ({
+            value: data,
+            label: data,
           }))}
         />
       </div>
