@@ -238,7 +238,7 @@ const ConfirmSale = ({
         <div className="fixed inset-0 bg-[#252525] bg-opacity-60 flex items-center justify-center">
           {/* Contenido del modal */}
           <div
-            className={`w-[65vh] p-8 rounded-md shadow-md relative ${themeStyles[theme].tailwindcss.modal}`}
+            className={`w-[72vh] p-8 rounded-md shadow-md relative ${themeStyles[theme].tailwindcss.modal}`}
           >
             {/* Icono de cerrar en la esquina superior derecha */}
             <button className="absolute top-4 right-4" onClick={closeModalSale}>
@@ -508,9 +508,6 @@ const ConfirmSale = ({
                   </div>
                   ({cashWithDisccount})
                 </div>
-              </div>
-
-              <div className="mb-2 h-[5vh] flex items-center justify-start">
                 <label
                   onClick={() => {
                     setPercentageToDisccountOrAddPayment({
@@ -519,6 +516,7 @@ const ConfirmSale = ({
                     });
                     setPayment({ cash: "", transfer: String(totalToPay) });
                   }}
+                  className="ml-10"
                 >
                   Transfer:
                 </label>
