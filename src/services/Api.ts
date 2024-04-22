@@ -75,6 +75,26 @@ const getOrders = ({
   return instance.get("/sale/orders", config);
 };
 
+const getOrdersCheckoutDate = ({
+  startDate,
+  endDate,
+  typeSale,
+  store,
+  typeShipment,
+}: any) => {
+  const config: AxiosRequestConfig = {
+    params: {
+      startDate,
+      endDate,
+      typeSale,
+      store,
+      typeShipment,
+    },
+  };
+
+  return instance.get("/sale/orders-checkoutdate", config);
+};
+
 const getReports = ({ month, year, store, typeSale }: any) => {
   const config: AxiosRequestConfig = {
     params: {
@@ -328,6 +348,7 @@ const Api = {
   printSale,
   getSales,
   getOrders,
+  getOrdersCheckoutDate,
   getReports,
   getObservations,
   getSalesCashByDay,

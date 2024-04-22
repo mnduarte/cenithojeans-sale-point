@@ -431,6 +431,36 @@ export const saleActions = {
         });
       }
     },
+  getOrdersCheckoutDate:
+    ({ startDate, endDate, typeSale, store, typeShipment }: any) =>
+    async (dispatch: any) => {
+      dispatch({
+        type: actionTypes.LOADING,
+        payload: { loading: true },
+      });
+
+      try {
+        const { data } = await Api.getOrdersCheckoutDate({
+          startDate,
+          endDate,
+          typeSale,
+          store,
+          typeShipment,
+        });
+
+        dispatch({
+          type: actionTypes.LIST_ORDERS,
+          payload: data.results,
+        });
+      } catch (error) {
+        console.log(error);
+
+        dispatch({
+          type: actionTypes.ERROR,
+          payload: ERROR_MESSAGE_TIMEOUT,
+        });
+      }
+    },
   getSalesCashByDay:
     ({ date, store }: any) =>
     async (dispatch: any) => {

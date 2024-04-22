@@ -62,13 +62,18 @@ const ModalDetailByEmployee = ({
     },
   ];
 
+  const columns =
+    reports.typeSale === "local"
+      ? columnsLocalSalesByEmployee
+      : columnsLocalPedidosByEmployee;
+
   return (
     <>
       {isModalListOutgoingOpen && (
         <div className="fixed inset-0 bg-[#252525] bg-opacity-60 flex items-center justify-center">
           {/* Contenido del modal */}
           <div
-            className={`w-[65vh] h-[60vh] p-8 rounded-md shadow-md relative ${themeStyles[theme].tailwindcss.modal}`}
+            className={`max-w h-[45vh] overflow-hidden overflow-y-auto overflow-x-auto p-8 rounded-md shadow-md relative ${themeStyles[theme].tailwindcss.modal}`}
           >
             {/* Icono de cerrar en la esquina superior derecha */}
             <button
@@ -81,16 +86,11 @@ const ModalDetailByEmployee = ({
             <h2 className="text-lg font-bold mb-4">
               Detalle del la semana - {week}
             </h2>
-            <div className="mt-5 h-[43vh] mx-auto max-w overflow-hidden overflow-y-auto overflow-x-auto">
+            <div className="mt-5 h-[30vh] max-w overflow-hidden overflow-y-auto overflow-x-auto flex flex-no-wrap">
               {report.salesByEmployees &&
                 report.salesByEmployees.map(
                   (saleByEmployee: any, idx: number) => (
-                    <div
-                      className={`mt-5 ${
-                        reports.typeSale === "local" ? "max-w" : "max-w"
-                      } border-r border-green-900 mr-2`}
-                      key={idx + "byEmployee"}
-                    >
+                    <div className={`mt-5 mr-4 text-xs`} key={idx + "byEmployee"}>
                       <div className="mb-2 flex items-center justify-center">
                         <label className="text-2xl text-base font-bold">
                           {saleByEmployee.employee}
@@ -99,9 +99,12 @@ const ModalDetailByEmployee = ({
                       <EditableTable
                         data={saleByEmployee.sales}
                         columns={
-                          reports.typeSale === "local"
-                            ? columnsLocalSalesByEmployee
-                            : columnsLocalPedidosByEmployee
+                          idx === 0
+                            ? [
+                                { title: "Fecha", dataIndex: "date" },
+                                ...columns,
+                              ]
+                            : columns
                         }
                         table={`-byEmployee`}
                       />
@@ -345,8 +348,9 @@ const ReportsContainer = () => {
         <div>
           {Boolean(reports.salesGeneral.length) &&
             reports.salesGeneral.map((report: any, idx: number) => {
+              //console.log(report)
               return (
-                <div className="flex mb-5"  key={idx + "byDay"}>
+                <div className="flex mb-5" key={idx + "byDay"}>
                   <div className="w-[50vh] mr-10" key={idx + "byDay"}>
                     <div className="mb-2 flex ">
                       <label className="text-2xl text-base font-bold">
@@ -371,8 +375,8 @@ const ReportsContainer = () => {
                     onClick={() => {
                       setDetailByWeek({
                         week: report.week,
-                        report:  report ,
-                        reports:  reports ,
+                        report: report,
+                        reports: reports,
                       });
                       setIsModalDetailByEmployeeOpen(true);
                     }}

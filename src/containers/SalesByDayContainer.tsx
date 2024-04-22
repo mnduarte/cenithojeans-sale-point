@@ -867,17 +867,27 @@ const SalesByDayContainer = () => {
                             left: selectedRow.clientX,
                           }}
                         >
-                          <p className="text-base">
-                            {Boolean(selectedRow.transfer) ? (
-                              <>
-                                Transfer:
-                                <span className="font-bold ml-2">
-                                  ${formatCurrency(selectedRow.transfer)}
-                                </span>
-                              </>
-                            ) : (
-                              <>No tiene transfer</>
-                            )}
+                          <p className="">
+                            <>
+                              {Boolean(selectedRow.transfer) ? (
+                                <>
+                                  Transfer:
+                                  <span className="font-bold mx-2">
+                                    ${formatCurrency(selectedRow.transfer)}
+                                  </span>
+                                </>
+                              ) : (
+                                <span className="mr-2">No tiene transfer</span>
+                              )}
+                              Total:
+                              <span className="font-bold mx-2">
+                                ${formatCurrency(selectedRow.total)}
+                              </span>
+                              Coment:
+                              <span className="font-bold mx-2">
+                                {selectedRow.description}
+                              </span>
+                            </>
                           </p>
                         </div>
                       )}

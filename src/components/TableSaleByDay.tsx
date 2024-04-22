@@ -53,7 +53,7 @@ const TableSaleByDay = ({
                   ? themeStyles[theme].tailwindcss.table.par
                   : themeStyles[theme].tailwindcss.table.hover
               } ${
-                row.withBackground && "bg-pink-500 hover:bg-pink-500 text-white"
+                row.withBackground && "text-red-400"
               }`}
             >
               {enableSelectItem && (

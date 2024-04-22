@@ -57,6 +57,13 @@ const OrdersContainer = () => {
     typeShipment: "",
     checkoutDate: "",
   });
+  const [checkoutDatefilters, setCheckoutDateFilters] = useState({
+    startDate: formatDateToYYYYMMDD(new Date()),
+    endDate: formatDateToYYYYMMDD(new Date()),
+    store: user.store === "ALL" ? "" : user.store,
+    typeSale: "pedido",
+    typeShipment: "",
+  });
   const [ordersFiltered, setOrdersFiltered] = useState<any[]>([]);
 
   const [value, setValue] = useState(0);
@@ -396,6 +403,109 @@ const OrdersContainer = () => {
               { label: "Menor", value: "lower" },
             ]}
           />
+        </div>
+
+        <div className="inline-block">
+          <label className="mx-1">Salida Desde:</label>
+          <DatePicker
+            onChange={(date: any) =>
+              setCheckoutDateFilters((props) => ({
+                ...props,
+                startDate: date.format("YYYY-MM-DD"),
+              }))
+            }
+            className={themeStyles[theme].datePickerIndicator}
+            style={themeStyles[theme].datePicker}
+            popupClassName={themeStyles[theme].classNameDatePicker}
+            allowClear={false}
+            format={dateFormat}
+            value={dayjs(checkoutDatefilters.startDate)}
+          />
+          <label className="ml-1 mr-1">Hasta:</label>
+
+          <DatePicker
+            onChange={(date: any) =>
+              setCheckoutDateFilters((props) => ({
+                ...props,
+                endDate: date.format("YYYY-MM-DD"),
+              }))
+            }
+            className={themeStyles[theme].datePickerIndicator}
+            style={themeStyles[theme].datePicker}
+            popupClassName={themeStyles[theme].classNameDatePicker}
+            allowClear={false}
+            format={dateFormat}
+            value={dayjs(checkoutDatefilters.endDate)}
+          />
+        </div>
+
+        {user.store === "ALL" && (
+          <div className="ml-2 inline-block">
+            <label className="mr-1">Sucursal:</label>
+
+            <Select
+              value={mappingListStore[checkoutDatefilters.store]}
+              className={themeStyles[theme].classNameSelector}
+              dropdownStyle={themeStyles[theme].dropdownStylesCustom}
+              popupClassName={themeStyles[theme].classNameSelectorItem}
+              style={{ width: 110 }}
+              onSelect={(value: any) =>
+                setCheckoutDateFilters((props) => ({ ...props, store: value }))
+              }
+              options={listStore.map((data: any) => ({
+                value: data.value === "ALL" ? "" : data.value,
+                label: data.name,
+              }))}
+            />
+          </div>
+        )}
+
+        <div className="ml-2 inline-block">
+          <label className="mr-1">Tipo:</label>
+
+          <Select
+            value={mappingTypeShipment[checkoutDatefilters.typeShipment]}
+            className={themeStyles[theme].classNameSelector}
+            dropdownStyle={themeStyles[theme].dropdownStylesCustom}
+            popupClassName={themeStyles[theme].classNameSelectorItem}
+            style={{ width: 120 }}
+            onSelect={(value: any) =>
+              setCheckoutDateFilters((props) => ({
+                ...props,
+                typeShipment: value,
+              }))
+            }
+            options={[
+              { label: "Todos", value: "" },
+              { label: "Retira local", value: "retiraLocal" },
+              { label: "Envio", value: "envio" },
+            ]}
+          />
+        </div>
+
+        <div className="ml-2 inline-block">
+          <div
+            className={`inline-block px-4 py-1 rounded-md border text-white select-none ${
+              Boolean(checkoutDatefilters.startDate.length) &&
+              Boolean(checkoutDatefilters.endDate.length) &&
+              "bg-[#1b78e2] border-[#1b78e2] hover:cursor-pointer hover:opacity-80 transition-opacity"
+            } flex items-center mx-auto`}
+            onClick={() =>
+              !loading &&
+              dispatchSale(
+                saleActions.getOrdersCheckoutDate(checkoutDatefilters)(
+                  dispatchSale
+                )
+              )
+            }
+          >
+            Buscar
+            {loading && (
+              <div className="ml-2">
+                <Spinner />
+              </div>
+            )}
+          </div>
         </div>
 
         {Boolean(itemsIdSelected.length) && (

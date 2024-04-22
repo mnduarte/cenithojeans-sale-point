@@ -238,7 +238,7 @@ const ConfirmSale = ({
         <div className="fixed inset-0 bg-[#252525] bg-opacity-60 flex items-center justify-center">
           {/* Contenido del modal */}
           <div
-            className={`w-[72vh] p-8 rounded-md shadow-md relative ${themeStyles[theme].tailwindcss.modal}`}
+            className={`w-[75vh] p-8 rounded-md shadow-md relative ${themeStyles[theme].tailwindcss.modal}`}
           >
             {/* Icono de cerrar en la esquina superior derecha */}
             <button className="absolute top-4 right-4" onClick={closeModalSale}>
