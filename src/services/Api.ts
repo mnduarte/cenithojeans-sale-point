@@ -185,6 +185,7 @@ const addSale = ({
   totalTransfer,
   totalToPay,
   totalFinal,
+  isWithPrepaid,
 }: any) =>
   instance.post("/sale/add-sale", {
     store,
@@ -207,6 +208,7 @@ const addSale = ({
     totalTransfer,
     totalToPay,
     totalFinal,
+    isWithPrepaid,
   });
 
 const addNewNumOrder = ({ employeeId, newNumOrder }: any) =>
@@ -303,6 +305,7 @@ const addCashflow = ({
   store,
   description,
   items,
+  typePayment,
 }: any) =>
   instance.post("/cashflow/add-cashflow", {
     type,
@@ -311,6 +314,7 @@ const addCashflow = ({
     store,
     description,
     items,
+    typePayment,
   });
 
 const addObservation = ({ observation, store, username }: any) =>

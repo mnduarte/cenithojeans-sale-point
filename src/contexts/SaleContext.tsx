@@ -566,6 +566,7 @@ export const saleActions = {
       totalTransfer,
       totalToPay,
       totalFinal,
+      isWithPrepaid,
     }: any) =>
     async (dispatch: any) => {
       dispatch({
@@ -595,6 +596,7 @@ export const saleActions = {
           totalTransfer,
           totalToPay,
           totalFinal,
+          isWithPrepaid,
         });
 
         dispatch({

@@ -5,7 +5,7 @@ import Spinner from "../components/Spinner";
 import { FaMinus, FaPlus } from "react-icons/fa";
 import { mappingConceptWithIcon } from "../utils/mappings";
 import KeyboardNum from "../components/KeyboardNum";
-import { Select } from "antd";
+import { Select, Tag } from "antd";
 import { useTheme } from "../contexts/ThemeContext";
 
 const ConfirmSale = ({
@@ -228,6 +228,7 @@ const ConfirmSale = ({
       totalTransfer,
       totalToPay,
       totalFinal,
+      isWithPrepaid,
     };
     onSale(data);
   };
@@ -245,7 +246,20 @@ const ConfirmSale = ({
               <MdClose className="text-2xl" />
             </button>
 
-            <h2 className="text-lg font-bold mb-4">Confirmar Venta</h2>
+            <div className="mb-4 inline-block mb-4">
+              <label className="text-lg font-bold mr-5">Confirmar Venta</label>
+
+              {typeSale === "local" && (
+                <Tag color="lime" className="px-2 text-base font-bold">
+                  Local
+                </Tag>
+              )}
+              {typeSale === "pedido" && (
+                <Tag color="orange" className="px-2 text-base font-bold">
+                  Pedido
+                </Tag>
+              )}
+            </div>
 
             <div className="mb-4 inline-block">
               <label className="mr-2 "> Vendedor (Local):</label>

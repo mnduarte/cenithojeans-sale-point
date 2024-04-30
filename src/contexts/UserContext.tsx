@@ -43,7 +43,6 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       role: "ADMIN",
       store: "ALL",
     },*/
-    
   };
 
   // Reducer para manejar acciones

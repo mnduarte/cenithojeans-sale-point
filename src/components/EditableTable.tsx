@@ -100,7 +100,10 @@ const EditableTable = ({
                 editableRow === table + rowIndex
                   ? themeStyles[theme].tailwindcss.table.par
                   : themeStyles[theme].tailwindcss.table.hover
-              } ${row[rowWithoutActions] && "bg-red-500 hover:bg-red-700 text-white"}`}
+              } ${
+                row[rowWithoutActions] &&
+                "bg-red-500 hover:bg-red-700 text-white"
+              }`}
             >
               {enableSelectItem && (
                 <td
@@ -179,18 +182,19 @@ const EditableTable = ({
             {columns.map((column: any, idx: number) => {
               const reduceValue =
                 column.sumAcc &&
-                data.reduce(
-                  (acc: any, current: any) =>
-                    acc + (current[column.dataIndex] || 0),
-                  0
-                );
+                data.reduce((acc: any, current: any) => {
+                  const value = current.cancelled
+                    ? 0
+                    : current[column.dataIndex];
+                  return acc + (value || 0);
+                }, 0);
 
               return (
                 <td
                   className={`text-center font-bold ${themeStyles[theme].tailwindcss.table.thead.th}`}
                   key={idx}
                 >
-                {idx === 0 && !Boolean(reduceValue) && <MdAssignmentAdd />}
+                  {idx === 0 && !Boolean(reduceValue) && <MdAssignmentAdd />}
                   {column.sumAcc &&
                     (column.applyFormat
                       ? `$${formatCurrency(reduceValue)}`

@@ -12,6 +12,7 @@ import { useTheme } from "../contexts/ThemeContext";
 const initialValuesProps = {
   amount: 0,
   items: 0,
+  typePayment: "cash",
 };
 
 const IncomeContainer = ({ isModalIncomeOpen, setIsModalIncomeOpen }: any) => {
@@ -55,6 +56,7 @@ const IncomeContainer = ({ isModalIncomeOpen, setIsModalIncomeOpen }: any) => {
       description,
       amount: propsValues.amount,
       items: propsValues.items,
+      typePayment: propsValues.typePayment,
     };
 
     dispatchCashflow(cashflowActions.addCashflow(data)(dispatchCashflow));
@@ -87,18 +89,15 @@ const IncomeContainer = ({ isModalIncomeOpen, setIsModalIncomeOpen }: any) => {
       {isModalIncomeOpen && (
         <div className="fixed inset-0 bg-[#252525] bg-opacity-60 flex items-center justify-center">
           {/* Contenido del modal */}
-          <div className={`w-[60vh] p-8 rounded-md shadow-md relative ${themeStyles[theme].tailwindcss.modal}`}>
+          <div
+            className={`w-[60vh] p-8 rounded-md shadow-md relative ${themeStyles[theme].tailwindcss.modal}`}
+          >
             {/* Icono de cerrar en la esquina superior derecha */}
-            <button
-              className="absolute top-4 right-4"
-              onClick={closeModal}
-            >
+            <button className="absolute top-4 right-4" onClick={closeModal}>
               <MdClose className="text-2xl" />
             </button>
 
-            <h2 className="text-lg font-bold mb-4">
-              Agregar Ingreso
-            </h2>
+            <h2 className="text-lg font-bold mb-4">Agregar Ingreso</h2>
 
             <div className="mb-2 inline-block">
               <label className="mr-2">Seleccione Vendedor:</label>
@@ -147,6 +146,55 @@ const IncomeContainer = ({ isModalIncomeOpen, setIsModalIncomeOpen }: any) => {
                   setDataIndex("amount");
                   setIsModalKeyboardNumOpen(true);
                 }}
+              />
+            </div>
+
+            <div className="mt-2 h-[5vh] flex items-center justify-start">
+              <label
+                onClick={() =>
+                  setPropsValues((current: any) => ({
+                    ...current,
+                    typePayment: "cash",
+                  }))
+                }
+              >
+                Efectivo:
+              </label>
+
+              <input
+                type="checkbox"
+                checked={propsValues.typePayment === "cash"}
+                onChange={() =>
+                  setPropsValues((current: any) => ({
+                    ...current,
+                    typePayment: "cash",
+                  }))
+                }
+                className="ml-1 mr-2"
+              />
+
+              <label
+                onClick={() =>
+                  setPropsValues((current: any) => ({
+                    ...current,
+                    typePayment: "transfer",
+                  }))
+                }
+                className="ml-10"
+              >
+                Transferencia:
+              </label>
+
+              <input
+                type="checkbox"
+                checked={propsValues.typePayment === "transfer"}
+                onChange={() =>
+                  setPropsValues((current: any) => ({
+                    ...current,
+                    typePayment: "transfer",
+                  }))
+                }
+                className="ml-1 mr-2"
               />
             </div>
 

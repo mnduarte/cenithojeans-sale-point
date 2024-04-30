@@ -598,6 +598,8 @@ const SalesByDayContainer = () => {
       title: "Cash",
       dataIndex: "cash",
       format: (number: any) => `$${formatCurrency(number)}`,
+      notZero: true,
+      defaultValue: "MPC",
       editableCell: true,
       type: "string",
       sumAcc: user.role === "ADMIN",
@@ -828,7 +830,7 @@ const SalesByDayContainer = () => {
                 const [emp, sales] = saleByEmployee;
                 return (
                   <div className="w-50" key={emp}>
-                    <div className="mb-2 flex ">
+                    <div className={`sticky top-0 z-10 mb-2 flex ${themeStyles[theme].tailwindcss.body}`}>
                       <label className="text-2xl text-base mr-3 ml-auto">
                         {emp}
                       </label>
@@ -857,40 +859,46 @@ const SalesByDayContainer = () => {
                       rowsSelected={[...itemsIdSelected, ...cashflowIdSelected]}
                       handleItemsSelected={handleItemsSelected}
                     />
-                    {Boolean(showToastDetailSale) &&
-                      Boolean(selectedRow) &&
-                      Boolean(selectedRow.isSale) && (
-                        <div
-                          className={`absolute shadow-lg rounded-lg p-4 ${themeStyles[theme].tailwindcss.modal}`}
-                          style={{
-                            top: selectedRow.clientY,
-                            left: selectedRow.clientX,
-                          }}
-                        >
-                          <p className="">
-                            <>
-                              {Boolean(selectedRow.transfer) ? (
-                                <>
-                                  Transfer:
-                                  <span className="font-bold mx-2">
-                                    ${formatCurrency(selectedRow.transfer)}
-                                  </span>
-                                </>
-                              ) : (
-                                <span className="mr-2">No tiene transfer</span>
-                              )}
-                              Total:
-                              <span className="font-bold mx-2">
-                                ${formatCurrency(selectedRow.total)}
-                              </span>
-                              Coment:
-                              <span className="font-bold mx-2">
-                                {selectedRow.description}
-                              </span>
-                            </>
-                          </p>
-                        </div>
-                      )}
+                    {Boolean(showToastDetailSale) && Boolean(selectedRow) && (
+                      <div
+                        className={`absolute shadow-lg rounded-lg p-4 ${themeStyles[theme].tailwindcss.modal}`}
+                        style={{
+                          top: selectedRow.clientY,
+                          left: selectedRow.clientX,
+                        }}
+                      >
+                        <p className="">
+                          <>
+                            {Boolean(selectedRow.transfer) ? (
+                              <>
+                                Transfer:
+                                <span className="font-bold mx-2">
+                                  ${formatCurrency(selectedRow.transfer)}
+                                </span>
+                              </>
+                            ) : (
+                              <span className="mr-2">No tiene transfer</span>
+                            )}
+                            {selectedRow.total && (
+                              <>
+                                Total:
+                                <span className="font-bold mx-2">
+                                  ${formatCurrency(selectedRow.total)}
+                                </span>
+                              </>
+                            )}
+                            {selectedRow.description && (
+                              <>
+                                Coment:
+                                <span className="font-bold mx-2">
+                                  {selectedRow.description}
+                                </span>
+                              </>
+                            )}
+                          </>
+                        </p>
+                      </div>
+                    )}
                   </div>
                 );
               }

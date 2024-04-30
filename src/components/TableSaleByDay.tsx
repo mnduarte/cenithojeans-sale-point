@@ -1,6 +1,7 @@
 import React from "react";
 import { TbFlag2Filled } from "react-icons/tb";
 import { MdAssignmentAdd } from "react-icons/md";
+import { FaLocationArrow } from "react-icons/fa";
 import { useTheme } from "../contexts/ThemeContext";
 import { formatCurrency } from "../utils/formatUtils";
 
@@ -52,9 +53,7 @@ const TableSaleByDay = ({
                 editableRow === table + rowIndex
                   ? themeStyles[theme].tailwindcss.table.par
                   : themeStyles[theme].tailwindcss.table.hover
-              } ${
-                row.withBackground && "text-red-400"
-              }`}
+              } ${row.withBackground && "text-red-400"}`}
             >
               {enableSelectItem && (
                 <td
@@ -73,16 +72,24 @@ const TableSaleByDay = ({
               {columns.map((column: any, columnIndex: any) => (
                 <td
                   key={columnIndex}
-                  className={`text-center py-1 ${themeStyles[theme].tailwindcss.table.tbody.td} `}
+                  className={`text-center py-1 ${themeStyles[theme].tailwindcss.table.tbody.td}`}
                   onClick={(e) => handleRowClick(row, e)}
                   onDoubleClick={handleRowDoubleClick}
                 >
-                  {column.applyFlag && row.withFlag && (
-                    <TbFlag2Filled className="text-red-600 absolute " />
-                  )}
-                  {column.format
-                    ? column.format(row[column.dataIndex])
-                    : row[column.dataIndex]}
+                  <div className="flex">
+                    {column.applyFlag && row.withFlag && (
+                      <TbFlag2Filled className="text-red-600 w-2" />
+                    )}
+
+                    {column.applyFlag && row.isWithPrepaid && (
+                      <FaLocationArrow className="text-cyan-600 w-2" />
+                    )}
+                    {column.format
+                      ? column.notZero && !Boolean(row[column.dataIndex])
+                        ? column.defaultValue
+                        : column.format(row[column.dataIndex])
+                      : row[column.dataIndex]}
+                  </div>
                 </td>
               ))}
             </tr>
