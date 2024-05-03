@@ -178,7 +178,7 @@ const GraphContainer = () => {
         </div>
       </div>
       <div className="h-[85vh] overflow-x-auto">
-        <div className="h-[38vh] flex justify-center space-x-2">
+        <div className="h-[50vh] flex justify-center space-x-2">
           {data.itemsAndDevolutions && (
             <div className="h-[50vh] w-full">
               <Line
@@ -214,7 +214,7 @@ const GraphContainer = () => {
             </div>
           )}
         </div>
-        <div className="h-[38vh] flex justify-center space-x-2">
+        <div className="h-[50vh] flex justify-center space-x-2">
           {data.totalSales && (
             <div className="h-[50vh] w-full">
               <Line
