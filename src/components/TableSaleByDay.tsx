@@ -72,11 +72,11 @@ const TableSaleByDay = ({
               {columns.map((column: any, columnIndex: any) => (
                 <td
                   key={columnIndex}
-                  className={`text-center py-1 ${themeStyles[theme].tailwindcss.table.tbody.td}`}
+                  className={`${themeStyles[theme].tailwindcss.table.tbody.td}`}
                   onClick={(e) => handleRowClick(row, e)}
                   onDoubleClick={handleRowDoubleClick}
                 >
-                  <div className="flex">
+                  <div className="flex p-1">
                     {column.applyFlag && row.withFlag && (
                       <TbFlag2Filled className="text-red-600 w-2" />
                     )}
@@ -84,11 +84,17 @@ const TableSaleByDay = ({
                     {column.applyFlag && row.isWithPrepaid && (
                       <FaLocationArrow className="text-cyan-600 w-2" />
                     )}
-                    {column.format
-                      ? column.notZero && !Boolean(row[column.dataIndex])
-                        ? column.defaultValue
-                        : column.format(row[column.dataIndex])
-                      : row[column.dataIndex]}
+
+                    {column.applyFlag && row.typeSale === "pedido" && (
+                      <FaLocationArrow className="text-green-600 w-2" />
+                    )}
+                    <span className="pl-1">
+                      {column.format
+                        ? column.notZero && !Boolean(row[column.dataIndex])
+                          ? column.defaultValue
+                          : column.format(row[column.dataIndex])
+                        : row[column.dataIndex]}
+                    </span>
                   </div>
                 </td>
               ))}
@@ -114,7 +120,7 @@ const TableSaleByDay = ({
 
               return (
                 <td
-                  className={`text-center font-bold ${themeStyles[theme].tailwindcss.table.thead.th}`}
+                  className={`text-center p-1 text-cyan-500 font-bold ${themeStyles[theme].tailwindcss.table.thead.th}`}
                   key={idx}
                 >
                   {idx === 0 && !Boolean(reduceValue) && <MdAssignmentAdd />}

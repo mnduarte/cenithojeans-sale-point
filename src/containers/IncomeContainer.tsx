@@ -242,15 +242,13 @@ const IncomeContainer = ({ isModalIncomeOpen, setIsModalIncomeOpen }: any) => {
               <div
                 className={`${
                   !Boolean(sellerSelected.length) ||
-                  !Boolean(propsValues.amount) ||
-                  !Boolean(propsValues.items)
+                  !Boolean(propsValues.amount)
                     ? "bg-gray-500"
                     : "bg-green-800 hover:bg-green-800 hover:cursor-pointer"
                 }  w-1/2 text-white px-4 py-2 rounded-md flex items-center justify-center mx-auto select-none `}
                 onClick={() =>
                   Boolean(sellerSelected.length) &&
                   Boolean(propsValues.amount) &&
-                  Boolean(propsValues.items) &&
                   handleIncome()
                 }
               >

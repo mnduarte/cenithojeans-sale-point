@@ -11,7 +11,6 @@ import { MdOutlinePendingActions } from "react-icons/md";
 import dayjs from "dayjs";
 import { DatePicker, Select } from "antd";
 import {
-  darkTheme,
   dateFormat,
   listStore,
   mappingCheckoutDate,
@@ -387,7 +386,7 @@ const OrdersContainer = () => {
       </div>
 
       <div
-        className={`h-12 relative p-2 border ${themeStyles[theme].tailwindcss.border} flex items-center`}
+        className={`h-12 relative p-2 border ${themeStyles[theme].tailwindcss.border} flex justify-center`}
       >
         <div className="ml-2 inline-block">
           <label className="mr-2">Ordenar:</label>

@@ -14,6 +14,7 @@ export const ThemeProvider: React.FC<any> = ({ children }) => {
     theme: "dark",
     themeStyles: {
       dark: {
+        textColor: "#ffffff",
         tailwindcss: {
           body: "bg-[#252525] text-white select-none",
           menuTab: "bg-[#333333] hover:bg-[#484E55]",
@@ -33,7 +34,7 @@ export const ThemeProvider: React.FC<any> = ({ children }) => {
             hover: "hover:bg-[#1E1E1E]",
           },
           border: "border-[#484E55]",
-          modal: "bg-gray-800"
+          modal: "bg-gray-800",
         },
         classNameDatePicker: "ant-picker-custom-style",
         classNameSelector: "ant-selector-custom-style",
@@ -49,6 +50,7 @@ export const ThemeProvider: React.FC<any> = ({ children }) => {
         },
       },
       light: {
+        textColor: "#6B7280",
         tailwindcss: {
           body: "bg-[#FAFAFA] text-gray-500 select-none",
           menuTab:
@@ -69,7 +71,7 @@ export const ThemeProvider: React.FC<any> = ({ children }) => {
             hover: "hover:bg-[#FAFAFA]",
           },
           border: "border-[#dbdbdb]",
-          modal: "bg-[#FAFAFA]"
+          modal: "bg-[#FAFAFA]",
         },
         classNameDatePicker: "",
         classNameSelector: "",

@@ -324,6 +324,18 @@ const addObservation = ({ observation, store, username }: any) =>
     username,
   });
 
+const getGraphData = ({ startDate, endDate, store }: any) => {
+  const config: AxiosRequestConfig = {
+    params: {
+      startDate,
+      endDate,
+      store,
+    },
+  };
+
+  return instance.get("/graph/get-data", config);
+};
+
 const Api = {
   login,
 
@@ -364,6 +376,8 @@ const Api = {
   addObservation,
 
   getLastNumOrder,
+
+  getGraphData,
 };
 
 export default Api;

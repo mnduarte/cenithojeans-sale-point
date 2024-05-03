@@ -553,6 +553,8 @@ const SalesByDayContainer = () => {
     state: { user },
   } = useUser();
 
+  let timeoutId: ReturnType<typeof setTimeout>;
+
   const {
     state: { loading: loadingCashflow, incomes, outgoings },
     dispatch: dispatchCashflow,
@@ -588,7 +590,7 @@ const SalesByDayContainer = () => {
   const columns = [
     { title: "N°", dataIndex: "order", size: "w-5" },
     {
-      title: "Prendas",
+      title: "Pren",
       dataIndex: "items",
       editableCell: true,
       type: "string",
@@ -640,7 +642,7 @@ const SalesByDayContainer = () => {
     setEmployeeSelectedForNewRowSale(emp);
     setIsModalNewNumOrder(true);
   };
-  ////////////////////////////////////////////////////////////////
+
   const [selectedRow, setSelectedRow] = useState<any>(null);
 
   // Función para manejar la selección de la fila
@@ -648,9 +650,13 @@ const SalesByDayContainer = () => {
     setSelectedRow({ ...row, clientX: e.clientX, clientY: e.clientY });
     setShowToastDetailSale(true);
 
-    setTimeout(() => {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+
+    timeoutId = setTimeout(() => {
       setShowToastDetailSale(false);
-    }, 2000);
+    }, 4000);
   };
 
   useEffect(() => {
@@ -830,7 +836,9 @@ const SalesByDayContainer = () => {
                 const [emp, sales] = saleByEmployee;
                 return (
                   <div className="w-50" key={emp}>
-                    <div className={`sticky top-0 z-10 mb-2 flex ${themeStyles[theme].tailwindcss.body}`}>
+                    <div
+                      className={`sticky top-0 z-10 mb-2 flex ${themeStyles[theme].tailwindcss.body}`}
+                    >
                       <label className="text-2xl text-base mr-3 ml-auto">
                         {emp}
                       </label>
@@ -869,31 +877,53 @@ const SalesByDayContainer = () => {
                       >
                         <p className="">
                           <>
-                            {Boolean(selectedRow.transfer) ? (
-                              <>
-                                Transfer:
+                            {selectedRow.typeSale === "pedido" && (
+                              <div>
+                                N° Pedido:
                                 <span className="font-bold mx-2">
-                                  ${formatCurrency(selectedRow.transfer)}
+                                  {selectedRow.order}
                                 </span>
-                              </>
-                            ) : (
-                              <span className="mr-2">No tiene transfer</span>
+                              </div>
                             )}
-                            {selectedRow.total && (
-                              <>
+                            <div>
+                              Transferencia:
+                              <span className="font-bold mx-2">
+                                $
+                                {formatCurrency(
+                                  selectedRow.transfer
+                                    ? selectedRow.transfer
+                                    : 0
+                                )}
+                              </span>
+                            </div>
+                            <div>
+                              Efectivo:
+                              <span className="font-bold mx-2">
+                                $
+                                {formatCurrency(
+                                  selectedRow.cash ? selectedRow.cash : 0
+                                )}
+                              </span>
+                            </div>
+
+                            {selectedRow.type !== "ingreso" && (
+                              <div>
                                 Total:
                                 <span className="font-bold mx-2">
-                                  ${formatCurrency(selectedRow.total)}
+                                  $
+                                  {formatCurrency(
+                                    selectedRow.total ? selectedRow.total : 0
+                                  )}
                                 </span>
-                              </>
+                              </div>
                             )}
                             {selectedRow.description && (
-                              <>
-                                Coment:
+                              <div>
+                                Comentario:
                                 <span className="font-bold mx-2">
                                   {selectedRow.description}
                                 </span>
-                              </>
+                              </div>
                             )}
                           </>
                         </p>

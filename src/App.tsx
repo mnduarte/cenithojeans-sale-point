@@ -50,6 +50,8 @@ import { ObservationProvider } from "./contexts/ObservationContext";
 import ReportsContainer from "./containers/ReportsContainer";
 import { Switch } from "antd";
 import { ThemeProvider, themeActions, useTheme } from "./contexts/ThemeContext";
+import GraphContainer from "./containers/GraphContainer";
+import { GraphProvider } from "./contexts/GraphContext";
 
 setupIonicReact();
 
@@ -84,6 +86,12 @@ const mappingTabs = {
     title: "Informes",
     icon: <TbReportSearch />,
     container: <ReportsContainer />,
+    permission: ["ADMIN"],
+  },
+  Graficos: {
+    title: "Graficos",
+    icon: <TbReportSearch />,
+    container: <GraphContainer />,
     permission: ["ADMIN"],
   },
 };
@@ -279,7 +287,9 @@ const App: React.FC = () => {
               <EmployeeProvider>
                 <CashflowProvider>
                   <ObservationProvider>
-                    <AppContainer />
+                    <GraphProvider>
+                      <AppContainer />
+                    </GraphProvider>
                   </ObservationProvider>
                 </CashflowProvider>
               </EmployeeProvider>
