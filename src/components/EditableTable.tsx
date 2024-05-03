@@ -137,7 +137,13 @@ const EditableTable = ({
               {columns.map((column: any, columnIndex: any) => (
                 <td
                   key={columnIndex}
-                  className={`text-center py-1 ${themeStyles[theme].tailwindcss.table.tbody.td}`}
+                  className={`text-center py-1 ${
+                    themeStyles[theme].tailwindcss.table.tbody.td
+                  } ${
+                    column.applyColorText &&
+                    row.isWithPrepaid &&
+                    "text-cyan-500"
+                  }`}
                   onClick={() =>
                     !row[rowWithoutActions] &&
                     handleEditClick(setItemInOnClick ? row : table + rowIndex)

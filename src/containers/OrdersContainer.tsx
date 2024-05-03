@@ -101,6 +101,7 @@ const OrdersContainer = () => {
       format: (number: any) => `$${formatCurrency(number)}`,
       sumAcc: user.role === "ADMIN",
       applyFormat: true,
+      applyColorText: true,
     },
     {
       title: "Efectivo",
@@ -110,6 +111,7 @@ const OrdersContainer = () => {
       format: (number: any) => `$${formatCurrency(number)}`,
       sumAcc: user.role === "ADMIN",
       applyFormat: true,
+      applyColorText: true,
     },
     {
       title: "Prendas",
