@@ -40,7 +40,6 @@ const SalesContainer = () => {
     dispatch: dispatchSale,
   } = useSale();
 
-  const [pricesFiltered, setPricesFiltered] = useState<any[]>([]);
   const [employeesFiltered, setEmployeesFiltered] = useState<any[]>([]);
 
   const [pricesSelected, setPricesSelected] = useState<any[]>([]);
@@ -99,12 +98,6 @@ const SalesContainer = () => {
       )
     );
   }, [pricesSelected, devolutionPricesSelected]);
-
-  useEffect(() => {
-    const activePrices = prices.filter((price: any) => price.active);
-
-    setPricesFiltered(activePrices);
-  }, [prices]);
 
   useEffect(() => {
     const activeEmployees = employees.filter((price: any) => price.active);
@@ -325,12 +318,10 @@ const SalesContainer = () => {
       <div className="w-4/5">
         <ListOfPricesContainer
           prices={prices}
-          setPricesFiltered={setPricesFiltered}
           pricesSelected={pricesSelected}
           setPricesSelected={setPricesSelected}
           devolutionPricesSelected={devolutionPricesSelected}
           setDevolutionPricesSelected={setDevolutionPricesSelected}
-          pricesFiltered={pricesFiltered}
           devolutionModeActive={devolutionModeActive}
           setDevolutionModeActive={setDevolutionModeActive}
           isLoading={loadingPrices || loadingEmployees}

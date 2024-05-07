@@ -1,5 +1,4 @@
 import { formatCurrency } from "../utils/formatUtils";
-import { Price } from "../types";
 import Spinner from "../components/Spinner";
 import { useState } from "react";
 import IncomeContainer from "./IncomeContainer";
@@ -7,13 +6,12 @@ import OutgoingContainer from "./OutgoingContainer";
 import ObservationContainer from "./ObservationContainer";
 import { Select } from "antd";
 import { useTheme } from "../contexts/ThemeContext";
+import { priceActions, usePrice } from "../contexts/PriceContext";
 
 const ListOfPricesContainer = ({
   prices,
-  setPricesFiltered,
   pricesSelected,
   setPricesSelected,
-  pricesFiltered,
   devolutionModeActive,
   setDevolutionModeActive,
   devolutionPricesSelected,
@@ -28,6 +26,10 @@ const ListOfPricesContainer = ({
   const {
     state: { theme, themeStyles },
   } = useTheme();
+  const {
+    state: { order },
+    dispatch: dispatchPrice,
+  } = usePrice();
 
   const pricesItems = devolutionModeActive
     ? devolutionPricesSelected
@@ -36,23 +38,13 @@ const ListOfPricesContainer = ({
     ? setDevolutionPricesSelected
     : setPricesSelected;
   const setEnabledDisplaced = devolutionModeActive
-  ? setEnabledDisplacedDevolutions
-  : setEnabledDisplacedPrices
-
-  const onOrderProducts = (value: any) => {
-    setPricesFiltered((items: any) =>
-      items
-        .slice()
-        .sort((a: Price, b: Price) =>
-          value === "lower" ? a.price - b.price : b.price - a.price
-        )
-    );
-  };
+    ? setEnabledDisplacedDevolutions
+    : setEnabledDisplacedPrices;
 
   const onProductSelect = (item: any) => {
     const lastItem = [...pricesItems].pop();
 
-    setEnabledDisplaced(true)
+    setEnabledDisplaced(true);
 
     //if (lastItem && lastItem.id === item.id) {
     if (lastItem && lastItem.price === item.price) {
@@ -98,7 +90,10 @@ const ListOfPricesContainer = ({
             dropdownStyle={themeStyles[theme].dropdownStylesCustom}
             popupClassName={themeStyles[theme].classNameSelectorItem}
             style={{ width: 100 }}
-            onSelect={onOrderProducts}
+            value={order}
+            onSelect={(value: string) =>
+              dispatchPrice(priceActions.setOrderPrices(value)(dispatchPrice))
+            }
             options={[
               { label: "Mayor", value: "higher" },
               { label: "Menor", value: "lower" },
@@ -120,7 +115,9 @@ const ListOfPricesContainer = ({
         </div>
       </div>
 
-      <div className={` relative p-2 border-x ${themeStyles[theme].tailwindcss.border}`}>
+      <div
+        className={` relative p-2 border-x ${themeStyles[theme].tailwindcss.border}`}
+      >
         <div
           className={`cursor-pointer inline-block px-4 py-1 rounded-md bg-green-600 text-white`}
           onClick={() => {
@@ -146,14 +143,16 @@ const ListOfPricesContainer = ({
           OBSERVACIONES
         </div>
       </div>
-      <div className={`h-[78vh] p-2 border ${themeStyles[theme].tailwindcss.border} overflow-hidden overflow-y-auto`}>
+      <div
+        className={`h-[78vh] p-2 border ${themeStyles[theme].tailwindcss.border} overflow-hidden overflow-y-auto`}
+      >
         {isLoading ? (
           <div className="flex items-center justify-center h-[70vh]">
             <Spinner size="lg" />
           </div>
         ) : (
           <div className="h-auto flex flex-wrap gap-2">
-            {pricesFiltered.map((item: any) => {
+            {prices.map((item: any) => {
               const foundItem = pricesItems.find(
                 (itemSelected: any) => itemSelected.price === item.price
               );
