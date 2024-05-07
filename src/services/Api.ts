@@ -306,6 +306,7 @@ const addCashflow = ({
   description,
   items,
   typePayment,
+  date,
 }: any) =>
   instance.post("/cashflow/add-cashflow", {
     type,
@@ -315,6 +316,7 @@ const addCashflow = ({
     description,
     items,
     typePayment,
+    date,
   });
 
 const addObservation = ({ observation, store, username }: any) =>

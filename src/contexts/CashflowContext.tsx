@@ -148,7 +148,7 @@ export const useCashflow = () => {
 // Acciones para modificar el estado del contexto de precios
 export const cashflowActions = {
   addCashflow:
-    ({ type, amount, employee, store, description, items, typePayment }: any) =>
+    ({ type, amount, employee, store, description, items, typePayment, date }: any) =>
     async (dispatch: any) => {
       dispatch({
         type: actionTypes.LOADING,
@@ -164,6 +164,7 @@ export const cashflowActions = {
           description,
           items,
           typePayment,
+          date,
         });
 
         dispatch({

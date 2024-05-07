@@ -44,6 +44,8 @@ const ConfirmSale = ({
     setPercentageToDisccountOrAddPayment,
   ] = useState({ cash: 0, transfer: 0 });
   const [isWithPrepaid, setIsWithPrepaid] = useState(false);
+  const [assignRechargeTranferToCash, setAssignRechargeTranferToCash] =
+    useState(false);
   const [isModalKeyboardNumOpen, setIsModalKeyboardNumOpen] = useState(false);
   const [isModalKeyboardCashOpen, setIsModalKeyboardCashOpen] = useState(false);
   const [isModalKeyboardTransferOpen, setIsModalKeyboardTransferOpen] =
@@ -109,7 +111,8 @@ const ConfirmSale = ({
           const amountTransfer = totalToPay - amountCash;
 
           return {
-            transfer: isWithPrepaid ? current.transfer : amountTransfer,
+            //transfer: isWithPrepaid ? current.transfer : amountTransfer,
+            transfer: amountTransfer,
             cash: amountCash,
           };
         },
@@ -118,7 +121,8 @@ const ConfirmSale = ({
           const amountTransfer = totalToPay - amountCash;
 
           return {
-            transfer: isWithPrepaid ? current.transfer : amountTransfer,
+            //transfer: isWithPrepaid ? current.transfer : amountTransfer,
+            transfer: amountTransfer,
             cash: amountCash,
           };
         },
@@ -130,7 +134,8 @@ const ConfirmSale = ({
 
           return {
             transfer: amountTransfer,
-            cash: isWithPrepaid ? current.cash : amountCash,
+            //cash: isWithPrepaid ? current.cash : amountCash,
+            cash: amountCash,
           };
         },
         operationAdd: (current: any) => {
@@ -141,7 +146,8 @@ const ConfirmSale = ({
 
           return {
             transfer: amountTransfer,
-            cash: isWithPrepaid ? current.cash : amountCash,
+            //cash: isWithPrepaid ? current.cash : amountCash,
+            cash: amountCash,
           };
         },
       },
@@ -190,8 +196,6 @@ const ConfirmSale = ({
           )
     );
 
-  const totalCash = Number(payment.cash) + cashWithDisccount;
-
   const transferWithRecharge =
     multiplyByPercentageTranfer *
     Math.trunc(
@@ -202,11 +206,20 @@ const ConfirmSale = ({
           )
     );
 
-  const totalTransfer = Number(payment.transfer) + transferWithRecharge;
+  const totalCash =
+    Number(payment.cash) +
+    cashWithDisccount +
+    Number(assignRechargeTranferToCash ? transferWithRecharge : 0);
 
-  const totalFinal = isWithPrepaid
+  const totalTransfer =
+    Number(payment.transfer) +
+    transferWithRecharge -
+    Number(assignRechargeTranferToCash ? transferWithRecharge : 0);
+
+  /* const totalFinal = isWithPrepaid
     ? totalToPay + cashWithDisccount + transferWithRecharge
-    : totalCash + totalTransfer;
+    : totalCash + totalTransfer;*/
+  const totalFinal = totalCash + totalTransfer;
 
   const handleSale = () => {
     const [objEmployee] = employees.filter(
@@ -589,7 +602,31 @@ const ConfirmSale = ({
                   ({transferWithRecharge})
                 </div>
               </div>
-              <div className="h-[10vh]">
+              <div className="h-[12vh]">
+                {Boolean(transferWithRecharge) && (
+                  <>
+                    <div className="mr-2 my-2">
+                      Gastos bancarios : ${formatCurrency(transferWithRecharge)}
+                      <input
+                        type="checkbox"
+                        checked={assignRechargeTranferToCash}
+                        className="ml-10 mr-2"
+                        onClick={() =>
+                          setAssignRechargeTranferToCash((current) => !current)
+                        }
+                      />
+                      <label
+                        className="mr-2"
+                        onClick={() =>
+                          setAssignRechargeTranferToCash((current) => !current)
+                        }
+                      >
+                        Asignar monto a Efectivo
+                      </label>
+                    </div>
+                  </>
+                )}
+
                 {percentageToDisccountOrAdd !== 0 && (
                   <>
                     <div className="mr-2 text-base">

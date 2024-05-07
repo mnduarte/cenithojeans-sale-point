@@ -39,7 +39,7 @@ const KeyboardNum = ({
       {isModalKeyboardNumOpen && (
         <div className="fixed inset-0 bg-[#252525] bg-opacity-70 flex justify-center">
           {/* Contenido del modal */}
-          <div className={`w-[40vh] h-max mt-10 p-8 rounded-md shadow-md relative  ${themeStyles[theme].tailwindcss.modal}`}>
+          <div className={`w-[40vh] h-max mt-[20vh] p-8 rounded-md shadow-md relative  ${themeStyles[theme].tailwindcss.modal}`}>
             {/* Icono de cerrar en la esquina superior derecha */}
             <button
               className="absolute top-4 right-4"

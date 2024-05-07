@@ -85,7 +85,7 @@ const TableSaleByDay = ({
                       <FaLocationArrow className="text-cyan-600 w-2" />
                     )}
 
-                    {column.applyFlag && row.typeSale === "pedido" && (
+                    {column.applyFlag && !row.isWithPrepaid && row.typeSale === "pedido" && (
                       <FaLocationArrow className="text-green-600 w-2" />
                     )}
                     <span className="pl-1">

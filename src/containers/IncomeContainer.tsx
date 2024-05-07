@@ -6,13 +6,17 @@ import { cashflowActions, useCashflow } from "../contexts/CashflowContext";
 import Spinner from "../components/Spinner";
 import Toast from "../components/Toast";
 import Keyboard from "../components/Keyboard";
-import { Select } from "antd";
+import { DatePicker, Select } from "antd";
 import { useTheme } from "../contexts/ThemeContext";
+import { dateFormat } from "../utils/constants";
+import { formatDateToYYYYMMDD } from "../utils/formatUtils";
+import dayjs from "dayjs";
 
 const initialValuesProps = {
   amount: 0,
   items: 0,
   typePayment: "cash",
+  date: formatDateToYYYYMMDD(new Date()),
 };
 
 const IncomeContainer = ({ isModalIncomeOpen, setIsModalIncomeOpen }: any) => {
@@ -57,6 +61,7 @@ const IncomeContainer = ({ isModalIncomeOpen, setIsModalIncomeOpen }: any) => {
       amount: propsValues.amount,
       items: propsValues.items,
       typePayment: propsValues.typePayment,
+      date: propsValues.date,
     };
 
     dispatchCashflow(cashflowActions.addCashflow(data)(dispatchCashflow));
@@ -119,6 +124,24 @@ const IncomeContainer = ({ isModalIncomeOpen, setIsModalIncomeOpen }: any) => {
               />
             </div>
 
+            <div className="mb-2 h-[5vh] flex items-center justify-start">
+              <label className="mr-2">Seleccione Fecha:</label>
+              <DatePicker
+                onChange={(date: any) =>
+                  setPropsValues((current: any) => ({
+                    ...current,
+                    date: date.format("YYYY-MM-DD"),
+                  }))
+                }
+                className={`${themeStyles[theme].datePickerIndicator} w-24`}
+                style={themeStyles[theme].datePicker}
+                popupClassName={themeStyles[theme].classNameDatePicker}
+                allowClear={false}
+                format={dateFormat}
+                placeholder="Seleccione Fecha"
+                value={dayjs(propsValues.date)}
+              />
+            </div>
             <div className="mb-2 h-[5vh] flex items-center justify-start">
               <label className="mr-2">Agrege items:</label>
 

@@ -7,6 +7,10 @@ import Toast from "../components/Toast";
 import Keyboard from "../components/Keyboard";
 import { useUser } from "../contexts/UserContext";
 import { useTheme } from "../contexts/ThemeContext";
+import { formatDateToYYYYMMDD } from "../utils/formatUtils";
+import { DatePicker } from "antd";
+import { dateFormat } from "../utils/constants";
+import dayjs from "dayjs";
 
 const OutgoingContainer = ({
   isModalOutgoingOpen,
@@ -31,6 +35,8 @@ const OutgoingContainer = ({
   const [amount, setAmount] = useState(0);
   const [description, setDescription] = useState("");
   const [isModalKeyboardNumOpen, setIsModalKeyboardNumOpen] = useState(false);
+  const [typePayment, setTypePayment] = useState<any>("cash");
+  const [date, setDate] = useState<any>(formatDateToYYYYMMDD(new Date()));
 
   const closeModal = () => {
     setDescription("");
@@ -43,12 +49,16 @@ const OutgoingContainer = ({
       type: "egreso",
       description,
       store: user.store,
+      typePayment,
+      date,
       amount,
     };
 
     dispatchCashflow(cashflowActions.addCashflow(data)(dispatchCashflow));
     setDescription("");
     setAmount(0);
+    setDate(formatDateToYYYYMMDD(new Date()));
+    setTypePayment("cash");
   };
 
   const handleManualNumOrder = (item: any) => {
@@ -72,18 +82,15 @@ const OutgoingContainer = ({
       {isModalOutgoingOpen && (
         <div className="fixed inset-0 bg-[#252525] bg-opacity-60 flex items-center justify-center">
           {/* Contenido del modal */}
-          <div className={`w-[60vh] p-8 rounded-md shadow-md relative ${themeStyles[theme].tailwindcss.modal}`}>
+          <div
+            className={`w-[60vh] p-8 rounded-md shadow-md relative ${themeStyles[theme].tailwindcss.modal}`}
+          >
             {/* Icono de cerrar en la esquina superior derecha */}
-            <button
-              className="absolute top-4 right-4"
-              onClick={closeModal}
-            >
+            <button className="absolute top-4 right-4" onClick={closeModal}>
               <MdClose className="text-2xl" />
             </button>
 
-            <h2 className="text-lg font-bold mb-4">
-              Agregar Egreso
-            </h2>
+            <h2 className="text-lg font-bold mb-4">Agregar Egreso</h2>
 
             <div className="mb-4 h-[5vh] flex items-center justify-start">
               <label className="mr-2">Agrege importe:</label>
@@ -94,6 +101,45 @@ const OutgoingContainer = ({
                 readOnly
                 value={amount}
                 onFocus={() => setIsModalKeyboardNumOpen(true)}
+              />
+            </div>
+
+            <div className="mb-2 h-[5vh] flex items-center justify-start">
+              <label className="mr-2">Seleccione Fecha:</label>
+              <DatePicker
+                onChange={(date: any) => setDate(date.format("YYYY-MM-DD"))}
+                className={`${themeStyles[theme].datePickerIndicator} w-24`}
+                style={themeStyles[theme].datePicker}
+                popupClassName={themeStyles[theme].classNameDatePicker}
+                allowClear={false}
+                format={dateFormat}
+                placeholder="Seleccione Fecha"
+                value={dayjs(date)}
+              />
+            </div>
+
+            <div className="mt-2 h-[5vh] flex items-center justify-start">
+              <label onClick={() => setTypePayment("cash")}>Efectivo:</label>
+
+              <input
+                type="checkbox"
+                checked={typePayment === "cash"}
+                onChange={() => setTypePayment("cash")}
+                className="ml-1 mr-2"
+              />
+
+              <label
+                onClick={() => setTypePayment("transfer")}
+                className="ml-10"
+              >
+                Transferencia:
+              </label>
+
+              <input
+                type="checkbox"
+                checked={typePayment === "transfer"}
+                onChange={() => setTypePayment("transfer")}
+                className="ml-1 mr-2"
               />
             </div>
 
