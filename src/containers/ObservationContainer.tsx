@@ -40,7 +40,7 @@ const ObservationContainer = ({
   const handleObservation = () => {
     const data = {
       observation,
-      store: user.store,
+      store: user.store === "ALL" ? "BOGOTA" : user.store,
       username: user.username,
     };
 

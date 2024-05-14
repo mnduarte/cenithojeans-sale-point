@@ -20,6 +20,9 @@ import { useTheme } from "../contexts/ThemeContext";
 import TableSaleByDay from "../components/TableSaleByDay";
 import Keyboard from "../components/Keyboard";
 
+import { PDFDownloadLink, PDFViewer } from "@react-pdf/renderer";
+import PdfLocalSale from "../components/PdfLocalSale";
+
 const mappingConceptToUpdate: Record<string, string> = {
   cash: "Efectivo",
   transfer: "Transferencia",
@@ -175,6 +178,7 @@ const ModalListTranferSale = ({
   const [itemsIdSelected, setItemsIdSelected] = useState<any[]>([]);
   const [editableRow, setEditableRow] = useState<number | null>(null);
   const [isModalKeyboardNumOpen, setIsModalKeyboardNumOpen] = useState(false);
+  const [cashflowIdSelected, setCashflowIdSelected] = useState<any[]>([]);
   const [value, setValue] = useState(0);
   const [propSale, setPropSale] = useState({
     id: "",
@@ -254,6 +258,19 @@ const ModalListTranferSale = ({
     }
   };
 
+  const handleItemsSelected = (row: any, checked: any) => {
+    const setIdsSelected =
+      row.type === "ingreso" ? setCashflowIdSelected : setItemsIdSelected;
+
+    setIdsSelected((items: any) => {
+      if (checked) {
+        return [...items, { id: row.id }];
+      }
+
+      return items.filter((i: any) => i.id !== row.id);
+    });
+  };
+
   return (
     <>
       {isModalListTransferSaleOpen && (
@@ -273,17 +290,19 @@ const ModalListTranferSale = ({
             <h2 className="text-lg font-bold mb-4">
               Listado de Transferencias - {date}
             </h2>
-            {Boolean(itemsIdSelected.length) && (
+            {(Boolean(itemsIdSelected.length) ||
+              Boolean(cashflowIdSelected.length)) && (
               <div
                 className="w-15 ml-2 bg-red-700 hover:bg-red-800 hover:cursor-pointer text-white px-4 py-1 rounded-md flex items-center justify-center select-none"
                 onClick={() => {
-                  setItemsIdSelected([]);
                   dispatchSale(
                     saleActions.removeSales({
                       salesIds: itemsIdSelected,
-                      cashflowIds: [],
+                      cashflowIds: cashflowIdSelected,
                     })(dispatchSale)
                   );
+                  setItemsIdSelected([]);
+                  setCashflowIdSelected([]);
                 }}
               >
                 Eliminar Items Seleccionados
@@ -299,7 +318,9 @@ const ModalListTranferSale = ({
                   setEditableRow(rowIndex);
                 }}
                 itemsIdSelected={itemsIdSelected}
+                cashflowIdSelected={cashflowIdSelected}
                 setItemsIdSelected={setItemsIdSelected}
+                setCashflowIdSelected={setCashflowIdSelected}
                 enableSelectItem={true}
               />
 
@@ -688,7 +709,7 @@ const SalesByDayContainer = () => {
         (acc: any, current: any) =>
           Number(acc) +
           current.reduce(
-            (acc: any, current: any) => Number(acc) + current.cash,
+            (acc: any, current: any) => Number(acc) + (current.cash < 0 ? 0 : current.cash),
             0
           ),
         0
@@ -703,6 +724,17 @@ const SalesByDayContainer = () => {
       ),
     });
   }, [salesByEmployees, salesTransferByEmployees, outgoings]);
+
+  const totalItemsSold = Object.entries(salesByEmployees).reduce(
+    (acc: any, current: any) => {
+      const [emp, sales] = current;
+
+      return (
+        acc + sales.reduce((acc: any, current: any) => acc + current.items, 0)
+      );
+    },
+    0
+  );
 
   return (
     <>
@@ -797,12 +829,12 @@ const SalesByDayContainer = () => {
               setCashflowIdSelected([]);
             }}
           >
-            Eliminar Items Seleccionados
+            Eliminar Items
           </div>
         )}
 
         <div
-          className="w-25 ml-2 bg-blue-700 hover:bg-blue-800 hover:cursor-pointer text-white px-4 py-1 rounded-md flex items-center justify-center select-none"
+          className="w-25 ml-[10vh] bg-blue-700 hover:bg-blue-800 hover:cursor-pointer text-white px-4 py-1 rounded-md flex items-center justify-center select-none"
           onClick={() => {
             dispatchSale(
               saleActions.getSalesTranferByDay({ date, store })(dispatchSale)
@@ -826,6 +858,29 @@ const SalesByDayContainer = () => {
         >
           Egresos
         </div>
+
+        {user.role === "ADMIN" && (
+          <PDFDownloadLink
+            document={
+              <PdfLocalSale
+                salesByEmployees={salesByEmployees}
+                date={dayjs(date).format("DD-MM-YYYY")}
+                store={mappingListStore[store]}
+                totalItemsSold={totalItemsSold}
+              />
+            }
+            fileName={`local-${dayjs(date).format("DD-MM-YYYY")}.pdf`}
+            className="w-25 ml-2 bg-cyan-700 hover:bg-green-800 hover:cursor-pointer text-white px-4 py-1 rounded-md flex items-center justify-center select-none"
+          >
+            {({ loading, url, error, blob }) =>
+              loading ? (
+                <button>Cargando Documento ...</button>
+              ) : (
+                <button>Generar PDF</button>
+              )
+            }
+          </PDFDownloadLink>
+        )}
       </div>
 
       <div className="mt-5 h-[70vh] mx-auto max-w overflow-hidden overflow-y-auto overflow-x-auto">
@@ -952,10 +1007,12 @@ const SalesByDayContainer = () => {
           outgoings={outgoings}
         />
       </div>
-      <div className="h-[10vh] mx-auto max-w overflow-hidden overflow-y-auto overflow-x-auto">
-        <Tag color="blue" className="p-2 text-base font-bold">
-          Total Cash: ${formatCurrency(totals.cash)}
-        </Tag>
+      <div className="h-[10vh] mt-[7vh] mx-auto max-w overflow-hidden overflow-y-auto overflow-x-auto">
+        {user.role === "ADMIN" && (
+          <Tag color="blue" className="p-2 text-base font-bold">
+            Total Cash: ${formatCurrency(totals.cash)}
+          </Tag>
+        )}
         <Tag color="cyan" className="p-2 text-base font-bold">
           Total Transferencia: ${formatCurrency(totals.transfer)}
         </Tag>

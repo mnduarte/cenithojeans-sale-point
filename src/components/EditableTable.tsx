@@ -18,7 +18,9 @@ const EditableTable = ({
   table = "0-",
   setItemInOnClick = false,
   enableSelectItem = false,
-  itemsIdSelected = false,
+  itemsIdSelected = [],
+  cashflowIdSelected = [],
+  setCashflowIdSelected = false,
   setItemsIdSelected = false,
   rowWithoutActions = "cancelled",
 }: any) => {
@@ -103,7 +105,9 @@ const EditableTable = ({
               } ${
                 row[rowWithoutActions] &&
                 "bg-red-500 hover:bg-red-700 text-white"
-              }`}
+              }
+              ${row.withBackground && "text-red-400"}
+              `}
             >
               {enableSelectItem && (
                 <td
@@ -112,12 +116,17 @@ const EditableTable = ({
                   {!row[rowWithoutActions] && (
                     <input
                       type="checkbox"
-                      checked={Boolean(
-                        itemsIdSelected.find((i: any) => i.id === row.id)
-                      )}
+                      checked={[...itemsIdSelected, ...cashflowIdSelected]
+                        .map(({ id }: any) => id)
+                        .includes(row.id)}
                       disabled={row[rowWithoutActions]}
                       onChange={(e) => {
-                        setItemsIdSelected((items: any) => {
+                        const setIdsSelected =
+                          row.type === "ingreso"
+                            ? setCashflowIdSelected
+                            : setItemsIdSelected;
+
+                        setIdsSelected((items: any) => {
                           if (e.target.checked) {
                             return [...items, { id: row.id }];
                           }
@@ -126,9 +135,10 @@ const EditableTable = ({
                         });
                       }}
                       className={`form-checkbox h-4 w-4 border border-gray-300 ${
-                        Boolean(
-                          !itemsIdSelected.find((i: any) => i.id === row.id)
-                        ) && themeStyles[theme].tailwindcss.table.checkbox
+                        ![...itemsIdSelected, ...cashflowIdSelected]
+                          .map(({ id }: any) => id)
+                          .includes(row.id) &&
+                        themeStyles[theme].tailwindcss.table.checkbox
                       } rounded p-2`}
                     />
                   )}
@@ -146,6 +156,7 @@ const EditableTable = ({
                   }`}
                   onClick={() =>
                     !row[rowWithoutActions] &&
+                    !row.withBackground &&
                     handleEditClick(setItemInOnClick ? row : table + rowIndex)
                   }
                 >

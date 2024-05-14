@@ -70,6 +70,7 @@ const ConfirmSale = ({
     setPayment({ transfer: "", cash: "" });
     setIsWithPrepaid(false);
     setDevolutionModeActive(false);
+    setAssignRechargeTranferToCash(false);
     setIsModalSaleOpen(false);
   };
 
@@ -451,7 +452,7 @@ const ConfirmSale = ({
 
               {Boolean(typeSale === "pedido") && (
                 <>
-                  <div className="text-base font-bold flex items-center justify-end">
+                  <div className="text-base font-bold mb-5 flex items-center justify-end">
                     <input
                       type="checkbox"
                       checked={isWithPrepaid}

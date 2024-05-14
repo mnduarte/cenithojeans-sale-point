@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { saleActions, useSale } from "../contexts/SaleContext";
 import { formatCurrency } from "../utils/formatUtils";
-import { months } from "../utils/constants";
+import { mappingListStore, months } from "../utils/constants";
 import Spinner from "../components/Spinner";
 import EditableTable from "../components/EditableTable";
 import { cashflowActions, useCashflow } from "../contexts/CashflowContext";
@@ -15,6 +15,8 @@ import { FaEye } from "react-icons/fa";
 import { Select } from "antd";
 import { useTheme } from "../contexts/ThemeContext";
 import { MdClose } from "react-icons/md";
+import { PDFDownloadLink } from "@react-pdf/renderer";
+import PdfReportByWeek from "../components/PdfReportByWeek";
 
 const ModalDetailByEmployee = ({
   isModalListOutgoingOpen,
@@ -30,7 +32,7 @@ const ModalDetailByEmployee = ({
     { title: "Prendas", dataIndex: "items", sumAcc: true },
     {
       title: "Venta",
-      dataIndex: "total",
+      dataIndex: "cash",
       format: (number: any) => `$${formatCurrency(number)}`,
       sumAcc: true,
       applyFormat: true,
@@ -84,13 +86,16 @@ const ModalDetailByEmployee = ({
             </button>
 
             <h2 className="text-lg font-bold mb-4">
-              Detalle del la semana - {week}
+              Detalle de la semana - {week}
             </h2>
-            <div className="mt-5 h-[30vh] max-w overflow-hidden overflow-y-auto overflow-x-auto flex flex-no-wrap">
+            <div className="mt-5 h-[32vh] max-w overflow-hidden overflow-y-auto overflow-x-auto flex flex-no-wrap">
               {report.salesByEmployees &&
                 report.salesByEmployees.map(
                   (saleByEmployee: any, idx: number) => (
-                    <div className={`mt-5 mr-4 text-xs`} key={idx + "byEmployee"}>
+                    <div
+                      className={`mt-5 mr-4 text-xs`}
+                      key={idx + "byEmployee"}
+                    >
                       <div className="mb-2 flex items-center justify-center">
                         <label className="text-2xl text-base font-bold">
                           {saleByEmployee.employee}
@@ -169,7 +174,7 @@ const ReportsContainer = () => {
     },
     {
       title: "Venta",
-      dataIndex: "total",
+      dataIndex: "cash",
       format: (number: any) => `$${formatCurrency(number)}`,
       sumAcc: true,
       applyFormat: true,
@@ -248,7 +253,7 @@ const ReportsContainer = () => {
                 month: Number(value),
               }))
             }
-            options={months.map((month, index: any) => ({
+            options={months.map((month:any, index: any) => ({
               value: index,
               label: month,
             }))}
@@ -348,7 +353,6 @@ const ReportsContainer = () => {
         <div>
           {Boolean(reports.salesGeneral.length) &&
             reports.salesGeneral.map((report: any, idx: number) => {
-              //console.log(report)
               return (
                 <div className="flex mb-5" key={idx + "byDay"}>
                   <div className="w-[50vh] mr-10" key={idx + "byDay"}>
@@ -383,6 +387,28 @@ const ReportsContainer = () => {
                   >
                     Ver detalle por empleado
                   </div>
+
+                  <PDFDownloadLink
+                    document={
+                      <PdfReportByWeek
+                        week={report.week}
+                        store={mappingListStore[filters.store]}
+                        type={reports.typeSale}
+                        dataWeek={report.salesGeneral}
+                        salesByEmployees={report.salesByEmployees}
+                      />
+                    }
+                    fileName={`informe-${reports.typeSale}-semana-${report.week}.pdf`}
+                    className="w-25 h-8 ml-2 bg-cyan-700 hover:bg-green-800 hover:cursor-pointer text-white px-4 py-1 rounded-md flex items-center justify-center select-none"
+                  >
+                    {({ loading, url, error, blob }) =>
+                      loading ? (
+                        <button>Cargando Documento ...</button>
+                      ) : (
+                        <button>Generar PDF</button>
+                      )
+                    }
+                  </PDFDownloadLink>
                 </div>
               );
             })}

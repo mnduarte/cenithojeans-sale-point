@@ -45,10 +45,11 @@ const OutgoingContainer = ({
   };
 
   const handleIncome = () => {
+    
     const data = {
       type: "egreso",
       description,
-      store: user.store,
+      store: user.store === "ALL" ? "BOGOTA" : user.store,
       typePayment,
       date,
       amount,

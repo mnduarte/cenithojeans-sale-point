@@ -1,7 +1,7 @@
 import React from "react";
 import { TbFlag2Filled } from "react-icons/tb";
 import { MdAssignmentAdd } from "react-icons/md";
-import { FaLocationArrow } from "react-icons/fa";
+import { FaComment, FaLocationArrow } from "react-icons/fa";
 import { useTheme } from "../contexts/ThemeContext";
 import { formatCurrency } from "../utils/formatUtils";
 
@@ -85,9 +85,11 @@ const TableSaleByDay = ({
                       <FaLocationArrow className="text-cyan-600 w-2" />
                     )}
 
-                    {column.applyFlag && !row.isWithPrepaid && row.typeSale === "pedido" && (
-                      <FaLocationArrow className="text-green-600 w-2" />
-                    )}
+                    {column.applyFlag &&
+                      !row.isWithPrepaid &&
+                      row.typeSale === "pedido" && (
+                        <FaLocationArrow className="text-green-600 w-2" />
+                      )}
                     <span className="pl-1">
                       {column.format
                         ? column.notZero && !Boolean(row[column.dataIndex])
@@ -95,6 +97,10 @@ const TableSaleByDay = ({
                           : column.format(row[column.dataIndex])
                         : row[column.dataIndex]}
                     </span>
+
+                    {column.applyFlag && row.description && (
+                      <FaComment className=" w-2" />
+                    )}
                   </div>
                 </td>
               ))}
@@ -114,7 +120,10 @@ const TableSaleByDay = ({
                 column.sumAcc &&
                 data.reduce(
                   (acc: any, current: any) =>
-                    acc + (current[column.dataIndex] || 0),
+                    acc +
+                    ((current[column.dataIndex] || 0) < 0
+                      ? 0
+                      : current[column.dataIndex]),
                   0
                 );
 

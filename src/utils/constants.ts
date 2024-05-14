@@ -1,4 +1,4 @@
-export const months = [
+export const months: any = [
   "Enero",
   "Febrero",
   "Marzo",
@@ -13,7 +13,7 @@ export const months = [
   "Diciembre",
 ];
 
-export const concepts = [
+export const concepts: any = [
   { value: "", description: "Sin concepto", action: "" },
   { value: "bolsas", description: "Bolsas", action: "addition" },
   { value: "envio", description: "Envío", action: "addition" },
@@ -39,40 +39,40 @@ export const concepts = [
   },
 ];
 
-export const listStore = [
+export const listStore: any = [
   { name: "Todos", value: "ALL" },
   { name: "Bogota", value: "BOGOTA" },
   { name: "Helguera", value: "HELGUERA" },
 ];
 
-export const mappingListStore = {
+export const mappingListStore: any = {
   "": "Todos",
   ALL: "Todos",
   BOGOTA: "Bogota",
   HELGUERA: "Helguera",
 };
 
-export const darkTheme = {
+export const darkTheme: any = {
   backgroundColor: "#3B3B3B",
   color: "#fff",
   width: 120,
 };
 
-export const dateFormat = "DD/MM/YYYY";
+export const dateFormat: any = "DD/MM/YYYY";
 
-export const mappingOrderSort = {
+export const mappingOrderSort: any = {
   "": "-",
   higher: "Mayor",
   lower: "Menor",
 };
 
-export const mappingTypeShipment = {
+export const mappingTypeShipment: any = {
   "": "Todos",
   retiraLocal: "Retira local",
   envio: "Envio",
 };
 
-export const mappingCheckoutDate = {
+export const mappingCheckoutDate: any = {
   "": "Todos",
   with: "Con Salida",
   wihtout: "Sin Salida",

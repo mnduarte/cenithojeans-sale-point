@@ -9,7 +9,7 @@ import Toast from "../components/Toast";
 import EditableTable from "../components/EditableTable";
 import { MdOutlinePendingActions } from "react-icons/md";
 import dayjs from "dayjs";
-import { DatePicker, Select } from "antd";
+import { DatePicker, Select, Tag } from "antd";
 import {
   dateFormat,
   listStore,
@@ -101,7 +101,6 @@ const OrdersContainer = () => {
       format: (number: any) => `$${formatCurrency(number)}`,
       sumAcc: user.role === "ADMIN",
       applyFormat: true,
-      applyColorText: true,
     },
     {
       title: "Efectivo",
@@ -521,9 +520,13 @@ const OrdersContainer = () => {
               );
             }}
           >
-            Anular Pedidos Seleccionados
+            Anular Ped. Seleccionados
           </div>
         )}
+
+        <Tag color="#3B3B3B" className="ml-2 py-1 px-2 text-sm">
+          Cantidad Pedidos: {ordersFiltered.length}
+        </Tag>
       </div>
 
       <div className="mt-5 h-[74vh] mx-auto max-w overflow-hidden overflow-y-auto overflow-x-auto">
