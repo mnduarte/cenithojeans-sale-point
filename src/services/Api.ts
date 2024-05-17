@@ -338,6 +338,17 @@ const getGraphData = ({ startDate, endDate, store }: any) => {
   return instance.get("/graph/get-data", config);
 };
 
+const deleteData = ({ startDate, endDate }: any) => {
+  const config: AxiosRequestConfig = {
+    params: {
+      startDate,
+      endDate,
+    },
+  };
+
+  return instance.get("/admin/delete-data", config);
+};
+
 const Api = {
   login,
 
@@ -380,6 +391,8 @@ const Api = {
   getLastNumOrder,
 
   getGraphData,
+
+  deleteData,
 };
 
 export default Api;

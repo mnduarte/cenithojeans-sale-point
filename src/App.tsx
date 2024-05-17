@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { setupIonicReact } from "@ionic/react";
 import {
+  MdAdminPanelSettings,
   MdBorderColor,
   MdOutlineAddShoppingCart,
   MdSell,
@@ -52,6 +53,8 @@ import { Switch } from "antd";
 import { ThemeProvider, themeActions, useTheme } from "./contexts/ThemeContext";
 import GraphContainer from "./containers/GraphContainer";
 import { GraphProvider } from "./contexts/GraphContext";
+import AdminContainer from "./containers/AdminContainer";
+import { AdminProvider } from "./contexts/AdminContext";
 
 setupIonicReact();
 
@@ -92,6 +95,12 @@ const mappingTabs = {
     title: "Graficos",
     icon: <TbReportSearch />,
     container: <GraphContainer />,
+    permission: ["ADMIN"],
+  },
+  Admin: {
+    title: "Admin",
+    icon: <MdAdminPanelSettings />,
+    container: <AdminContainer />,
     permission: ["ADMIN"],
   },
 };
@@ -288,7 +297,9 @@ const App: React.FC = () => {
                 <CashflowProvider>
                   <ObservationProvider>
                     <GraphProvider>
-                      <AppContainer />
+                      <AdminProvider>
+                        <AppContainer />
+                      </AdminProvider>
                     </GraphProvider>
                   </ObservationProvider>
                 </CashflowProvider>

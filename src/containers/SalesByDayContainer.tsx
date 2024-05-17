@@ -22,6 +22,7 @@ import Keyboard from "../components/Keyboard";
 
 import { PDFDownloadLink, PDFViewer } from "@react-pdf/renderer";
 import PdfLocalSale from "../components/PdfLocalSale";
+import PdfLocalTransfer from "../components/PdfLocalTransfer";
 
 const mappingConceptToUpdate: Record<string, string> = {
   cash: "Efectivo",
@@ -170,11 +171,15 @@ const ModalListTranferSale = ({
   isModalListTransferSaleOpen,
   setIsModalListTransferSaleOpen,
   date,
+  store,
   sales = [],
 }: any) => {
   const {
     state: { theme, themeStyles },
   } = useTheme();
+  const {
+    state: { user },
+  } = useUser();
   const [itemsIdSelected, setItemsIdSelected] = useState<any[]>([]);
   const [editableRow, setEditableRow] = useState<number | null>(null);
   const [isModalKeyboardNumOpen, setIsModalKeyboardNumOpen] = useState(false);
@@ -200,7 +205,7 @@ const ModalListTranferSale = ({
       type: "string",
       format: (number: any) => `$${formatCurrency(number)}`,
       applyFormat: true,
-      sumAcc: true,
+      sumAcc: user.role === "ADMIN",
     },
     {
       title: "Transferencia",
@@ -209,7 +214,7 @@ const ModalListTranferSale = ({
       type: "string",
       format: (number: any) => `$${formatCurrency(number)}`,
       applyFormat: true,
-      sumAcc: true,
+      sumAcc: user.role === "ADMIN",
     },
     {
       title: "Prendas",
@@ -225,7 +230,7 @@ const ModalListTranferSale = ({
       editableCell: true,
       type: "string",
       applyFormat: true,
-      sumAcc: true,
+      sumAcc: user.role === "ADMIN",
     },
   ];
 
@@ -277,7 +282,7 @@ const ModalListTranferSale = ({
         <div className="fixed inset-0 bg-[#252525] bg-opacity-60 flex items-center justify-center">
           {/* Contenido del modal */}
           <div
-            className={`w-[65vh] h-[60vh] p-8 rounded-md shadow-md relative ${themeStyles[theme].tailwindcss.modal}`}
+            className={`w-[70vh] h-[65vh] p-8 rounded-md shadow-md relative ${themeStyles[theme].tailwindcss.modal}`}
           >
             {/* Icono de cerrar en la esquina superior derecha */}
             <button
@@ -290,25 +295,51 @@ const ModalListTranferSale = ({
             <h2 className="text-lg font-bold mb-4">
               Listado de Transferencias - {date}
             </h2>
-            {(Boolean(itemsIdSelected.length) ||
-              Boolean(cashflowIdSelected.length)) && (
-              <div
-                className="w-15 ml-2 bg-red-700 hover:bg-red-800 hover:cursor-pointer text-white px-4 py-1 rounded-md flex items-center justify-center select-none"
-                onClick={() => {
-                  dispatchSale(
-                    saleActions.removeSales({
-                      salesIds: itemsIdSelected,
-                      cashflowIds: cashflowIdSelected,
-                    })(dispatchSale)
-                  );
-                  setItemsIdSelected([]);
-                  setCashflowIdSelected([]);
-                }}
+
+            <div className="mt-2 h-[4vh] mx-auto max-w flex items-center">
+              <PDFDownloadLink
+                document={
+                  <PdfLocalTransfer
+                    date={dayjs(date).format("DD-MM-YYYY")}
+                    store={mappingListStore[store]}
+                    data={sales}
+                  />
+                }
+                fileName={`listado-transferencias-${dayjs(date).format(
+                  "DD-MM-YYYY"
+                )}.pdf`}
+                className="w-25 ml-2 bg-cyan-700 hover:bg-green-800 hover:cursor-pointer text-white px-4 py-1 rounded-md flex items-center justify-center select-none"
               >
-                Eliminar Items Seleccionados
-              </div>
-            )}
-            <div className="mt-5 h-[50vh] mx-auto max-w overflow-hidden overflow-y-auto overflow-x-auto">
+                {({ loading, url, error, blob }) =>
+                  loading ? (
+                    <button>Cargando Documento ...</button>
+                  ) : (
+                    <button>Generar PDF</button>
+                  )
+                }
+              </PDFDownloadLink>
+
+              {(Boolean(itemsIdSelected.length) ||
+                Boolean(cashflowIdSelected.length)) && (
+                <div
+                  className=" ml-2 bg-red-700 hover:bg-red-800 hover:cursor-pointer text-white px-4 py-1 rounded-md flex items-center justify-center select-none"
+                  onClick={() => {
+                    dispatchSale(
+                      saleActions.removeSales({
+                        salesIds: itemsIdSelected,
+                        cashflowIds: cashflowIdSelected,
+                      })(dispatchSale)
+                    );
+                    setItemsIdSelected([]);
+                    setCashflowIdSelected([]);
+                  }}
+                >
+                  Eliminar Items Seleccionados
+                </div>
+              )}
+            </div>
+
+            <div className="mt-2 h-[50vh] mx-auto max-w overflow-hidden overflow-y-auto overflow-x-auto">
               <EditableTable
                 data={sales}
                 columns={columns}
@@ -603,6 +634,7 @@ const SalesByDayContainer = () => {
     useState("");
 
   const [totals, setTotals] = useState({
+    items: 0,
     cash: 0,
     transfer: 0,
     outgoing: 0,
@@ -709,7 +741,17 @@ const SalesByDayContainer = () => {
         (acc: any, current: any) =>
           Number(acc) +
           current.reduce(
-            (acc: any, current: any) => Number(acc) + (current.cash < 0 ? 0 : current.cash),
+            (acc: any, current: any) =>
+              Number(acc) + (current.cash < 0 ? 0 : current.cash),
+            0
+          ),
+        0
+      ),
+      items: Object.values(salesByEmployees).reduce(
+        (acc: any, current: any) =>
+          Number(acc) +
+          current.reduce(
+            (acc: any, current: any) => Number(acc) + current.items,
             0
           ),
         0
@@ -859,28 +901,26 @@ const SalesByDayContainer = () => {
           Egresos
         </div>
 
-        {user.role === "ADMIN" && (
-          <PDFDownloadLink
-            document={
-              <PdfLocalSale
-                salesByEmployees={salesByEmployees}
-                date={dayjs(date).format("DD-MM-YYYY")}
-                store={mappingListStore[store]}
-                totalItemsSold={totalItemsSold}
-              />
-            }
-            fileName={`local-${dayjs(date).format("DD-MM-YYYY")}.pdf`}
-            className="w-25 ml-2 bg-cyan-700 hover:bg-green-800 hover:cursor-pointer text-white px-4 py-1 rounded-md flex items-center justify-center select-none"
-          >
-            {({ loading, url, error, blob }) =>
-              loading ? (
-                <button>Cargando Documento ...</button>
-              ) : (
-                <button>Generar PDF</button>
-              )
-            }
-          </PDFDownloadLink>
-        )}
+        <PDFDownloadLink
+          document={
+            <PdfLocalSale
+              salesByEmployees={salesByEmployees}
+              date={dayjs(date).format("DD-MM-YYYY")}
+              store={mappingListStore[store]}
+              totalItemsSold={totalItemsSold}
+            />
+          }
+          fileName={`local-${dayjs(date).format("DD-MM-YYYY")}.pdf`}
+          className="w-25 ml-2 bg-cyan-700 hover:bg-green-800 hover:cursor-pointer text-white px-4 py-1 rounded-md flex items-center justify-center select-none"
+        >
+          {({ loading, url, error, blob }) =>
+            loading ? (
+              <button>Cargando Documento ...</button>
+            ) : (
+              <button>Generar PDF</button>
+            )
+          }
+        </PDFDownloadLink>
       </div>
 
       <div className="mt-5 h-[70vh] mx-auto max-w overflow-hidden overflow-y-auto overflow-x-auto">
@@ -999,6 +1039,7 @@ const SalesByDayContainer = () => {
           setIsModalListTransferSaleOpen={setIsModalListTranferSaleOpen}
           date={date}
           sales={salesTransferByEmployees}
+          store={store}
         />
         <ModalListOutgoing
           isModalListOutgoingOpen={isModalListOutgoingOpen}
@@ -1018,6 +1059,9 @@ const SalesByDayContainer = () => {
         </Tag>
         <Tag color="red" className="p-2 text-base font-bold">
           Total Egreso: ${formatCurrency(totals.outgoing)}
+        </Tag>
+        <Tag color="lime" className="p-2 text-base font-bold">
+          Total Prendas: {totals.items}
         </Tag>
       </div>
 

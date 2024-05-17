@@ -318,13 +318,19 @@ const TableByType: any = {
             <Text style={styles.text}>{resume.items}</Text>
           </View>
           <View style={styles.tableCol}>
-            <Text style={styles.text}>${formatCurrency(resume.outgoings)}</Text>
+            <Text style={styles.text}>
+              ${formatCurrency(resume.outgoings || 0)}
+            </Text>
           </View>
           <View style={styles.tableCol}>
-            <Text style={styles.text}>${formatCurrency(resume.total)}</Text>
+            <Text style={styles.text}>
+              ${formatCurrency(resume.total || 0)}
+            </Text>
           </View>
           <View style={styles.tableCol}>
-            <Text style={styles.text}>${formatCurrency(resume.totalBox)}</Text>
+            <Text style={styles.text}>
+              ${formatCurrency(resume.totalBox || 0)}
+            </Text>
           </View>
         </View>
       ))}
@@ -334,7 +340,10 @@ const TableByType: any = {
         </View>
         <View style={styles.tableCol}>
           <Text style={styles.textResume}>
-            {data.reduce((acc: any, current: any) => acc + current.items, 0)}
+            {data.reduce(
+              (acc: any, current: any) => acc + current.items || 0,
+              0
+            )}
           </Text>
         </View>
         <View style={styles.tableCol}>
@@ -342,7 +351,7 @@ const TableByType: any = {
             $
             {formatCurrency(
               data.reduce(
-                (acc: any, current: any) => acc + current.outgoings,
+                (acc: any, current: any) => acc + current.outgoings || 0,
                 0
               )
             )}
@@ -352,7 +361,10 @@ const TableByType: any = {
           <Text style={styles.textResume}>
             $
             {formatCurrency(
-              data.reduce((acc: any, current: any) => acc + current.total, 0)
+              data.reduce(
+                (acc: any, current: any) => acc + current.total || 0,
+                0
+              )
             )}
           </Text>
         </View>
@@ -360,7 +372,10 @@ const TableByType: any = {
           <Text style={styles.textResume}>
             $
             {formatCurrency(
-              data.reduce((acc: any, current: any) => acc + current.totalBox, 0)
+              data.reduce(
+                (acc: any, current: any) => acc + current.totalBox || 0,
+                0
+              )
             )}
           </Text>
         </View>
@@ -395,13 +410,17 @@ const TableByType: any = {
             <Text style={styles.text}>{resume.items}</Text>
           </View>
           <View style={styles.tableCol}>
-            <Text style={styles.text}>${formatCurrency(resume.cash)}</Text>
+            <Text style={styles.text}>${formatCurrency(resume.cash || 0)}</Text>
           </View>
           <View style={styles.tableCol}>
-            <Text style={styles.text}>${formatCurrency(resume.transfer)}</Text>
+            <Text style={styles.text}>
+              ${formatCurrency(resume.transfer || 0)}
+            </Text>
           </View>
           <View style={styles.tableCol}>
-            <Text style={styles.text}>${formatCurrency(resume.total)}</Text>
+            <Text style={styles.text}>
+              ${formatCurrency(resume.total || 0)}
+            </Text>
           </View>
         </View>
       ))}
@@ -413,14 +432,9 @@ const TableByType: any = {
         <View style={styles.tableCol}>
           <Text style={styles.textResume}>
             {" "}
-            {data.reduce((acc: any, current: any) => acc + current.items, 0)}
-          </Text>
-        </View>
-        <View style={styles.tableCol}>
-          <Text style={styles.textResume}>
-            $
-            {formatCurrency(
-              data.reduce((acc: any, current: any) => acc + current.cash, 0)
+            {data.reduce(
+              (acc: any, current: any) => acc + current.items || 0,
+              0
             )}
           </Text>
         </View>
@@ -428,7 +442,10 @@ const TableByType: any = {
           <Text style={styles.textResume}>
             $
             {formatCurrency(
-              data.reduce((acc: any, current: any) => acc + current.transfer, 0)
+              data.reduce(
+                (acc: any, current: any) => acc + current.cash || 0,
+                0
+              )
             )}
           </Text>
         </View>
@@ -436,7 +453,21 @@ const TableByType: any = {
           <Text style={styles.textResume}>
             $
             {formatCurrency(
-              data.reduce((acc: any, current: any) => acc + current.total, 0)
+              data.reduce(
+                (acc: any, current: any) => acc + current.transfer || 0,
+                0
+              )
+            )}
+          </Text>
+        </View>
+        <View style={styles.tableCol}>
+          <Text style={styles.textResume}>
+            $
+            {formatCurrency(
+              data.reduce(
+                (acc: any, current: any) => acc + current.total || 0,
+                0
+              )
             )}
           </Text>
         </View>
@@ -453,6 +484,7 @@ const PdfReportByWeek = ({
   salesByEmployees,
 }: any) => {
   const GeneralTable = TableByType[type];
+
   return (
     <Document>
       <Page size="A4" orientation="landscape" style={styles.page}>
