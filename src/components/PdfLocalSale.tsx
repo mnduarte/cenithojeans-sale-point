@@ -11,7 +11,7 @@ const styles = StyleSheet.create({
   },
   table: {
     display: "flex",
-    width: 90,
+    width: 85,
     flexDirection: "row", // Cambiado para disposición horizontal
     flexWrap: "wrap", // Para que se envuelvan los elementos si no caben en una sola fila
     marginLeft: 2, // Margen inferior para separar las tablas
@@ -22,7 +22,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
   },
   tableColHeader: {
-    width: 90,
+    width: 85,
     borderStyle: "solid",
     borderWidth: 0.5,
     borderLeftWidth: 0.5,
@@ -30,28 +30,28 @@ const styles = StyleSheet.create({
   },
   tableColOrder: {
     color: "#FF0000",
-    width: 26,
+    width: 24,
     borderStyle: "solid",
     borderWidth: 0.5,
     borderLeftWidth: 0.5,
     borderTopWidth: 0,
   },
   tableColItem: {
-    width: 18,
+    width: 17,
     borderStyle: "solid",
     borderWidth: 0.5,
     borderLeftWidth: 0,
     borderTopWidth: 0,
   },
   tableColCash: {
-    width: 46,
+    width: 44,
     borderStyle: "solid",
     borderWidth: 0.5,
     borderLeftWidth: 0,
     borderTopWidth: 0,
   },
   text: {
-    fontSize: 8,
+    fontSize: 7,
     textAlign: "center",
   },
   title: {

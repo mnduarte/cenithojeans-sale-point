@@ -53,7 +53,9 @@ const TableSaleByDay = ({
                 editableRow === table + rowIndex
                   ? themeStyles[theme].tailwindcss.table.par
                   : themeStyles[theme].tailwindcss.table.hover
-              } ${row.withBackground && "text-red-400"}`}
+              } ${row.withBackground && "text-red-400"} ${
+                row.typeSale === "pedido" && "text-green-600"
+              }`}
             >
               {enableSelectItem && (
                 <td
