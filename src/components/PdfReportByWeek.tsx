@@ -324,7 +324,7 @@ const TableByType: any = {
           </View>
           <View style={styles.tableCol}>
             <Text style={styles.text}>
-              ${formatCurrency(resume.total || 0)}
+              ${formatCurrency(resume.cash || 0)}
             </Text>
           </View>
           <View style={styles.tableCol}>
@@ -362,7 +362,7 @@ const TableByType: any = {
             $
             {formatCurrency(
               data.reduce(
-                (acc: any, current: any) => acc + current.total || 0,
+                (acc: any, current: any) => acc + current.cash || 0,
                 0
               )
             )}
