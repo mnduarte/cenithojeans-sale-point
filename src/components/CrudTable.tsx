@@ -210,7 +210,7 @@ const CrudTable = ({
                             }),
                         })
                       : column.defaultValue
-                      ? column.defaultValue
+                      ? column.defaultValue(row[column.dataIndex])
                       : Boolean(row[column.dataIndex])
                       ? column.format
                         ? column.format(row[column.dataIndex])
@@ -226,7 +226,9 @@ const CrudTable = ({
                 >
                   {editableRow === table + rowIndex ? (
                     <div
-                      className={`bg-green-800 py-1 w-6 text-white rounded-md flex items-center justify-center`}
+                      className={`bg-green-800 py-1 w-6 text-white rounded-md flex items-center justify-center cursor-pointer
+                                hover:bg-green-700 active:bg-green-900 transition duration-150 ease-in-out transform 
+                                hover:scale-105 active:scale-95`}
                       onClick={saveRow}
                     >
                       <FaCheck />

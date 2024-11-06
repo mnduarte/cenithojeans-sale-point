@@ -4,12 +4,16 @@ import { formatCurrency, formatDateToYYYYMMDD } from "../../utils/formatUtils";
 import Spinner from "../../components/Spinner";
 import { useUser } from "../../contexts/UserContext";
 import dayjs from "dayjs";
-import { DatePicker } from "antd";
-import { dateFormat } from "../../utils/constants";
+import { DatePicker, Select } from "antd";
+import {
+  dateFormat,
+  mappingCheckoutDate,
+  mappingTypeShipment,
+} from "../../utils/constants";
 import { useTheme } from "../../contexts/ThemeContext";
 import CrudTable from "../../components/CrudTable";
 import { costActions, useCost } from "../../contexts/CostContext";
-import { BsHandThumbsUp, BsHandThumbsDown } from "react-icons/bs";
+import { BsHandThumbsUpFill, BsHandThumbsDownFill } from "react-icons/bs";
 
 const CostContainer = () => {
   const {
@@ -29,9 +33,7 @@ const CostContainer = () => {
   const [filters, setFilters] = useState({
     startDate: formatDateToYYYYMMDD(new Date()),
     endDate: formatDateToYYYYMMDD(new Date()),
-    store: user.store === "ALL" ? "" : user.store,
     employee: "",
-    typeSale: "pedido",
     typeShipment: "",
     checkoutDate: "",
   });
@@ -44,8 +46,9 @@ const CostContainer = () => {
     id: null,
     date: null,
     account: "",
+    numOrder: null,
     amount: "",
-    approved: true,
+    approved: null,
     dateApproved: null,
     employee: "",
     customer: "",
@@ -64,6 +67,12 @@ const CostContainer = () => {
       type: "string",
     },
     {
+      title: "N° Orden",
+      dataIndex: "numOrder",
+      editableCell: true,
+      type: "number",
+    },
+    {
       title: "Monto",
       dataIndex: "amount",
       editableCell: true,
@@ -76,6 +85,14 @@ const CostContainer = () => {
       dataIndex: "approved",
       type: "checkbox",
       editableCell: true,
+      defaultValue: (e: any) =>
+        e ? (
+          <div className="flex justify-center items-center">
+            <BsHandThumbsUpFill className="text-green-500 text-2xl" />
+          </div>
+        ) : (
+          "-"
+        ),
     },
     {
       title: "Fecha Aprobado",
@@ -123,6 +140,7 @@ const CostContainer = () => {
       id,
       date,
       account,
+      numOrder,
       amount,
       approved,
       dateApproved,
@@ -134,11 +152,11 @@ const CostContainer = () => {
     rowIndex: number
   ) => {
     if (editableRow !== rowIndex) {
-      //Para que cuando se seleccione el row no altere los valores
       setRowValues({
         id,
         date,
         account,
+        numOrder,
         amount,
         approved,
         dateApproved,
@@ -189,19 +207,19 @@ const CostContainer = () => {
         ? costActions.updateCost(values)
         : costActions.addCost(values);
 
+    //console.log(rowValues.id);
+
     dispatchCost(actionCost(rowValues)(dispatchCost));
     setRowValues(INITIAL_VALUES_COST);
     setEditableRow(null);
   };
 
   const costsData = [
-    ...costs.map((cost: any) => ({
-      ...cost,
-      approved: cost.approved ? <BsHandThumbsUp /> : <BsHandThumbsDown />,
-    })),
+    ...costs,
     {
       date: null,
       account: null,
+      numOrder: null,
       amount: null,
       approved: null,
       dateApproved: null,
@@ -248,6 +266,76 @@ const CostContainer = () => {
             allowClear={false}
             format={dateFormat}
             value={dayjs(filters.endDate)}
+          />
+        </div>
+
+        <div className="ml-2 inline-block">
+          <label className="mr-1">Vendedor:</label>
+
+          <Select
+            value={filters.employee === "" ? "Todos" : filters.employee}
+            className={themeStyles[theme].classNameSelector}
+            dropdownStyle={themeStyles[theme].dropdownStylesCustom}
+            popupClassName={themeStyles[theme].classNameSelectorItem}
+            style={{ width: 120 }}
+            onSelect={(value: any) =>
+              setFilters((props) => ({
+                ...props,
+                employee: value,
+              }))
+            }
+            options={[
+              { label: "Todos", value: "" },
+              ...employees.map((data: any) => ({
+                value: data.name,
+                label: data.name,
+              })),
+            ]}
+          />
+        </div>
+
+        <div className="ml-2 inline-block">
+          <label className="mr-1">Tipo:</label>
+
+          <Select
+            value={mappingTypeShipment[filters.typeShipment]}
+            className={themeStyles[theme].classNameSelector}
+            dropdownStyle={themeStyles[theme].dropdownStylesCustom}
+            popupClassName={themeStyles[theme].classNameSelectorItem}
+            style={{ width: 120 }}
+            onSelect={(value: any) =>
+              setFilters((props) => ({
+                ...props,
+                typeShipment: value,
+              }))
+            }
+            options={[
+              { label: "Todos", value: "" },
+              { label: "Retira local", value: "retiraLocal" },
+              { label: "Envio", value: "envio" },
+            ]}
+          />
+        </div>
+        <div className="ml-2 inline-block">
+          <label className="mr-1">Salida:</label>
+
+          <Select
+            value={mappingCheckoutDate[filters.checkoutDate]}
+            className={themeStyles[theme].classNameSelector}
+            dropdownStyle={themeStyles[theme].dropdownStylesCustom}
+            popupClassName={themeStyles[theme].classNameSelectorItem}
+            style={{ width: 120 }}
+            onSelect={(value: any) =>
+              setFilters((props) => ({
+                ...props,
+                checkoutDate: value,
+              }))
+            }
+            options={[
+              { label: "Todos", value: "" },
+              { label: "Con Salida", value: "with" },
+              { label: "Sin Salida", value: "wihtout" },
+            ]}
           />
         </div>
 

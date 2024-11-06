@@ -69,6 +69,16 @@ export const CostProvider: React.FC<CostProviderProps> = ({ children }) => {
           inboundSale: true,*/
         };
       }
+      case actionTypes.LIST_COST: {
+        return {
+          ...state,
+          loading: false,
+          error: null,
+          /*showSuccessToast: true,
+          showSuccessToastMsg: "Pedido Actualizado",*/
+          costs: action.payload,
+        };
+      }
       case actionTypes.ADD_COST: {
         return {
           ...state,
@@ -129,15 +139,7 @@ export const useCost = () => {
 // Acciones para modificar el estado del contexto de precios
 export const costActions = {
   getCosts:
-    ({
-      startDate,
-      endDate,
-      typeSale,
-      store,
-      employee,
-      typeShipment,
-      checkoutDate,
-    }: any) =>
+    ({ startDate, endDate, employee, typeShipment, checkoutDate }: any) =>
     async (dispatch: any) => {
       dispatch({
         type: actionTypes.LOADING,
@@ -148,8 +150,6 @@ export const costActions = {
         const { data } = await Api.getCosts({
           startDate,
           endDate,
-          typeSale,
-          store,
           employee,
           typeShipment,
           checkoutDate,
@@ -172,6 +172,7 @@ export const costActions = {
     ({
       date,
       account,
+      numOrder,
       amount,
       approved,
       dateApproved,
@@ -190,6 +191,7 @@ export const costActions = {
         const { data } = await Api.addCost({
           date,
           account,
+          numOrder,
           amount,
           approved,
           dateApproved,
@@ -224,6 +226,7 @@ export const costActions = {
       id,
       date,
       account,
+      numOrder,
       amount,
       approved,
       dateApproved,
@@ -243,6 +246,7 @@ export const costActions = {
           id,
           date,
           account,
+          numOrder,
           amount,
           approved,
           dateApproved,
@@ -252,9 +256,16 @@ export const costActions = {
           checkoutDate,
         });
 
+        const formattedPayload = {
+          ...data.results,
+          date: formatDate(data.results.date),
+          dateApproved: formatDate(data.results.dateApproved),
+          checkoutDate: formatDate(data.results.checkoutDate),
+        };
+
         dispatch({
           type: actionTypes.UPDATE_COST,
-          payload: data.results,
+          payload: formattedPayload,
         });
       } catch (error) {
         console.log(error);

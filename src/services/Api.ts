@@ -353,8 +353,6 @@ const deleteData = ({ startDate, endDate }: any) => {
 const getCosts = ({
   startDate,
   endDate,
-  typeSale,
-  store,
   employee,
   typeShipment,
   checkoutDate,
@@ -363,8 +361,6 @@ const getCosts = ({
     params: {
       startDate,
       endDate,
-      typeSale,
-      store,
       employee,
       typeShipment,
       checkoutDate,
@@ -377,6 +373,7 @@ const getCosts = ({
 const addCost = ({
   date,
   account,
+  numOrder,
   amount,
   approved,
   dateApproved,
@@ -388,6 +385,7 @@ const addCost = ({
   instance.post("/cost/add-cost", {
     date,
     account,
+    numOrder,
     amount,
     approved,
     dateApproved,
@@ -401,6 +399,7 @@ const updateCost = ({
   id,
   date,
   account,
+  numOrder,
   amount,
   approved,
   dateApproved,
@@ -413,6 +412,7 @@ const updateCost = ({
     id,
     date,
     account,
+    numOrder,
     amount,
     approved,
     dateApproved,
