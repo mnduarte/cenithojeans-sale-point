@@ -1,5 +1,5 @@
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
-import { formatCurrency } from "../utils/formatUtils";
+import { formatCurrency } from "../../utils/formatUtils";
 
 const styles = StyleSheet.create({
   page: {
@@ -15,7 +15,7 @@ const styles = StyleSheet.create({
     flexDirection: "row", // Cambiado para disposición horizontal
     flexWrap: "wrap", // Para que se envuelvan los elementos si no caben en una sola fila
     marginLeft: 2, // Margen inferior para separar las tablas
-    marginBottom: 10
+    marginBottom: 10,
   },
   tableRow: {
     margin: "auto",
@@ -77,7 +77,10 @@ const TablePdf = ({ headerTitle, data }: any) => (
     {data.map((row: any, index: any) => (
       <View
         key={index}
-        style={[styles.tableRow, row.type === "ingreso" && styles.ingresoCell]}
+        style={[
+          styles.tableRow,
+          row.type === "ingreso" ? styles.ingresoCell : {},
+        ]}
       >
         <View style={styles.tableColOrder}>
           <Text style={styles.text}>{row.order}</Text>

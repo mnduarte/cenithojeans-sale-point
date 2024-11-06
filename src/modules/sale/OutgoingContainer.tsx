@@ -1,15 +1,15 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { MdClose } from "react-icons/md";
-import KeyboardNum from "../components/KeyboardNum";
-import { cashflowActions, useCashflow } from "../contexts/CashflowContext";
-import Spinner from "../components/Spinner";
-import Toast from "../components/Toast";
-import Keyboard from "../components/Keyboard";
-import { useUser } from "../contexts/UserContext";
-import { useTheme } from "../contexts/ThemeContext";
-import { formatDateToYYYYMMDD } from "../utils/formatUtils";
+import KeyboardNum from "../../components/KeyboardNum";
+import { cashflowActions, useCashflow } from "../../contexts/CashflowContext";
+import Spinner from "../../components/Spinner";
+import Toast from "../../components/Toast";
+import Keyboard from "../../components/Keyboard";
+import { useUser } from "../../contexts/UserContext";
+import { useTheme } from "../../contexts/ThemeContext";
+import { formatDateToYYYYMMDD } from "../../utils/formatUtils";
 import { DatePicker } from "antd";
-import { dateFormat } from "../utils/constants";
+import { dateFormat } from "../../utils/constants";
 import dayjs from "dayjs";
 
 const OutgoingContainer = ({
@@ -45,7 +45,6 @@ const OutgoingContainer = ({
   };
 
   const handleIncome = () => {
-    
     const data = {
       type: "egreso",
       description,

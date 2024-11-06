@@ -1,14 +1,14 @@
 import { useState } from "react";
-import { usePrice, priceActions } from "../contexts/PriceContext";
-import { useEmployee, employeeActions } from "../contexts/EmployeeContext";
-import Table from "../components/Table";
-import PriceForm from "../components/PriceForm";
-import EmployeeForm from "../components/EmployeeForm";
+import { usePrice, priceActions } from "../../contexts/PriceContext";
+import { useEmployee, employeeActions } from "../../contexts/EmployeeContext";
+import Table from "../../components/Table";
+import PriceForm from "./PriceForm";
+import EmployeeForm from "./EmployeeForm";
 import { IoIosPricetags } from "react-icons/io";
 import { FaUsers } from "react-icons/fa";
-import { formatCurrency } from "../utils/formatUtils";
-import { useStore } from "../contexts/StoreContext";
-import { useTheme } from "../contexts/ThemeContext";
+import { formatCurrency } from "../../utils/formatUtils";
+import { useStore } from "../../contexts/StoreContext";
+import { useTheme } from "../../contexts/ThemeContext";
 
 const PricesContainer = () => {
   const {
@@ -198,7 +198,7 @@ const PricesEmployeesContainer = () => {
             key={tab.title}
             className={`flex-1 text-lg ${
               activeTab === tab.title
-              ? "bg-[#1BA1E2] text-white"
+                ? "bg-[#1BA1E2] text-white"
                 : themeStyles[theme].tailwindcss.menuTab
             }`}
             onClick={() => setActiveTab(tab.title)}

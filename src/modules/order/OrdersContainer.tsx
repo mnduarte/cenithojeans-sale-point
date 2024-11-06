@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
-import { useEmployee } from "../contexts/EmployeeContext";
-import { saleActions, useSale } from "../contexts/SaleContext";
-import { formatCurrency, formatDateToYYYYMMDD } from "../utils/formatUtils";
-import Spinner from "../components/Spinner";
-import { useUser } from "../contexts/UserContext";
-import KeyboardNum from "../components/KeyboardNum";
-import Toast from "../components/Toast";
-import EditableTable from "../components/EditableTable";
+import { useEmployee } from "../../contexts/EmployeeContext";
+import { saleActions, useSale } from "../../contexts/SaleContext";
+import { formatCurrency, formatDateToYYYYMMDD } from "../../utils/formatUtils";
+import Spinner from "../../components/Spinner";
+import { useUser } from "../../contexts/UserContext";
+import KeyboardNum from "../../components/KeyboardNum";
+import Toast from "../../components/Toast";
+import EditableTable from "../../components/EditableTable";
 import { MdOutlinePendingActions } from "react-icons/md";
 import dayjs from "dayjs";
 import { DatePicker, Select, Tag } from "antd";
@@ -16,8 +16,8 @@ import {
   mappingCheckoutDate,
   mappingListStore,
   mappingTypeShipment,
-} from "../utils/constants";
-import { useTheme } from "../contexts/ThemeContext";
+} from "../../utils/constants";
+import { useTheme } from "../../contexts/ThemeContext";
 
 const mappingConceptToUpdate: Record<string, string> = {
   order: "N° Pedido",

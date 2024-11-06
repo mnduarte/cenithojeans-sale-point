@@ -1,5 +1,5 @@
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
-import { formatCurrency } from "../utils/formatUtils";
+import { formatCurrency } from "../../utils/formatUtils";
 
 const styles = StyleSheet.create({
   page: {
@@ -323,9 +323,7 @@ const TableByType: any = {
             </Text>
           </View>
           <View style={styles.tableCol}>
-            <Text style={styles.text}>
-              ${formatCurrency(resume.cash || 0)}
-            </Text>
+            <Text style={styles.text}>${formatCurrency(resume.cash || 0)}</Text>
           </View>
           <View style={styles.tableCol}>
             <Text style={styles.text}>

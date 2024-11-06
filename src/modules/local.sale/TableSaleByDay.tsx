@@ -2,8 +2,8 @@ import React from "react";
 import { TbFlag2Filled } from "react-icons/tb";
 import { MdAssignmentAdd } from "react-icons/md";
 import { FaComment, FaLocationArrow } from "react-icons/fa";
-import { useTheme } from "../contexts/ThemeContext";
-import { formatCurrency } from "../utils/formatUtils";
+import { useTheme } from "../../contexts/ThemeContext";
+import { formatCurrency } from "../../utils/formatUtils";
 
 const TableSaleByDay = ({
   data,
@@ -131,7 +131,7 @@ const TableSaleByDay = ({
 
               return (
                 <td
-                  className={`text-center p-1 text-cyan-500 font-bold ${themeStyles[theme].tailwindcss.table.thead.th}`}
+                  className={`text-center p-1 text-cyan-400 font-bold ${themeStyles[theme].tailwindcss.table.thead.th}`}
                   key={idx}
                 >
                   {idx === 0 && !Boolean(reduceValue) && <MdAssignmentAdd />}

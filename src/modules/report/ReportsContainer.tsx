@@ -1,22 +1,22 @@
 import { useState } from "react";
-import { saleActions, useSale } from "../contexts/SaleContext";
-import { formatCurrency } from "../utils/formatUtils";
-import { mappingListStore, months } from "../utils/constants";
-import Spinner from "../components/Spinner";
-import EditableTable from "../components/EditableTable";
-import { cashflowActions, useCashflow } from "../contexts/CashflowContext";
+import { saleActions, useSale } from "../../contexts/SaleContext";
+import { formatCurrency } from "../../utils/formatUtils";
+import { mappingListStore, months } from "../../utils/constants";
+import Spinner from "../../components/Spinner";
+import EditableTable from "../../components/EditableTable";
+import { cashflowActions, useCashflow } from "../../contexts/CashflowContext";
 import OutgoingsByDayList from "./OutgoingsByDayList";
 import {
   observationActions,
   useObservation,
-} from "../contexts/ObservationContext";
+} from "../../contexts/ObservationContext";
 import ObservationsByMonth from "./ObservationsByMonth";
 import { FaEye } from "react-icons/fa";
 import { Select } from "antd";
-import { useTheme } from "../contexts/ThemeContext";
+import { useTheme } from "../../contexts/ThemeContext";
 import { MdClose } from "react-icons/md";
 import { PDFDownloadLink } from "@react-pdf/renderer";
-import PdfReportByWeek from "../components/PdfReportByWeek";
+import PdfReportByWeek from "./PdfReportByWeek";
 
 const ModalDetailByEmployee = ({
   isModalListOutgoingOpen,
@@ -253,7 +253,7 @@ const ReportsContainer = () => {
                 month: Number(value),
               }))
             }
-            options={months.map((month:any, index: any) => ({
+            options={months.map((month: any, index: any) => ({
               value: index,
               label: month,
             }))}

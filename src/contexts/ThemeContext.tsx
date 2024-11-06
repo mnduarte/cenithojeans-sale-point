@@ -24,10 +24,10 @@ export const ThemeProvider: React.FC<any> = ({ children }) => {
             checkbox: "appearance-none bg-[#3B3B3B]",
             main: "bg-[#252525]",
             thead: {
-              th: "border border-[#333333]",
+              th: "border border-[#333333] bg-gray-500 p-2",
             },
             tbody: {
-              td: "border border-[#292A28]",
+              td: "border border-[#292A28]  p-1",
             },
             par: "bg-[#1b78e2]",
             impar: "bg-[#1E1E1E]",
@@ -60,10 +60,10 @@ export const ThemeProvider: React.FC<any> = ({ children }) => {
           table: {
             checkbox: "appearance-none bg-[#ffffff]",
             thead: {
-              th: "border border-[#F0F0F0] bg-[#F0F0F0]",
+              th: "border border-[#F0F0F0] bg-[#F0F0F0] p-2",
             },
             tbody: {
-              td: "border border-[#F0F0F0]",
+              td: "border border-[#F0F0F0] p-1",
             },
             main: "bg-[#FFFFFF]",
             par: "bg-[#1b78e2]",

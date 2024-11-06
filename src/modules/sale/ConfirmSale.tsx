@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
 import { MdClose } from "react-icons/md";
-import { calculateTotalPercentage, formatCurrency } from "../utils/formatUtils";
-import Spinner from "../components/Spinner";
+import {
+  calculateTotalPercentage,
+  formatCurrency,
+} from "../../utils/formatUtils";
+import Spinner from "../../components/Spinner";
 import { FaMinus, FaPlus } from "react-icons/fa";
-import { mappingConceptWithIcon } from "../utils/mappings";
-import KeyboardNum from "../components/KeyboardNum";
+import { mappingConceptWithIcon } from "../../utils/mappings";
+import KeyboardNum from "../../components/KeyboardNum";
 import { Select, Tag } from "antd";
-import { useTheme } from "../contexts/ThemeContext";
+import { useTheme } from "../../contexts/ThemeContext";
 
 const ConfirmSale = ({
   employees,
@@ -105,7 +108,7 @@ const ConfirmSale = ({
   };
 
   const handleManualPayment = (item: any, typePay: any) => {
-    const mappingPayment = {
+    const mappingPayment: any = {
       cash: {
         operationDelete: (current: any) => {
           const amountCash = Number(String(current.cash).slice(0, -1));

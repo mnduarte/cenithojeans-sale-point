@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { MdClose } from "react-icons/md";
-import KeyboardNum from "../components/KeyboardNum";
-import { employeeActions, useEmployee } from "../contexts/EmployeeContext";
-import Spinner from "../components/Spinner";
-import Toast from "../components/Toast";
-import { useTheme } from "../contexts/ThemeContext";
+import KeyboardNum from "../../components/KeyboardNum";
+import { employeeActions, useEmployee } from "../../contexts/EmployeeContext";
+import Spinner from "../../components/Spinner";
+import Toast from "../../components/Toast";
+import { useTheme } from "../../contexts/ThemeContext";
 
 const NewNumOrder = ({
   isModalNewNumOrder,

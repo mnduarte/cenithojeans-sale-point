@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { MdClose } from "react-icons/md";
-import Spinner from "../components/Spinner";
-import Toast from "../components/Toast";
-import Keyboard from "../components/Keyboard";
-import { useUser } from "../contexts/UserContext";
+import Spinner from "../../components/Spinner";
+import Toast from "../../components/Toast";
+import Keyboard from "../../components/Keyboard";
+import { useUser } from "../../contexts/UserContext";
 import {
   observationActions,
   useObservation,
-} from "../contexts/ObservationContext";
-import { useTheme } from "../contexts/ThemeContext";
+} from "../../contexts/ObservationContext";
+import { useTheme } from "../../contexts/ThemeContext";
 
 const ObservationContainer = ({
   isModalObservationOpen,
@@ -55,12 +55,11 @@ const ObservationContainer = ({
       {isModalObservationOpen && (
         <div className="fixed inset-0 bg-[#252525] bg-opacity-60 flex items-center justify-center">
           {/* Contenido del modal */}
-          <div className={`w-[60vh] p-8 rounded-md shadow-md relative  ${themeStyles[theme].tailwindcss.modal}`}>
+          <div
+            className={`w-[60vh] p-8 rounded-md shadow-md relative  ${themeStyles[theme].tailwindcss.modal}`}
+          >
             {/* Icono de cerrar en la esquina superior derecha */}
-            <button
-              className="absolute top-4 right-4"
-              onClick={closeModal}
-            >
+            <button className="absolute top-4 right-4" onClick={closeModal}>
               <MdClose className="text-2xl" />
             </button>
 

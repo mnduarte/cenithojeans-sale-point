@@ -4,6 +4,7 @@ import {
   MdAdminPanelSettings,
   MdBorderColor,
   MdOutlineAddShoppingCart,
+  MdOutlineAttachMoney,
   MdSell,
 } from "react-icons/md";
 import { FaList } from "react-icons/fa";
@@ -37,24 +38,26 @@ import "./theme/variables.css";
 /* Theme tailwind */
 import "./theme/tailwind.css";
 
-import PricesEmployeesContainer from "./containers/PricesEmployeesContainer";
-import SalesContainer from "./containers/SalesContainer";
-import OrdersContainer from "./containers/OrdersContainer";
 import { SaleProvider } from "./contexts/SaleContext";
 import { UserProvider, useUser, userActions } from "./contexts/UserContext";
 import Spinner from "./components/Spinner";
 import Keyboard from "./components/Keyboard";
 import { StoreProvider, storeActions, useStore } from "./contexts/StoreContext";
 import { CashflowProvider } from "./contexts/CashflowContext";
-import SalesByDayContainer from "./containers/SalesByDayContainer";
 import { ObservationProvider } from "./contexts/ObservationContext";
-import ReportsContainer from "./containers/ReportsContainer";
 import { Switch } from "antd";
 import { ThemeProvider, themeActions, useTheme } from "./contexts/ThemeContext";
-import GraphContainer from "./containers/GraphContainer";
 import { GraphProvider } from "./contexts/GraphContext";
-import AdminContainer from "./containers/AdminContainer";
 import { AdminProvider } from "./contexts/AdminContext";
+import SalesContainer from "./modules/sale/SalesContainer";
+import PricesEmployeesContainer from "./modules/price.employee/PricesEmployeesContainer";
+import SalesByDayContainer from "./modules/local.sale/SalesByDayContainer";
+import OrdersContainer from "./modules/order/OrdersContainer";
+import ReportsContainer from "./modules/report/ReportsContainer";
+import GraphContainer from "./modules/graph/GraphContainer";
+import AdminContainer from "./modules/admin/AdminContainer";
+import CostContainer from "./modules/cost/CostContainer";
+import { CostProvider } from "./contexts/CostContext";
 
 setupIonicReact();
 
@@ -91,10 +94,16 @@ const mappingTabs = {
     container: <ReportsContainer />,
     permission: ["ADMIN"],
   },
-  Graficos: {
+  /*Graficos: {
     title: "Graficos",
     icon: <TbReportSearch />,
     container: <GraphContainer />,
+    permission: ["ADMIN"],
+  },*/
+  Gastos: {
+    title: "Gastos",
+    icon: <MdOutlineAttachMoney />,
+    container: <CostContainer />,
     permission: ["ADMIN"],
   },
   Admin: {
@@ -298,7 +307,9 @@ const App: React.FC = () => {
                   <ObservationProvider>
                     <GraphProvider>
                       <AdminProvider>
-                        <AppContainer />
+                        <CostProvider>
+                          <AppContainer />
+                        </CostProvider>
                       </AdminProvider>
                     </GraphProvider>
                   </ObservationProvider>

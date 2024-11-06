@@ -1,5 +1,5 @@
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
-import { formatCurrency } from "../utils/formatUtils";
+import { formatCurrency } from "../../utils/formatUtils";
 
 const styles = StyleSheet.create({
   page: {
@@ -148,7 +148,7 @@ const TableListTranfer = ({ data }: any) => (
       <View
         style={[
           styles.tableRow,
-          resume.type === "ingreso" && styles.ingresoCell,
+          resume.type === "ingreso" ? styles.ingresoCell : {},
         ]}
       >
         <View style={styles.tableCol}>

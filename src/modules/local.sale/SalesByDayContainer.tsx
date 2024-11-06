@@ -1,28 +1,29 @@
 import { useEffect, useState } from "react";
-import { saleActions, useSale } from "../contexts/SaleContext";
-import { formatCurrency, formatDateToYYYYMMDD } from "../utils/formatUtils";
-import Spinner from "../components/Spinner";
-import { useUser } from "../contexts/UserContext";
-import KeyboardNum from "../components/KeyboardNum";
-import Toast from "../components/Toast";
-import EditableTable from "../components/EditableTable";
+import { saleActions, useSale } from "../../contexts/SaleContext";
+import { useUser } from "../../contexts/UserContext";
+import { cashflowActions, useCashflow } from "../../contexts/CashflowContext";
+import { useTheme } from "../../contexts/ThemeContext";
+import { formatCurrency, formatDateToYYYYMMDD } from "../../utils/formatUtils";
+import { dateFormat, listStore, mappingListStore } from "../../utils/constants";
+import { PDFDownloadLink } from "@react-pdf/renderer";
+import dayjs from "dayjs";
+import { DatePicker, Select, Tag } from "antd";
+
 import { MdClose } from "react-icons/md";
 import { FaPlus } from "react-icons/fa";
 import { GrPowerReset } from "react-icons/gr";
-import NewRowSale from "../containers/NewRowSale";
-import { cashflowActions, useCashflow } from "../contexts/CashflowContext";
+import Spinner from "../../components/Spinner";
+import KeyboardNum from "../../components/KeyboardNum";
+import Toast from "../../components/Toast";
+import EditableTable from "../../components/EditableTable";
+import NewRowSale from "./NewRowSale";
 import NewNumOrder from "./NewNumOrder";
-import dayjs from "dayjs";
 
-import { DatePicker, Select, Tag } from "antd";
-import { dateFormat, listStore, mappingListStore } from "../utils/constants";
-import { useTheme } from "../contexts/ThemeContext";
-import TableSaleByDay from "../components/TableSaleByDay";
-import Keyboard from "../components/Keyboard";
+import TableSaleByDay from "./TableSaleByDay";
+import Keyboard from "../../components/Keyboard";
 
-import { PDFDownloadLink, PDFViewer } from "@react-pdf/renderer";
-import PdfLocalSale from "../components/PdfLocalSale";
-import PdfLocalTransfer from "../components/PdfLocalTransfer";
+import PdfLocalSale from "./PdfLocalSale";
+import PdfLocalTransfer from "./PdfLocalTransfer";
 
 const mappingConceptToUpdate: Record<string, string> = {
   cash: "Efectivo",

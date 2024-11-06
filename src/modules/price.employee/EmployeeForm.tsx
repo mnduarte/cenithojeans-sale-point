@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { FaPlus } from "react-icons/fa";
-import Spinner from "./Spinner";
+import Spinner from "../../components/Spinner";
 import { Select } from "antd";
-import { useTheme } from "../contexts/ThemeContext";
+import { useTheme } from "../../contexts/ThemeContext";
 
 const EmployeeForm = ({
   itemSelected,

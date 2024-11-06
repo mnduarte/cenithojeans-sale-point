@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { FaPlus } from "react-icons/fa";
-import Spinner from "./Spinner";
-import { useTheme } from "../contexts/ThemeContext";
+import Spinner from "../../components/Spinner";
+import { useTheme } from "../../contexts/ThemeContext";
 
 const PriceForm = ({
   itemSelected,
@@ -64,7 +64,7 @@ const PriceForm = ({
         <input
           type="text"
           value={priceValues.price}
-          onChange={handlePrice}          
+          onChange={handlePrice}
           className={`p-1 rounded-md w-full ${themeStyles[theme].tailwindcss.inputText}`}
         />
       </div>

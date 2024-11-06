@@ -349,6 +349,79 @@ const deleteData = ({ startDate, endDate }: any) => {
   return instance.get("/admin/delete-data", config);
 };
 
+/**COSTS */
+const getCosts = ({
+  startDate,
+  endDate,
+  typeSale,
+  store,
+  employee,
+  typeShipment,
+  checkoutDate,
+}: any) => {
+  const config: AxiosRequestConfig = {
+    params: {
+      startDate,
+      endDate,
+      typeSale,
+      store,
+      employee,
+      typeShipment,
+      checkoutDate,
+    },
+  };
+
+  return instance.get("/cost/costs", config);
+};
+
+const addCost = ({
+  date,
+  account,
+  amount,
+  approved,
+  dateApproved,
+  employee,
+  customer,
+  typeShipment,
+  checkoutDate,
+}: any) =>
+  instance.post("/cost/add-cost", {
+    date,
+    account,
+    amount,
+    approved,
+    dateApproved,
+    employee,
+    customer,
+    typeShipment,
+    checkoutDate,
+  });
+
+const updateCost = ({
+  id,
+  date,
+  account,
+  amount,
+  approved,
+  dateApproved,
+  employee,
+  customer,
+  typeShipment,
+  checkoutDate,
+}: any) =>
+  instance.put("/cost/update-cost", {
+    id,
+    date,
+    account,
+    amount,
+    approved,
+    dateApproved,
+    employee,
+    customer,
+    typeShipment,
+    checkoutDate,
+  });
+
 const Api = {
   login,
 
@@ -393,6 +466,10 @@ const Api = {
   getGraphData,
 
   deleteData,
+
+  getCosts,
+  addCost,
+  updateCost,
 };
 
 export default Api;

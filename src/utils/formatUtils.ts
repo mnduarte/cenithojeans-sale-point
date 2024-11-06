@@ -42,6 +42,15 @@ export const formatCurrency = (number: any) => {
   return result;
 };
 
+export const formatDate = (date: any) =>
+  date
+    ? new Date(date).toLocaleDateString("es-ES", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      })
+    : null;
+
 export const calculateTotalPercentage = (percentageToDisccountOrAdd: any) => {
   return percentageToDisccountOrAdd < 0
     ? String(percentageToDisccountOrAdd).length > 1

@@ -1,9 +1,9 @@
 import { FaTimes, FaPlus, FaMinus } from "react-icons/fa";
 import { MdCleaningServices, MdPointOfSale } from "react-icons/md";
-import { formatCurrency } from "../utils/formatUtils";
-import { Price, PriceSelected } from "../types";
-import { mappingConceptWithIcon } from "../utils/mappings";
-import { useTheme } from "../contexts/ThemeContext";
+import { formatCurrency } from "../../utils/formatUtils";
+import { Price, PriceSelected } from "../../types";
+import { mappingConceptWithIcon } from "../../utils/mappings";
+import { useTheme } from "../../contexts/ThemeContext";
 import { useEffect, useRef } from "react";
 
 const ShoppingPrices = ({
@@ -29,7 +29,7 @@ const ShoppingPrices = ({
 
   const withBorder = false;
 
-  const listRef = useRef(null);
+  const listRef = useRef<any>(null);
 
   useEffect(() => {
     if (enableDisplaced) {

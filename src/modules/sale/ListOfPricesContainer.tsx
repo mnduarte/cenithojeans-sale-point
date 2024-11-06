@@ -1,12 +1,12 @@
-import { formatCurrency } from "../utils/formatUtils";
-import Spinner from "../components/Spinner";
+import { formatCurrency } from "../../utils/formatUtils";
+import Spinner from "../../components/Spinner";
 import { useState } from "react";
 import IncomeContainer from "./IncomeContainer";
 import OutgoingContainer from "./OutgoingContainer";
 import ObservationContainer from "./ObservationContainer";
 import { Select } from "antd";
-import { useTheme } from "../contexts/ThemeContext";
-import { priceActions, usePrice } from "../contexts/PriceContext";
+import { useTheme } from "../../contexts/ThemeContext";
+import { priceActions, usePrice } from "../../contexts/PriceContext";
 
 const ListOfPricesContainer = ({
   prices,

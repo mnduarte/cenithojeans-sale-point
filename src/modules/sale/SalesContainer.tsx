@@ -1,20 +1,15 @@
 import { useEffect, useState } from "react";
-import { usePrice } from "../contexts/PriceContext";
-import { useEmployee } from "../contexts/EmployeeContext";
-import {
-  Price,
-  PriceDevolutionSelected,
-  PriceSelected,
-  SaleItem,
-} from "../types";
+import { usePrice } from "../../contexts/PriceContext";
+import { useEmployee } from "../../contexts/EmployeeContext";
+import { saleActions, useSale } from "../../contexts/SaleContext";
+import { Price, PriceSelected, SaleItem } from "../../types";
 import ShoppingCartContainer from "./ShoppingCartContainer";
 import ListOfPricesContainer from "./ListOfPricesContainer";
 import ConfirmSale from "./ConfirmSale";
-import { saleActions, useSale } from "../contexts/SaleContext";
-import Toast from "../components/Toast";
-import KeyboardNum from "../components/KeyboardNum";
-import { useUser } from "../contexts/UserContext";
-import { concepts } from "../utils/constants";
+import Toast from "../../components/Toast";
+import KeyboardNum from "../../components/KeyboardNum";
+import { useUser } from "../../contexts/UserContext";
+import { concepts } from "../../utils/constants";
 
 const SalesContainer = () => {
   const {
@@ -151,7 +146,9 @@ const SalesContainer = () => {
 
   const addManualPrice = (concept: any) => {
     if (manualPrice) {
-      const [foundConcept]: any = concepts.filter((c) => c.value === concept);
+      const [foundConcept]: any = concepts.filter(
+        (c: any) => c.value === concept
+      );
 
       let setPricesItems = devolutionModeActive
         ? setDevolutionPricesSelected
