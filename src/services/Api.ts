@@ -422,6 +422,9 @@ const updateCost = ({
     checkoutDate,
   });
 
+const removeCosts = ({ costsIds }: any) =>
+  instance.post("/cost/remove-cost", { costsIds });
+
 const Api = {
   login,
 
@@ -470,6 +473,7 @@ const Api = {
   getCosts,
   addCost,
   updateCost,
+  removeCosts,
 };
 
 export default Api;

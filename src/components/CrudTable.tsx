@@ -145,35 +145,37 @@ const CrudTable = ({
                 <td
                   className={`pt-2 pl-2 ${themeStyles[theme].tailwindcss.table.tbody.td}`}
                 >
-                  {!row[rowWithoutActions] && (
-                    <input
-                      type="checkbox"
-                      checked={[...itemsIdSelected, ...cashflowIdSelected]
-                        .map(({ id }: any) => id)
-                        .includes(row.id)}
-                      disabled={row[rowWithoutActions]}
-                      onChange={(e) => {
-                        const setIdsSelected =
-                          row.type === "ingreso"
-                            ? setCashflowIdSelected
-                            : setItemsIdSelected;
-
-                        setIdsSelected((items: any) => {
-                          if (e.target.checked) {
-                            return [...items, { id: row.id }];
-                          }
-
-                          return items.filter((i: any) => i.id !== row.id);
-                        });
-                      }}
-                      className={`form-checkbox h-4 w-4 border border-gray-300 ${
-                        ![...itemsIdSelected, ...cashflowIdSelected]
+                  {!row[rowWithoutActions] &&
+                    editableRow !== table + rowIndex &&
+                    row.id && (
+                      <input
+                        type="checkbox"
+                        checked={[...itemsIdSelected, ...cashflowIdSelected]
                           .map(({ id }: any) => id)
-                          .includes(row.id) &&
-                        themeStyles[theme].tailwindcss.table.checkbox
-                      } rounded p-2`}
-                    />
-                  )}
+                          .includes(row.id)}
+                        disabled={row[rowWithoutActions]}
+                        onChange={(e) => {
+                          const setIdsSelected =
+                            row.type === "ingreso"
+                              ? setCashflowIdSelected
+                              : setItemsIdSelected;
+
+                          setIdsSelected((items: any) => {
+                            if (e.target.checked) {
+                              return [...items, { id: row.id }];
+                            }
+
+                            return items.filter((i: any) => i.id !== row.id);
+                          });
+                        }}
+                        className={`form-checkbox h-4 w-4 border border-gray-300 ${
+                          ![...itemsIdSelected, ...cashflowIdSelected]
+                            .map(({ id }: any) => id)
+                            .includes(row.id) &&
+                          themeStyles[theme].tailwindcss.table.checkbox
+                        } rounded p-2`}
+                      />
+                    )}
                 </td>
               )}
               {columns.map((column: any, columnIndex: any) => {
@@ -234,7 +236,9 @@ const CrudTable = ({
                       <FaCheck />
                     </div>
                   ) : (
-                    <div className={`font-bold`}>OK</div>
+                    <div className={`text-center font-bold`}>
+                      {row.id ? "OK" : "-"}
+                    </div>
                   )}
                 </td>
               )}

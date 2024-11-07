@@ -199,15 +199,11 @@ const CostContainer = () => {
     }
   };
 
-  //console.log(rowValues);
-
-  const saveRow = (e: any) => {
+  const saveRow = () => {
     const actionCost = (values: any) =>
       rowValues.id
         ? costActions.updateCost(values)
         : costActions.addCost(values);
-
-    //console.log(rowValues.id);
 
     dispatchCost(actionCost(rowValues)(dispatchCost));
     setRowValues(INITIAL_VALUES_COST);
@@ -358,6 +354,24 @@ const CostContainer = () => {
               </div>
             )}
           </div>
+        </div>
+
+        <div className="ml-2 inline-block">
+          {Boolean(itemsIdSelected.length) && (
+            <div
+              className=" ml-2 bg-red-700 hover:bg-red-800 hover:cursor-pointer text-white px-2  py-1 rounded-md flex items-center justify-center select-none"
+              onClick={() => {
+                dispatchCost(
+                  costActions.removeCosts({
+                    costsIds: itemsIdSelected,
+                  })(dispatchCost)
+                );
+                setItemsIdSelected([]);
+              }}
+            >
+              Eliminar Items
+            </div>
+          )}
         </div>
       </div>
 

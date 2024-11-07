@@ -11,6 +11,7 @@ const actionTypes = {
   ADD_COST: "add_cost",
   UPDATE_COST: "update_cost",
   LIST_COST: "list_cost",
+  REMOVE_COSTS: "remove_costs",
 };
 
 // Tipo de estado para el contexto de precios
@@ -104,6 +105,19 @@ export const CostProvider: React.FC<CostProviderProps> = ({ children }) => {
           }),
         };
       }
+      case actionTypes.REMOVE_COSTS: {
+        const { costsIds } = action.payload;
+        const idsToDelete = costsIds.map((cost: any) => cost.id);
+
+        return {
+          ...state,
+          loading: false,
+          error: null,
+          costs: state.costs.filter(
+            (cost: any) => !Boolean(idsToDelete.includes(cost.id))
+          ),
+        };
+      }
 
       /*case actionTypes.SET_HIDE_TOAST: {
         return {
@@ -136,8 +150,33 @@ export const useCost = () => {
   return context;
 };
 
-// Acciones para modificar el estado del contexto de precios
 export const costActions = {
+  removeCosts:
+    ({ costsIds }: any) =>
+    async (dispatch: any) => {
+      dispatch({
+        type: actionTypes.LOADING,
+        payload: { loading: true },
+      });
+
+      try {
+        await Api.removeCosts({
+          costsIds,
+        });
+
+        dispatch({
+          type: actionTypes.REMOVE_COSTS,
+          payload: { costsIds },
+        });
+      } catch (error) {
+        console.log(error);
+
+        dispatch({
+          type: actionTypes.ERROR,
+          payload: ERROR_MESSAGE_TIMEOUT,
+        });
+      }
+    },
   getCosts:
     ({ startDate, endDate, employee, typeShipment, checkoutDate }: any) =>
     async (dispatch: any) => {
@@ -203,9 +242,9 @@ export const costActions = {
 
         const formattedPayload = {
           ...data.results,
-          date: formatDate(data.results.date),
-          dateApproved: formatDate(data.results.dateApproved),
-          checkoutDate: formatDate(data.results.checkoutDate),
+          date,
+          dateApproved,
+          checkoutDate,
         };
 
         dispatch({
@@ -258,9 +297,9 @@ export const costActions = {
 
         const formattedPayload = {
           ...data.results,
-          date: formatDate(data.results.date),
-          dateApproved: formatDate(data.results.dateApproved),
-          checkoutDate: formatDate(data.results.checkoutDate),
+          date,
+          dateApproved,
+          checkoutDate,
         };
 
         dispatch({
