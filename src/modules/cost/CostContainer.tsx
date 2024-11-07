@@ -14,6 +14,7 @@ import { useTheme } from "../../contexts/ThemeContext";
 import CrudTable from "../../components/CrudTable";
 import { costActions, useCost } from "../../contexts/CostContext";
 import { BsHandThumbsUpFill, BsHandThumbsDownFill } from "react-icons/bs";
+import * as XLSX from "xlsx";
 
 const CostContainer = () => {
   const {
@@ -226,6 +227,43 @@ const CostContainer = () => {
     },
   ];
 
+  const downloadExcel = () => {
+    // Obtener la fecha y hora actuales en formato adecuado
+    const now = new Date();
+    const formattedDate = now.toLocaleDateString("es-ES", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+    const formattedTime = now
+      .toLocaleTimeString("es-ES", {
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+      .replace(/:/g, "-");
+
+    const fileName = `gastos-${formattedDate}-${formattedTime}.xlsx`;
+
+    const formattedData = costs.map((cost: any) => ({
+      Fecha: cost.date,
+      Cuenta: cost.account,
+      "N° Orden": cost.numOrder,
+      Monto: cost.amount,
+      Aprobado: cost.approved ? "Sí" : "No",
+      "Fecha Aprobado": cost.dateApproved,
+      Vendedor: cost.employee,
+      Cliente: cost.customer,
+      Tipo: cost.typeShipment,
+      Salida: cost.checkoutDate,
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(formattedData);
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Costs");
+
+    XLSX.writeFile(workbook, fileName);
+  };
   return (
     <>
       <div
@@ -353,6 +391,15 @@ const CostContainer = () => {
                 <Spinner />
               </div>
             )}
+          </div>
+        </div>
+
+        <div className="inline-block">
+          <div
+            className=" ml-2 bg-gray-700 hover:bg-gray-800 hover:cursor-pointer text-white px-2  py-1 rounded-md flex items-center justify-center select-none"
+            onClick={downloadExcel}
+          >
+            Excel
           </div>
         </div>
 
