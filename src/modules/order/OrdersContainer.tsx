@@ -7,7 +7,7 @@ import { useUser } from "../../contexts/UserContext";
 import KeyboardNum from "../../components/KeyboardNum";
 import Toast from "../../components/Toast";
 import EditableTable from "../../components/EditableTable";
-import { MdOutlinePendingActions } from "react-icons/md";
+import { MdOutlineApproval, MdOutlinePendingActions } from "react-icons/md";
 import dayjs from "dayjs";
 import { DatePicker, Select, Tag } from "antd";
 import {
@@ -18,6 +18,8 @@ import {
   mappingTypeShipment,
 } from "../../utils/constants";
 import { useTheme } from "../../contexts/ThemeContext";
+import { FcApproval } from "react-icons/fc";
+import * as XLSX from "xlsx";
 
 const mappingConceptToUpdate: Record<string, string> = {
   order: "N° Pedido",
@@ -87,6 +89,19 @@ const OrdersContainer = () => {
     { title: "N°", dataIndex: "order", editableCell: true, type: "string" },
     { title: "Sucursal", dataIndex: "store" },
     {
+      title: <MdOutlineApproval className="w-full" />,
+      dataIndex: "approved",
+      editableCell: true,
+      defaultValue: (e: any) =>
+        e ? (
+          <div className="flex justify-center items-center">
+            <FcApproval className="text-2xl" />
+          </div>
+        ) : (
+          "-"
+        ),
+    },
+    {
       title: "Tipo",
       dataIndex: "typeShipment",
       editableCell: true,
@@ -130,7 +145,7 @@ const OrdersContainer = () => {
     },
     {
       title: <MdOutlinePendingActions />,
-      defaultValue: <MdOutlinePendingActions />,
+      defaultValue: () => <MdOutlinePendingActions />,
       dataIndex: "checkoutDate",
       editableCell: true,
       type: "button",
@@ -234,6 +249,47 @@ const OrdersContainer = () => {
   useEffect(() => {
     setOrdersFiltered(orders);
   }, [orders]);
+
+  const downloadExcel = () => {
+    const now = new Date();
+    const formattedDate = now.toLocaleDateString("es-ES", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+    const formattedTime = now
+      .toLocaleTimeString("es-ES", {
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+      .replace(/:/g, "-");
+
+    const fileName = `pedidos-${formattedDate}-${formattedTime}.xlsx`;
+
+    // Mapear los datos de ordersFiltered a un formato adecuado para Excel
+    const formattedData = ordersFiltered.map((order: any) => ({
+      Fecha: order.date || "-",
+      Vendedor: order.employee || "-",
+      "N° Orden": order.order || "-",
+      Sucursal: order.store || "-",
+      Aprobado: order.approved ? "Sí" : "No",
+      Tipo: order.typeShipment || "-",
+      Transferencia: `$${formatCurrency(order.transfer)}`,
+      Efectivo: `$${formatCurrency(order.cash)}`,
+      Prendas: order.items || "-",
+      Total: `$${formatCurrency(order.total)}`,
+      Salida: order.checkoutDate || "-",
+    }));
+
+    // Crear hoja de trabajo y libro
+    const worksheet = XLSX.utils.json_to_sheet(formattedData);
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Orders");
+
+    // Descargar el archivo
+    XLSX.writeFile(workbook, fileName);
+  };
 
   return (
     <>
@@ -382,6 +438,15 @@ const OrdersContainer = () => {
                 <Spinner />
               </div>
             )}
+          </div>
+        </div>
+
+        <div className="inline-block">
+          <div
+            className=" ml-2 bg-green-800 hover:bg-green-900 hover:cursor-pointer text-white px-2  py-1 rounded-md flex items-center justify-center select-none"
+            onClick={downloadExcel}
+          >
+            Excel
           </div>
         </div>
       </div>

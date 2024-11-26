@@ -8,7 +8,7 @@ import { darkTheme, dateFormat } from "../utils/constants";
 import dayjs from "dayjs";
 import { DatePicker, Select } from "antd";
 import { useTheme } from "../contexts/ThemeContext";
-import { FaCheck } from "react-icons/fa";
+import { FaCheck, FaSave } from "react-icons/fa";
 import { IoMdClose, IoMdCloseCircle } from "react-icons/io";
 
 const CrudTable = ({
@@ -63,18 +63,26 @@ const CrudTable = ({
         options={dataSelect.map((data: any) => ({ value: data, label: data }))}
       />
     ),
-    string: ({ value, action }: any) => (
+    string: ({ value, action, inputExpanded }: any) => (
       <input
         type="text"
-        className={`w-20 p-1 rounded-md text-right hover:cursor-pointer ${themeStyles[theme].tailwindcss.inputText}`}
+        className={`${
+          inputExpanded ? "w-[220px]" : "w-[80px]"
+        } p-1 rounded-md text-center hover:cursor-pointer ${
+          themeStyles[theme].tailwindcss.inputText
+        }`}
         value={value ? value : ""}
         onChange={action}
       />
     ),
-    number: ({ value, action }: any) => (
+    number: ({ value, action, inputExpanded }: any) => (
       <input
         type="number"
-        className={`w-20 p-1 rounded-md text-right hover:cursor-pointer ${themeStyles[theme].tailwindcss.inputText}`}
+        className={`${
+          inputExpanded ? "w-[120px]" : "w-[80px]"
+        } p-1 rounded-md text-center hover:cursor-pointer ${
+          themeStyles[theme].tailwindcss.inputText
+        }`}
         value={value ? value : ""}
         onChange={action}
       />
@@ -117,7 +125,9 @@ const CrudTable = ({
           ))}
           {withActionButton && (
             <th className={`${themeStyles[theme].tailwindcss.table.thead.th} `}>
-              Guardar
+              <div className={`w-full flex items-center justify-center`}>
+                <FaSave className={`cursor-pointer`} onClick={saveRow} />
+              </div>
             </th>
           )}
         </tr>
@@ -210,6 +220,7 @@ const CrudTable = ({
                               inputType: column.type,
                               inputValue,
                             }),
+                          inputExpanded: column.inputExpanded,
                         })
                       : column.defaultValue
                       ? column.defaultValue(row[column.dataIndex])
@@ -224,16 +235,11 @@ const CrudTable = ({
 
               {withActionButton && (
                 <td
-                  className={`${themeStyles[theme].tailwindcss.table.tbody.td} pt-2 pl-6`}
+                  className={`${themeStyles[theme].tailwindcss.table.tbody.td}`}
                 >
                   {editableRow === table + rowIndex ? (
-                    <div
-                      className={`bg-green-800 py-1 w-6 text-white rounded-md flex items-center justify-center cursor-pointer
-                                hover:bg-green-700 active:bg-green-900 transition duration-150 ease-in-out transform 
-                                hover:scale-105 active:scale-95`}
-                      onClick={saveRow}
-                    >
-                      <FaCheck />
+                    <div className={`w-full flex items-center justify-center`}>
+                      <FaSave className={`cursor-pointer`} onClick={saveRow} />
                     </div>
                   ) : (
                     <div className={`text-center font-bold`}>
@@ -250,7 +256,7 @@ const CrudTable = ({
           <tr>
             {enableSelectItem && (
               <th
-                className={`text-right p-2 px-3 ${themeStyles[theme].tailwindcss.table.thead.th}`}
+                className={`text-right ${themeStyles[theme].tailwindcss.table.thead.th}`}
               ></th>
             )}
             {columns.map((column: any, idx: number) => {
@@ -268,7 +274,6 @@ const CrudTable = ({
                   className={`text-center font-bold ${themeStyles[theme].tailwindcss.table.thead.th}`}
                   key={idx}
                 >
-                  {idx === 0 && !Boolean(reduceValue) && <MdAssignmentAdd />}
                   {column.sumAcc &&
                     (column.applyFormat
                       ? `$${formatCurrency(reduceValue)}`
@@ -276,6 +281,9 @@ const CrudTable = ({
                 </td>
               );
             })}
+            <th
+              className={`text-right ${themeStyles[theme].tailwindcss.table.thead.th}`}
+            ></th>
           </tr>
         )}
       </tbody>

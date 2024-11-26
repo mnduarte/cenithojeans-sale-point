@@ -144,47 +144,49 @@ const EditableTable = ({
                   )}
                 </td>
               )}
-              {columns.map((column: any, columnIndex: any) => (
-                <td
-                  key={columnIndex}
-                  className={`text-center py-1 ${
-                    themeStyles[theme].tailwindcss.table.tbody.td
-                  } ${
-                    column.applyColorText &&
-                    row.isWithPrepaid &&
-                    "text-cyan-500"
-                  }`}
-                  onClick={() =>
-                    !row[rowWithoutActions] &&
-                    !row.withBackground &&
-                    handleEditClick(setItemInOnClick ? row : table + rowIndex)
-                  }
-                >
-                  {editableRow === table + rowIndex &&
-                  column.editableCell &&
-                  column.type
-                    ? mappingInputType[column.type]({
-                        value: row[column.dataIndex],
-                        dataIndex: column.dataIndex,
-                        dataSelect: column.dataSelect,
-                        action: (inputValue: any) =>
-                          handleAction({
-                            dataIndex: column.dataIndex,
-                            value: row[column.dataIndex],
-                            id: row.id,
-                            inputType: column.type,
-                            inputValue,
-                          }),
-                      })
-                    : column.defaultValue
-                    ? column.defaultValue
-                    : Boolean(row[column.dataIndex])
-                    ? column.format
-                      ? column.format(row[column.dataIndex])
-                      : row[column.dataIndex]
-                    : "-"}
-                </td>
-              ))}
+              {columns.map((column: any, columnIndex: any) => {
+                return (
+                  <td
+                    key={columnIndex}
+                    className={`text-center py-1 ${
+                      themeStyles[theme].tailwindcss.table.tbody.td
+                    } ${
+                      column.applyColorText &&
+                      row.isWithPrepaid &&
+                      "text-cyan-500"
+                    }`}
+                    onClick={() =>
+                      !row[rowWithoutActions] &&
+                      !row.withBackground &&
+                      handleEditClick(setItemInOnClick ? row : table + rowIndex)
+                    }
+                  >
+                    {editableRow === table + rowIndex &&
+                    column.editableCell &&
+                    column.type
+                      ? mappingInputType[column.type]({
+                          value: row[column.dataIndex],
+                          dataIndex: column.dataIndex,
+                          dataSelect: column.dataSelect,
+                          action: (inputValue: any) =>
+                            handleAction({
+                              dataIndex: column.dataIndex,
+                              value: row[column.dataIndex],
+                              id: row.id,
+                              inputType: column.type,
+                              inputValue,
+                            }),
+                        })
+                      : column.defaultValue
+                      ? column.defaultValue(row[column.dataIndex])
+                      : Boolean(row[column.dataIndex])
+                      ? column.format
+                        ? column.format(row[column.dataIndex])
+                        : row[column.dataIndex]
+                      : "-"}
+                  </td>
+                );
+              })}
             </tr>
           </React.Fragment>
         ))}

@@ -12,6 +12,10 @@ const actionTypes = {
   UPDATE_COST: "update_cost",
   LIST_COST: "list_cost",
   REMOVE_COSTS: "remove_costs",
+  LIST_ACCOUNTS: "list_accounts",
+  ADD_ACCOUNT: "add_account",
+  UPDATE_ACCOUNT: "update_account",
+  REMOVE_ACCOUNTS: "remove_accounts",
 };
 
 // Tipo de estado para el contexto de precios
@@ -19,6 +23,7 @@ type CostState = {
   loading: boolean;
   error: any;
   costs: any;
+  accounts: any;
 };
 
 // Crear el contexto de precios
@@ -39,6 +44,7 @@ export const CostProvider: React.FC<CostProviderProps> = ({ children }) => {
     loading: false,
     error: null,
     costs: [],
+    accounts: [],
   };
 
   // Reducer para manejar acciones
@@ -118,6 +124,54 @@ export const CostProvider: React.FC<CostProviderProps> = ({ children }) => {
           ),
         };
       }
+      case actionTypes.LIST_ACCOUNTS: {
+        return {
+          ...state,
+          loading: false,
+          error: null,
+          /*showSuccessToast: true,
+          showSuccessToastMsg: "Pedido Actualizado",*/
+          accounts: action.payload,
+        };
+      }
+      case actionTypes.ADD_ACCOUNT: {
+        return {
+          ...state,
+          loading: false,
+          error: null,
+          /*showSuccessToast: true,
+          showSuccessToastMsg: "Pedido Actualizado",*/
+          accounts: [...state.accounts, action.payload],
+        };
+      }
+      case actionTypes.UPDATE_ACCOUNT: {
+        return {
+          ...state,
+          loading: false,
+          error: null,
+          /*showSuccessToast: true,
+          showSuccessToastMsg: "Pedido Actualizado",*/
+          accounts: state.accounts.map((account: any) => {
+            if (account.id === action.payload.id) {
+              return { ...account, ...action.payload };
+            }
+            return account;
+          }),
+        };
+      }
+      case actionTypes.REMOVE_ACCOUNTS: {
+        const { accountsIds } = action.payload;
+        const idsToDelete = accountsIds.map((cost: any) => cost.id);
+
+        return {
+          ...state,
+          loading: false,
+          error: null,
+          accounts: state.accounts.filter(
+            (account: any) => !Boolean(idsToDelete.includes(account.id))
+          ),
+        };
+      }
 
       /*case actionTypes.SET_HIDE_TOAST: {
         return {
@@ -178,7 +232,15 @@ export const costActions = {
       }
     },
   getCosts:
-    ({ startDate, endDate, employee, typeShipment, checkoutDate }: any) =>
+    ({
+      startDate,
+      endDate,
+      accounts,
+      employees,
+      typeShipment,
+      checkoutDate,
+      store,
+    }: any) =>
     async (dispatch: any) => {
       dispatch({
         type: actionTypes.LOADING,
@@ -189,9 +251,11 @@ export const costActions = {
         const { data } = await Api.getCosts({
           startDate,
           endDate,
-          employee,
+          accounts: accounts.join(","),
+          employees: employees.join(","),
           typeShipment,
           checkoutDate,
+          store,
         });
 
         dispatch({
@@ -305,6 +369,110 @@ export const costActions = {
         dispatch({
           type: actionTypes.UPDATE_COST,
           payload: formattedPayload,
+        });
+      } catch (error) {
+        console.log(error);
+
+        dispatch({
+          type: actionTypes.ERROR,
+          payload: ERROR_MESSAGE_TIMEOUT,
+        });
+      }
+    },
+
+  getAccounts:
+    ({}: any) =>
+    async (dispatch: any) => {
+      dispatch({
+        type: actionTypes.LOADING,
+        payload: { loading: true },
+      });
+
+      try {
+        const { data } = await Api.getAccounts({});
+
+        dispatch({
+          type: actionTypes.LIST_ACCOUNTS,
+          payload: data.results,
+        });
+      } catch (error) {
+        console.log(error);
+
+        dispatch({
+          type: actionTypes.ERROR,
+          payload: ERROR_MESSAGE_TIMEOUT,
+        });
+      }
+    },
+  addAccount:
+    ({ name }: any) =>
+    async (dispatch: any) => {
+      dispatch({
+        type: actionTypes.LOADING,
+        payload: { loading: true },
+      });
+
+      try {
+        const { data } = await Api.addAccount({
+          name,
+        });
+
+        dispatch({
+          type: actionTypes.ADD_ACCOUNT,
+          payload: data.results,
+        });
+      } catch (error) {
+        console.log(error);
+
+        dispatch({
+          type: actionTypes.ERROR,
+          payload: ERROR_MESSAGE_TIMEOUT,
+        });
+      }
+    },
+  updateAccount:
+    ({ id, name }: any) =>
+    async (dispatch: any) => {
+      dispatch({
+        type: actionTypes.LOADING,
+        payload: { loading: true },
+      });
+
+      try {
+        const { data } = await Api.updateAccount({
+          id,
+          name,
+        });
+
+        dispatch({
+          type: actionTypes.UPDATE_ACCOUNT,
+          payload: data.results,
+        });
+      } catch (error) {
+        console.log(error);
+
+        dispatch({
+          type: actionTypes.ERROR,
+          payload: ERROR_MESSAGE_TIMEOUT,
+        });
+      }
+    },
+  removeAccounts:
+    ({ accountsIds }: any) =>
+    async (dispatch: any) => {
+      dispatch({
+        type: actionTypes.LOADING,
+        payload: { loading: true },
+      });
+
+      try {
+        await Api.removeAccounts({
+          accountsIds,
+        });
+
+        dispatch({
+          type: actionTypes.REMOVE_ACCOUNTS,
+          payload: { accountsIds },
         });
       } catch (error) {
         console.log(error);

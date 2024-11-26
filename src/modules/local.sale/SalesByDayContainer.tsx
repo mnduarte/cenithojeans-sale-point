@@ -655,7 +655,7 @@ const SalesByDayContainer = () => {
       dataIndex: "cash",
       format: (number: any) => `$${formatCurrency(number)}`,
       notZero: true,
-      defaultValue: "MPC",
+      defaultValue: () => "MPC",
       editableCell: true,
       type: "string",
       sumAcc: user.role === "ADMIN",

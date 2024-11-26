@@ -132,6 +132,7 @@ const EmployeesContainer = () => {
     { title: "Posicion", dataIndex: "position" },
     { title: "Sucursal", dataIndex: "store" },
     { title: "Activo", dataIndex: "active" },
+    { title: "Activo para Pagos", dataIndex: "activeForCost" },
   ];
 
   return (

@@ -88,6 +88,12 @@ const mappingTabs = {
     container: <OrdersContainer />,
     permission: ["EMPLOYEE", "ADMIN"],
   },
+  Pagos: {
+    title: "Pagos",
+    icon: <MdOutlineAttachMoney />,
+    container: <CostContainer />,
+    permission: ["ADMIN"],
+  },
   Informes: {
     title: "Informes",
     icon: <TbReportSearch />,
@@ -100,12 +106,6 @@ const mappingTabs = {
     container: <GraphContainer />,
     permission: ["ADMIN"],
   },*/
-  Gastos: {
-    title: "Gastos",
-    icon: <MdOutlineAttachMoney />,
-    container: <CostContainer />,
-    permission: ["ADMIN"],
-  },
   Admin: {
     title: "Admin",
     icon: <MdAdminPanelSettings />,

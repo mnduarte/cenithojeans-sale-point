@@ -23,6 +23,7 @@ const EmployeeForm = ({
     store: "",
     position: null,
     active: true,
+    activeForCost: false,
   };
   const [isNewEmployee, setIsNewEmployee] = useState(true);
   const [employeeValues, setEmployeeValues] = useState(initialValues);
@@ -122,6 +123,23 @@ const EmployeeForm = ({
             className="mr-2"
           />
           <span>Activo</span>
+        </label>
+      </div>
+
+      <div className="mb-4">
+        <label className="block mb-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={employeeValues.activeForCost}
+            onChange={({ target }) =>
+              setEmployeeValues({
+                ...employeeValues,
+                activeForCost: target.checked,
+              })
+            }
+            className="mr-2"
+          />
+          <span>Activo para Pagos</span>
         </label>
       </div>
 

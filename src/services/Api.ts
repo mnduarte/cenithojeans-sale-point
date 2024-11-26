@@ -23,16 +23,30 @@ const deleteSelectedPrices = ({ itemsIdSelected, deleteAll }: any) =>
 
 const getEmployees = ({ store }: any) =>
   instance.post("/employee/employees/", { store });
-const addEmployee = ({ name, store, position, active }: any) =>
-  instance.post("/employee/add-employee", { name, store, position, active });
+const addEmployee = ({ name, store, position, active, activeForCost }: any) =>
+  instance.post("/employee/add-employee", {
+    name,
+    store,
+    position,
+    active,
+    activeForCost,
+  });
 
-const updateEmployee = ({ id, name, store, position, active }: any) =>
+const updateEmployee = ({
+  id,
+  name,
+  store,
+  position,
+  active,
+  activeForCost,
+}: any) =>
   instance.put("/employee/update-employee", {
     id,
     name,
     store,
     position,
     active,
+    activeForCost,
   });
 
 const removeEmployee = ({ id }: any) =>
@@ -353,17 +367,21 @@ const deleteData = ({ startDate, endDate }: any) => {
 const getCosts = ({
   startDate,
   endDate,
-  employee,
+  accounts,
+  employees,
   typeShipment,
   checkoutDate,
+  store,
 }: any) => {
   const config: AxiosRequestConfig = {
     params: {
       startDate,
       endDate,
-      employee,
+      accounts,
+      employees,
       typeShipment,
       checkoutDate,
+      store,
     },
   };
 
@@ -425,6 +443,29 @@ const updateCost = ({
 const removeCosts = ({ costsIds }: any) =>
   instance.post("/cost/remove-cost", { costsIds });
 
+/** ACCOUNTS */
+const getAccounts = ({}: any) => {
+  const config: AxiosRequestConfig = {
+    params: {},
+  };
+
+  return instance.get("/cost/accounts", config);
+};
+
+const addAccount = ({ name }: any) =>
+  instance.post("/cost/add-account", {
+    name,
+  });
+
+const updateAccount = ({ id, name }: any) =>
+  instance.put("/cost/update-account", {
+    id,
+    name,
+  });
+
+const removeAccounts = ({ accountsIds }: any) =>
+  instance.post("/cost/remove-account", { accountsIds });
+
 const Api = {
   login,
 
@@ -474,6 +515,11 @@ const Api = {
   addCost,
   updateCost,
   removeCosts,
+
+  getAccounts,
+  addAccount,
+  updateAccount,
+  removeAccounts,
 };
 
 export default Api;
