@@ -28,6 +28,7 @@ const CrudTable = ({
   withActionButton,
   rowValues,
   saveRow,
+  onEnterPress = () => {},
 }: any) => {
   const {
     state: { theme, themeStyles },
@@ -58,7 +59,7 @@ const CrudTable = ({
         className={themeStyles[theme].classNameSelector}
         dropdownStyle={themeStyles[theme].dropdownStylesCustom}
         popupClassName={themeStyles[theme].classNameSelectorItem}
-        style={{ width: 110 }}
+        style={{ width: 120 }}
         onSelect={(e: any) => action({ value: e })}
         options={dataSelect.map((data: any) => ({ value: data, label: data }))}
       />
@@ -87,6 +88,35 @@ const CrudTable = ({
         onChange={action}
       />
     ),
+    currency: ({ value, action, inputExpanded }: any) => {
+      const formattedValue =
+        value !== null && value !== undefined && value !== ""
+          ? `$${formatCurrency(value)}`
+          : "";
+
+      return (
+        <input
+          type="text"
+          className={`${
+            inputExpanded ? "w-[120px]" : "w-[80px]"
+          } p-1 rounded-md text-center hover:cursor-pointer ${
+            themeStyles[theme].tailwindcss.inputText
+          }`}
+          value={formattedValue}
+          onChange={(e) => {
+            const inputValue = e.target.value;
+
+            const cleanedValue = inputValue.replace(/[^0-9.]/g, "");
+
+            if (!/^\d*\.?\d*$/.test(cleanedValue)) {
+              return;
+            }
+
+            action({ target: { value: cleanedValue } });
+          }}
+        />
+      );
+    },
     date: ({ value, action }: any) => (
       <DatePicker
         onChange={action}
@@ -150,6 +180,11 @@ const CrudTable = ({
               }
               ${row.withBackground && "text-red-400"}
               `}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" && editableRow === table + rowIndex) {
+                  saveRow();
+                }
+              }}
             >
               {enableSelectItem && (
                 <td

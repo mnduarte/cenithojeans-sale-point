@@ -432,7 +432,7 @@ export const saleActions = {
       }
     },
   getOrdersCheckoutDate:
-    ({ startDate, endDate, typeSale, store, typeShipment }: any) =>
+    ({ startDate, endDate, typeSale, store, employee, typeShipment }: any) =>
     async (dispatch: any) => {
       dispatch({
         type: actionTypes.LOADING,
@@ -446,6 +446,7 @@ export const saleActions = {
           typeSale,
           store,
           typeShipment,
+          employee,
         });
 
         dispatch({

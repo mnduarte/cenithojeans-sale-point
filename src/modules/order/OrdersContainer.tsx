@@ -64,6 +64,7 @@ const OrdersContainer = () => {
     store: user.store === "ALL" ? "" : user.store,
     typeSale: "pedido",
     typeShipment: "",
+    employee: "",
   });
   const [ordersFiltered, setOrdersFiltered] = useState<any[]>([]);
 
@@ -76,6 +77,12 @@ const OrdersContainer = () => {
   const [itemsIdSelected, setItemsIdSelected] = useState<any[]>([]);
 
   const [editableRow, setEditableRow] = useState<number | null>(null);
+
+  const statusRelatedToCostByCost: any = {
+    approved: "text-green-500",
+    approvedHasCash: "text-orange-500",
+    partialPayment: "text-red-500",
+  };
 
   const columns = [
     { title: "Fecha", dataIndex: "date" },
@@ -90,6 +97,21 @@ const OrdersContainer = () => {
     { title: "Sucursal", dataIndex: "store" },
     {
       title: <MdOutlineApproval className="w-full" />,
+      dataIndex: "statusRelatedToCost",
+      editableCell: true,
+      defaultValue: (e: any) =>
+        !Boolean(e) || e === "withoutPayment" ? (
+          "-"
+        ) : (
+          <div className="flex justify-center items-center">
+            <MdOutlineApproval
+              className={`text-2xl ${statusRelatedToCostByCost[e]}`}
+            />
+          </div>
+        ),
+    },
+    /*{
+      title: <MdOutlineApproval className="w-full" />,
       dataIndex: "approved",
       editableCell: true,
       defaultValue: (e: any) =>
@@ -100,7 +122,7 @@ const OrdersContainer = () => {
         ) : (
           "-"
         ),
-    },
+    },*/
     {
       title: "Tipo",
       dataIndex: "typeShipment",
@@ -524,6 +546,35 @@ const OrdersContainer = () => {
             />
           </div>
         )}
+
+        <div className="ml-2 inline-block">
+          <label className="mr-1">Vendedor:</label>
+
+          <Select
+            value={
+              checkoutDatefilters.employee === ""
+                ? "Todos"
+                : checkoutDatefilters.employee
+            }
+            className={themeStyles[theme].classNameSelector}
+            dropdownStyle={themeStyles[theme].dropdownStylesCustom}
+            popupClassName={themeStyles[theme].classNameSelectorItem}
+            style={{ width: 120 }}
+            onSelect={(value: any) =>
+              setCheckoutDateFilters((props) => ({
+                ...props,
+                employee: value,
+              }))
+            }
+            options={[
+              { label: "Todos", value: "" },
+              ...employees.map((data: any) => ({
+                value: data.name,
+                label: data.name,
+              })),
+            ]}
+          />
+        </div>
 
         <div className="ml-2 inline-block">
           <label className="mr-1">Tipo:</label>

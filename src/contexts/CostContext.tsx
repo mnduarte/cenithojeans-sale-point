@@ -271,6 +271,32 @@ export const costActions = {
         });
       }
     },
+  getCostsByDateApproved:
+    ({ dateApproved }: any) =>
+    async (dispatch: any) => {
+      dispatch({
+        type: actionTypes.LOADING,
+        payload: { loading: true },
+      });
+
+      try {
+        const { data } = await Api.getCostsByDateApproved({
+          dateApproved,
+        });
+
+        dispatch({
+          type: actionTypes.LIST_COST,
+          payload: data.results,
+        });
+      } catch (error) {
+        console.log(error);
+
+        dispatch({
+          type: actionTypes.ERROR,
+          payload: ERROR_MESSAGE_TIMEOUT,
+        });
+      }
+    },
   addCost:
     ({
       date,

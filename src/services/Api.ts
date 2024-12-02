@@ -95,6 +95,7 @@ const getOrdersCheckoutDate = ({
   typeSale,
   store,
   typeShipment,
+  employee,
 }: any) => {
   const config: AxiosRequestConfig = {
     params: {
@@ -103,6 +104,7 @@ const getOrdersCheckoutDate = ({
       typeSale,
       store,
       typeShipment,
+      employee,
     },
   };
 
@@ -388,6 +390,16 @@ const getCosts = ({
   return instance.get("/cost/costs", config);
 };
 
+const getCostsByDateApproved = ({ dateApproved }: any) => {
+  const config: AxiosRequestConfig = {
+    params: {
+      dateApproved,
+    },
+  };
+
+  return instance.get("/cost/costs-by-date-approved", config);
+};
+
 const addCost = ({
   date,
   account,
@@ -512,6 +524,7 @@ const Api = {
   deleteData,
 
   getCosts,
+  getCostsByDateApproved,
   addCost,
   updateCost,
   removeCosts,

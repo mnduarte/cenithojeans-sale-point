@@ -92,7 +92,7 @@ const mappingTabs = {
     title: "Pagos",
     icon: <MdOutlineAttachMoney />,
     container: <CostContainer />,
-    permission: ["ADMIN"],
+    permission: ["EMPLOYEE", "ADMIN"],
   },
   Informes: {
     title: "Informes",

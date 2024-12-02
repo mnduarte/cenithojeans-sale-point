@@ -20,6 +20,7 @@ import * as XLSX from "xlsx";
 import { ModalAccount } from "./ModalAccount";
 import { MdOutlineApproval } from "react-icons/md";
 import { GiClothes } from "react-icons/gi";
+import { PiLinkBold, PiLink, PiLinkBreak } from "react-icons/pi";
 
 const CostContainer = () => {
   const {
@@ -69,25 +70,46 @@ const CostContainer = () => {
   const [rowValues, setRowValues] = useState(INITIAL_VALUES_COST);
 
   const columns = [
-    { title: "Fecha", dataIndex: "date", editableCell: true, type: "date" },
+    {
+      title: "Fecha",
+      dataIndex: "date",
+      editableCell: user.role === "ADMIN",
+      type: "date",
+    },
     {
       title: "Cuenta",
       dataIndex: "account",
-      editableCell: true,
+      editableCell: user.role === "ADMIN",
       type: "select",
       dataSelect: accounts.map(({ name }: any) => name),
     },
     {
       title: "N°Orden",
       dataIndex: "numOrder",
-      editableCell: true,
+      editableCell: user.role === "ADMIN",
       type: "number",
+    },
+    {
+      title: <PiLinkBold className="w-full" />,
+      dataIndex: "linkedOnOrder",
+      defaultValue: (e: any) =>
+        e === "-" ? (
+          "-"
+        ) : (
+          <div className="flex justify-center items-center">
+            {e ? (
+              <PiLink className="text-2xl" />
+            ) : (
+              <PiLinkBreak className="text-2xl" />
+            )}
+          </div>
+        ),
     },
     {
       title: "Monto",
       dataIndex: "amount",
-      editableCell: true,
-      type: "number",
+      editableCell: user.role === "ADMIN",
+      type: "currency",
       format: (number: any) => `$${formatCurrency(number)}`,
       sumAcc: user.role === "ADMIN",
       applyFormat: true,
@@ -98,12 +120,13 @@ const CostContainer = () => {
       title: <GiClothes className="w-full" />,
       dataIndex: "items",
       type: "checkbox",
+      sumAcc: user.role === "ADMIN",
     },
     {
       title: <MdOutlineApproval className="w-full" />,
       dataIndex: "approved",
       type: "checkbox",
-      editableCell: true,
+      editableCell: user.role === "ADMIN",
       defaultValue: (e: any) =>
         e ? (
           <div className="flex justify-center items-center">
@@ -116,13 +139,13 @@ const CostContainer = () => {
     {
       title: "Fecha Aprobado",
       dataIndex: "dateApproved",
-      editableCell: true,
+      editableCell: user.role === "ADMIN",
       type: "date",
     },
     {
       title: "Vendedor",
       dataIndex: "employee",
-      editableCell: true,
+      editableCell: user.role === "ADMIN",
       type: "select",
       dataSelect: employees
         .filter((e: any) => e.activeForCost)
@@ -131,7 +154,7 @@ const CostContainer = () => {
     {
       title: "Cliente",
       dataIndex: "customer",
-      editableCell: true,
+      editableCell: user.role === "ADMIN",
       type: "string",
       inputExpanded: true,
     },
@@ -166,10 +189,6 @@ const CostContainer = () => {
     }: any,
     rowIndex: number
   ) => {
-    if (user.role !== "ADMIN") {
-      return;
-    }
-
     if (editableRow !== rowIndex) {
       setRowValues({
         id,
@@ -188,11 +207,35 @@ const CostContainer = () => {
     }
   };
 
+  const saveRow = (customValues: any) => {
+    const dataValues = customValues ?? rowValues;
+    const actionCost = (values: any) =>
+      dataValues.id
+        ? costActions.updateCost(values)
+        : costActions.addCost(values);
+
+    dispatchCost(actionCost(dataValues)(dispatchCost));
+    setRowValues(INITIAL_VALUES_COST);
+    setEditableRow(null);
+  };
+
   const handleAction = ({ dataIndex, inputType, inputValue }: any) => {
     if (inputType === "date") {
       setRowValues((e: any) => ({
         ...e,
         [dataIndex]: dayjs(inputValue).format("DD/MM/YYYY"),
+      }));
+
+      saveRow({
+        ...rowValues,
+        [dataIndex]: dayjs(inputValue).format("DD/MM/YYYY"),
+      });
+    }
+
+    if (["currency"].includes(inputType)) {
+      setRowValues((e: any) => ({
+        ...e,
+        [dataIndex]: inputValue.target.value,
       }));
     }
 
@@ -219,17 +262,6 @@ const CostContainer = () => {
     }
   };
 
-  const saveRow = () => {
-    const actionCost = (values: any) =>
-      rowValues.id
-        ? costActions.updateCost(values)
-        : costActions.addCost(values);
-
-    dispatchCost(actionCost(rowValues)(dispatchCost));
-    setRowValues(INITIAL_VALUES_COST);
-    setEditableRow(null);
-  };
-
   const costsData = [
     ...costs,
     {
@@ -243,6 +275,7 @@ const CostContainer = () => {
       customer: null,
       typeShipment: null,
       checkoutDate: null,
+      linkedOnOrder: "-",
     },
   ];
 
@@ -391,6 +424,10 @@ const CostContainer = () => {
               onSelect={(value: any) =>
                 setFilters((props) => ({ ...props, store: value }))
               }
+              onClick={() =>
+                !loading &&
+                dispatchCost(costActions.getCosts(filters)(dispatchCost))
+              }
               options={listStore.map((data: any) => ({
                 value: data.value === "ALL" ? "" : data.value,
                 label: data.name,
@@ -398,6 +435,26 @@ const CostContainer = () => {
             />
           </div>
         )}
+
+        <div className="inline-block">
+          <label className="ml-5 mr-1">Por Aprobado:</label>
+          <DatePicker
+            onChange={(date: any) =>
+              !loading &&
+              dispatchCost(
+                costActions.getCostsByDateApproved({
+                  dateApproved: date.format("YYYY-MM-DD"),
+                })(dispatchCost)
+              )
+            }
+            className={themeStyles[theme].datePickerIndicator}
+            style={themeStyles[theme].datePicker}
+            popupClassName={themeStyles[theme].classNameDatePicker}
+            allowClear={false}
+            format={dateFormat}
+            defaultValue={dayjs(new Date())}
+          />
+        </div>
       </div>
 
       <div
@@ -560,6 +617,9 @@ const CostContainer = () => {
           withActionButton={true}
           rowValues={rowValues}
           saveRow={saveRow}
+          onEnterPress={() => {
+            console.log("Enter pressed on row:");
+          }}
         />
       </div>
 
