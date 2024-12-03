@@ -71,41 +71,43 @@ const TableSaleByDay = ({
                   />
                 </td>
               )}
-              {columns.map((column: any, columnIndex: any) => (
-                <td
-                  key={columnIndex}
-                  className={`${themeStyles[theme].tailwindcss.table.tbody.td}`}
-                  onClick={(e) => handleRowClick(row, e)}
-                  onDoubleClick={handleRowDoubleClick}
-                >
-                  <div className="flex p-1">
-                    {column.applyFlag && row.withFlag && (
-                      <TbFlag2Filled className="text-red-600 w-2" />
-                    )}
-
-                    {column.applyFlag && row.isWithPrepaid && (
-                      <FaLocationArrow className="text-cyan-600 w-2" />
-                    )}
-
-                    {column.applyFlag &&
-                      !row.isWithPrepaid &&
-                      row.typeSale === "pedido" && (
-                        <FaLocationArrow className="text-green-600 w-2" />
+              {columns.map((column: any, columnIndex: any) => {
+                return (
+                  <td
+                    key={columnIndex}
+                    className={`${themeStyles[theme].tailwindcss.table.tbody.td}`}
+                    onClick={(e) => handleRowClick(row, e)}
+                    onDoubleClick={handleRowDoubleClick}
+                  >
+                    <div className="flex p-1">
+                      {column.applyFlag && row.withFlag && (
+                        <TbFlag2Filled className="text-red-600 w-2" />
                       )}
-                    <span className="pl-1">
-                      {column.format
-                        ? column.notZero && !Boolean(row[column.dataIndex])
-                          ? column.defaultValue
-                          : column.format(row[column.dataIndex])
-                        : row[column.dataIndex]}
-                    </span>
 
-                    {column.applyFlag && row.description && (
-                      <FaComment className=" w-2" />
-                    )}
-                  </div>
-                </td>
-              ))}
+                      {column.applyFlag && row.isWithPrepaid && (
+                        <FaLocationArrow className="text-cyan-600 w-2" />
+                      )}
+
+                      {column.applyFlag &&
+                        !row.isWithPrepaid &&
+                        row.typeSale === "pedido" && (
+                          <FaLocationArrow className="text-green-600 w-2" />
+                        )}
+                      <span className="pl-1">
+                        {column.format
+                          ? column.notZero && !Boolean(row[column.dataIndex])
+                            ? column.defaultValue()
+                            : column.format(row[column.dataIndex])
+                          : row[column.dataIndex]}
+                      </span>
+
+                      {column.applyFlag && row.description && (
+                        <FaComment className=" w-2" />
+                      )}
+                    </div>
+                  </td>
+                );
+              })}
             </tr>
           </React.Fragment>
         ))}
