@@ -564,7 +564,7 @@ const CostContainer = () => {
         </div>
 
         <Tag color="#3B3B3B" className="ml-2 py-1 px-2 text-sm">
-          Cantidad Gastos: {costs.length}
+          Cantidad Tickets: {costs.length}
         </Tag>
 
         <div className="inline-block">

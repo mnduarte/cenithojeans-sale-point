@@ -327,15 +327,20 @@ export const costActions = {
           employee,
           customer,
           typeShipment,
-          checkoutDate,
         });
 
         const formattedPayload = {
           ...data.results,
           date,
           dateApproved,
-          checkoutDate,
         };
+
+        if (data.results.checkoutDate) {
+          const [year, month, day] = data.results.checkoutDate
+            .split("T")[0]
+            .split("-");
+          formattedPayload.checkoutDate = `${day}/${month}/${year}`;
+        }
 
         dispatch({
           type: actionTypes.ADD_COST,
@@ -389,8 +394,14 @@ export const costActions = {
           ...data.results,
           date,
           dateApproved,
-          checkoutDate,
         };
+
+        if (data.results.checkoutDate) {
+          const [year, month, day] = data.results.checkoutDate
+            .split("T")[0]
+            .split("-");
+          formattedPayload.checkoutDate = `${day}/${month}/${year}`;
+        }
 
         dispatch({
           type: actionTypes.UPDATE_COST,
