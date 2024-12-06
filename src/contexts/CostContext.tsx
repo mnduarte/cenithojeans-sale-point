@@ -272,7 +272,7 @@ export const costActions = {
       }
     },
   getCostsByDateApproved:
-    ({ dateApproved }: any) =>
+    ({ dateApproved, store }: any) =>
     async (dispatch: any) => {
       dispatch({
         type: actionTypes.LOADING,
@@ -282,6 +282,7 @@ export const costActions = {
       try {
         const { data } = await Api.getCostsByDateApproved({
           dateApproved,
+          store,
         });
 
         dispatch({
@@ -327,6 +328,7 @@ export const costActions = {
           employee,
           customer,
           typeShipment,
+          checkoutDate,
         });
 
         const formattedPayload = {

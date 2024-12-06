@@ -120,7 +120,7 @@ const CostContainer = () => {
       title: <GiClothes className="w-full" />,
       dataIndex: "items",
       type: "checkbox",
-      sumAcc: user.role === "ADMIN",
+      sumAcc: true,
     },
     {
       title: <MdOutlineApproval className="w-full" />,
@@ -444,6 +444,7 @@ const CostContainer = () => {
               dispatchCost(
                 costActions.getCostsByDateApproved({
                   dateApproved: date.format("YYYY-MM-DD"),
+                  store: user.store === "ALL" ? "" : user.store,
                 })(dispatchCost)
               )
             }
@@ -576,14 +577,16 @@ const CostContainer = () => {
           </div>
         </div>
 
-        <div className="inline-block">
-          <div
-            className=" ml-2 bg-pink-700 hover:bg-pink-800 hover:cursor-pointer text-white px-2  py-1 rounded-md flex items-center justify-center select-none"
-            onClick={() => setIsModalAccountOpen(true)}
-          >
-            Cuentas
+        {user.store === "ALL" && (
+          <div className="inline-block">
+            <div
+              className=" ml-2 bg-pink-700 hover:bg-pink-800 hover:cursor-pointer text-white px-2  py-1 rounded-md flex items-center justify-center select-none"
+              onClick={() => setIsModalAccountOpen(true)}
+            >
+              Cuentas
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="ml-2 inline-block">
           {Boolean(itemsIdSelected.length) && (

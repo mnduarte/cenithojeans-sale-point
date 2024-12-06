@@ -390,10 +390,11 @@ const getCosts = ({
   return instance.get("/cost/costs", config);
 };
 
-const getCostsByDateApproved = ({ dateApproved }: any) => {
+const getCostsByDateApproved = ({ dateApproved, store }: any) => {
   const config: AxiosRequestConfig = {
     params: {
       dateApproved,
+      store,
     },
   };
 
