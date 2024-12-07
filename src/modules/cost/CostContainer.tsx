@@ -616,7 +616,7 @@ const CostContainer = () => {
           handleEditClick={handleEditClick}
           itemsIdSelected={itemsIdSelected}
           setItemsIdSelected={setItemsIdSelected}
-          enableSelectItem={true}
+          enableSelectItem={user.role === "ADMIN"}
           withActionButton={true}
           rowValues={rowValues}
           saveRow={saveRow}
