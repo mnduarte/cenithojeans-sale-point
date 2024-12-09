@@ -148,7 +148,7 @@ const CrudTable = ({
           {columns.map((column: any, columnIndex: any) => (
             <th
               key={columnIndex}
-              className={`text-center font-normal  ${themeStyles[theme].tailwindcss.table.thead.th}`}
+              className={`text-center font-normal  ${themeStyles[theme].tailwindcss.table.thead.th} ${column.customStyles}`}
             >
               {column.title}
             </th>

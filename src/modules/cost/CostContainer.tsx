@@ -92,6 +92,7 @@ const CostContainer = () => {
     {
       title: <PiLinkBold className="w-full" />,
       dataIndex: "linkedOnOrder",
+      customStyles: "w-[30px]",
       defaultValue: (e: any) =>
         e === "-" ? (
           "-"
@@ -126,6 +127,7 @@ const CostContainer = () => {
       title: <MdOutlineApproval className="w-full" />,
       dataIndex: "approved",
       type: "checkbox",
+      customStyles: "w-[30px]",
       editableCell: user.role === "ADMIN",
       defaultValue: (e: any) =>
         e ? (
@@ -155,6 +157,7 @@ const CostContainer = () => {
       title: "Cliente",
       dataIndex: "customer",
       editableCell: user.role === "ADMIN",
+      customStyles: "w-[250px]",
       type: "string",
       inputExpanded: true,
     },
