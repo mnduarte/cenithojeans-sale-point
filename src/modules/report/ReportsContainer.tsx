@@ -274,10 +274,20 @@ const ReportsContainer = () => {
                 year: Number(value),
               }))
             }
-            options={Array.from({ length: 8 }, (_, i) => ({
-              value: currentYear + i,
-              label: currentYear + i,
-            }))}
+            options={[
+              {
+                value: 2024,
+                label: 2024,
+              },
+              {
+                value: 2025,
+                label: 2025,
+              },
+              {
+                value: 2026,
+                label: 2026,
+              },
+            ]}
           />
         </div>
         <div className="ml-4 inline-block">
