@@ -70,10 +70,17 @@ export const mappingTypeShipment: any = {
   "": "Todos",
   retiraLocal: "Retira local",
   envio: "Envio",
+  nrl: "NRL",
 };
 
 export const mappingCheckoutDate: any = {
   "": "Todos",
   with: "Con Salida",
   wihtout: "Sin Salida",
+};
+
+export const mappingApproved: any = {
+  "": "Todos",
+  approved: "Aprobado",
+  withoutApproved: "Sin Aprobar",
 };

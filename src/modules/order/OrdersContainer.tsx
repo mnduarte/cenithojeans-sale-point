@@ -7,7 +7,11 @@ import { useUser } from "../../contexts/UserContext";
 import KeyboardNum from "../../components/KeyboardNum";
 import Toast from "../../components/Toast";
 import EditableTable from "../../components/EditableTable";
-import { MdOutlineApproval, MdOutlinePendingActions } from "react-icons/md";
+import {
+  MdCleaningServices,
+  MdOutlineApproval,
+  MdOutlinePendingActions,
+} from "react-icons/md";
 import dayjs from "dayjs";
 import { DatePicker, Select, Tag } from "antd";
 import {
@@ -20,6 +24,7 @@ import {
 import { useTheme } from "../../contexts/ThemeContext";
 import { FcApproval } from "react-icons/fc";
 import * as XLSX from "xlsx";
+import ModalSearchByText from "./ModalSearchByText";
 
 const mappingConceptToUpdate: Record<string, string> = {
   order: "N° Pedido",
@@ -57,6 +62,7 @@ const OrdersContainer = () => {
     typeSale: "pedido",
     typeShipment: "",
     checkoutDate: "",
+    q: "",
   });
   const [checkoutDatefilters, setCheckoutDateFilters] = useState({
     startDate: formatDateToYYYYMMDD(new Date()),
@@ -74,6 +80,7 @@ const OrdersContainer = () => {
     dataIndex: "",
   });
   const [isModalKeyboardNumOpen, setIsModalKeyboardNumOpen] = useState(false);
+  const [isModalSearchByTextOpen, setIsModalSearchByTextOpen] = useState(false);
   const [itemsIdSelected, setItemsIdSelected] = useState<any[]>([]);
 
   const [editableRow, setEditableRow] = useState<number | null>(null);
@@ -441,6 +448,28 @@ const OrdersContainer = () => {
             ]}
           />
         </div>
+        <div className="ml-2 inline-block">
+          <div className="flex items-center space-x-1">
+            <input
+              type="text"
+              className={`w-[110px] p-1 border-2 border-[#1BA1E2] rounded-md text-center hover:cursor-pointer ${themeStyles[theme].tailwindcss.inputText}`}
+              value={filters.q}
+              placeholder="Texto"
+              onClick={() => setIsModalSearchByTextOpen(true)}
+            />
+            <div
+              className="bg-gray-700 w-5 text-white py-1 rounded-md flex items-center justify-center select-none transition-opacity duration-200 hover:opacity-80 active:scale-95"
+              onClick={() =>
+                setFilters((props: any) => ({
+                  ...props,
+                  q: "",
+                }))
+              }
+            >
+              <MdCleaningServices />
+            </div>
+          </div>
+        </div>
 
         <div className="ml-2 inline-block">
           <div
@@ -689,6 +718,18 @@ const OrdersContainer = () => {
           }
         />
       )}
+
+      <ModalSearchByText
+        isModalSearchByTextOpen={isModalSearchByTextOpen}
+        setIsModalSearchByTextOpen={setIsModalSearchByTextOpen}
+        handleSearchByText={(value: any) => {
+          setFilters((props: any) => ({
+            ...props,
+            q: value,
+          }));
+          setIsModalSearchByTextOpen(false);
+        }}
+      />
     </>
   );
 };

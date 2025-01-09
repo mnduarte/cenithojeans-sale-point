@@ -11,6 +11,7 @@ import {
   mappingCheckoutDate,
   mappingListStore,
   mappingTypeShipment,
+  mappingApproved,
 } from "../../utils/constants";
 import { useTheme } from "../../contexts/ThemeContext";
 import CrudTable from "../../components/CrudTable";
@@ -18,9 +19,10 @@ import { costActions, useCost } from "../../contexts/CostContext";
 import { FcApproval } from "react-icons/fc";
 import * as XLSX from "xlsx";
 import { ModalAccount } from "./ModalAccount";
-import { MdOutlineApproval } from "react-icons/md";
+import { MdCleaningServices, MdOutlineApproval } from "react-icons/md";
 import { GiClothes } from "react-icons/gi";
 import { PiLinkBold, PiLink, PiLinkBreak } from "react-icons/pi";
+import { ModalConfirmDelete } from "./ModalConfirmDelete";
 
 const CostContainer = () => {
   const {
@@ -44,7 +46,9 @@ const CostContainer = () => {
     employees: [],
     typeShipment: "",
     checkoutDate: "",
+    approved: "",
     store: user.store === "ALL" ? "" : user.store,
+    q: "",
   });
 
   const [itemsIdSelected, setItemsIdSelected] = useState<any[]>([]);
@@ -52,6 +56,8 @@ const CostContainer = () => {
   const [editableRow, setEditableRow] = useState<number | null>(null);
 
   const [isModalAccountOpen, setIsModalAccountOpen] = useState(false);
+  const [isModalConfirmDeleteOpen, setIsModalConfirmDeleteOpen] =
+    useState(false);
 
   const INITIAL_VALUES_COST = {
     id: null,
@@ -81,7 +87,10 @@ const CostContainer = () => {
       dataIndex: "account",
       editableCell: user.role === "ADMIN",
       type: "select",
-      dataSelect: accounts.map(({ name }: any) => name),
+      dataSelect: accounts.map(({ name }: any) => ({
+        value: name,
+        label: name,
+      })),
     },
     {
       title: "N°Orden",
@@ -111,10 +120,20 @@ const CostContainer = () => {
       dataIndex: "amount",
       editableCell: user.role === "ADMIN",
       type: "currency",
-      format: (number: any) => `$${formatCurrency(number)}`,
       sumAcc: user.role === "ADMIN",
       applyFormat: true,
       inputExpanded: true,
+      defaultValue: (e: any, row: any) => {
+        return e === "-" || e === null ? (
+          "-"
+        ) : (
+          <div
+            className={`${row.backgroundColor} ${row.textColor} p-1 rounded-md`}
+          >
+            ${formatCurrency(e)}
+          </div>
+        );
+      },
     },
     { title: "Sucursal", dataIndex: "store" },
     {
@@ -151,7 +170,10 @@ const CostContainer = () => {
       type: "select",
       dataSelect: employees
         .filter((e: any) => e.activeForCost)
-        .map(({ name }) => name),
+        .map(({ name }) => ({
+          value: name,
+          label: name,
+        })),
     },
     {
       title: "Cliente",
@@ -165,13 +187,61 @@ const CostContainer = () => {
       title: "Tipo",
       dataIndex: "typeShipment",
       editableCell: true,
+      enableClean: true,
       type: "select",
-      dataSelect: ["retiraLocal", "envio"],
+      dataSelect: [
+        {
+          label: (
+            <div className="bg-green-100 text-green-700 px-1 rounded-md">
+              Envio
+            </div>
+          ),
+          value: "envio",
+        },
+        {
+          label: (
+            <div className="bg-yellow-100 text-yellow-700 px-1 rounded-md">
+              Retira local
+            </div>
+          ),
+          value: "retiraLocal",
+        },
+        {
+          label: (
+            <div className="bg-red-100 text-red-700 px-1 rounded-md">NRL</div>
+          ),
+          value: "nrl",
+        },
+      ],
+
+      defaultValue: (e: any) =>
+        e === "-" ? (
+          "-"
+        ) : (
+          <div className="flex justify-center items-center">
+            {e === "envio" && (
+              <div className="w-full bg-green-100 text-green-700 p-1 rounded-md">
+                Envio
+              </div>
+            )}
+            {e === "retiraLocal" && (
+              <div className="w-full bg-yellow-100 text-yellow-700 p-1 rounded-md">
+                Retira local
+              </div>
+            )}
+            {e === "nrl" && (
+              <div className="w-full bg-red-100 text-red-700 p-1 rounded-md">
+                NRL
+              </div>
+            )}
+          </div>
+        ),
     },
     {
       title: "Salida",
       dataIndex: "checkoutDate",
       editableCell: true,
+      enableClean: true,
       type: "date",
     },
   ];
@@ -265,6 +335,17 @@ const CostContainer = () => {
     }
   };
 
+  const handleClean = ({ dataIndex }: any) => {
+    setRowValues((e: any) => ({
+      ...e,
+      [dataIndex]: null,
+    }));
+    saveRow({
+      ...rowValues,
+      [dataIndex]: null,
+    });
+  };
+
   const costsData = [
     ...costs,
     {
@@ -333,131 +414,179 @@ const CostContainer = () => {
   return (
     <>
       <div
-        className={`h-12 relative p-2 border-x border-t ${themeStyles[theme].tailwindcss.border} flex`}
+        className={`h-12 relative p-2 border-x border-t ${themeStyles[theme].tailwindcss.border} flex justify-between items-center`}
         onClick={removeCellSelected}
       >
-        <div className="inline-block">
-          <label className="mr-1">Desde:</label>
-          <DatePicker
-            onChange={(date: any) =>
-              setFilters((props) => ({
-                ...props,
-                startDate: date.format("YYYY-MM-DD"),
-              }))
-            }
-            className={themeStyles[theme].datePickerIndicator}
-            style={themeStyles[theme].datePicker}
-            popupClassName={themeStyles[theme].classNameDatePicker}
-            allowClear={false}
-            format={dateFormat}
-            value={dayjs(filters.startDate)}
-          />
-          <label className="ml-1 mr-1">Hasta:</label>
+        <div className={`flex space-between`} onClick={removeCellSelected}>
+          <div className="inline-block">
+            <label className="mr-1">Desde:</label>
+            <DatePicker
+              onChange={(date: any) =>
+                setFilters((props) => ({
+                  ...props,
+                  startDate: date.format("YYYY-MM-DD"),
+                }))
+              }
+              className={themeStyles[theme].datePickerIndicator}
+              style={themeStyles[theme].datePicker}
+              popupClassName={themeStyles[theme].classNameDatePicker}
+              allowClear={false}
+              format={dateFormat}
+              value={dayjs(filters.startDate)}
+            />
+            <label className="ml-1 mr-1">Hasta:</label>
 
-          <DatePicker
-            onChange={(date: any) =>
-              setFilters((props) => ({
-                ...props,
-                endDate: date.format("YYYY-MM-DD"),
-              }))
-            }
-            className={themeStyles[theme].datePickerIndicator}
-            style={themeStyles[theme].datePicker}
-            popupClassName={themeStyles[theme].classNameDatePicker}
-            allowClear={false}
-            format={dateFormat}
-            value={dayjs(filters.endDate)}
-          />
-        </div>
+            <DatePicker
+              onChange={(date: any) =>
+                setFilters((props) => ({
+                  ...props,
+                  endDate: date.format("YYYY-MM-DD"),
+                }))
+              }
+              className={themeStyles[theme].datePickerIndicator}
+              style={themeStyles[theme].datePicker}
+              popupClassName={themeStyles[theme].classNameDatePicker}
+              allowClear={false}
+              format={dateFormat}
+              value={dayjs(filters.endDate)}
+            />
+          </div>
 
-        <div className="ml-2 inline-block">
-          <label className="mr-1">Tipo:</label>
-
-          <Select
-            value={mappingTypeShipment[filters.typeShipment]}
-            className={themeStyles[theme].classNameSelector}
-            dropdownStyle={themeStyles[theme].dropdownStylesCustom}
-            popupClassName={themeStyles[theme].classNameSelectorItem}
-            style={{ width: 120 }}
-            onSelect={(value: any) =>
-              setFilters((props) => ({
-                ...props,
-                typeShipment: value,
-              }))
-            }
-            options={[
-              { label: "Todos", value: "" },
-              { label: "Retira local", value: "retiraLocal" },
-              { label: "Envio", value: "envio" },
-            ]}
-          />
-        </div>
-        <div className="ml-2 inline-block">
-          <label className="mr-1">Salida:</label>
-
-          <Select
-            value={mappingCheckoutDate[filters.checkoutDate]}
-            className={themeStyles[theme].classNameSelector}
-            dropdownStyle={themeStyles[theme].dropdownStylesCustom}
-            popupClassName={themeStyles[theme].classNameSelectorItem}
-            style={{ width: 120 }}
-            onSelect={(value: any) =>
-              setFilters((props) => ({
-                ...props,
-                checkoutDate: value,
-              }))
-            }
-            options={[
-              { label: "Todos", value: "" },
-              { label: "Con Salida", value: "with" },
-              { label: "Sin Salida", value: "wihtout" },
-            ]}
-          />
-        </div>
-        {user.store === "ALL" && (
           <div className="ml-2 inline-block">
-            <label className="mr-1">Sucursal:</label>
+            <label className="mr-1">Tipo:</label>
 
             <Select
-              value={mappingListStore[filters.store]}
+              value={mappingTypeShipment[filters.typeShipment]}
               className={themeStyles[theme].classNameSelector}
               dropdownStyle={themeStyles[theme].dropdownStylesCustom}
               popupClassName={themeStyles[theme].classNameSelectorItem}
               style={{ width: 120 }}
               onSelect={(value: any) =>
-                setFilters((props) => ({ ...props, store: value }))
+                setFilters((props) => ({
+                  ...props,
+                  typeShipment: value,
+                }))
               }
-              onClick={() =>
-                !loading &&
-                dispatchCost(costActions.getCosts(filters)(dispatchCost))
-              }
-              options={listStore.map((data: any) => ({
-                value: data.value === "ALL" ? "" : data.value,
-                label: data.name,
-              }))}
+              options={[
+                { label: "Todos", value: "" },
+                {
+                  label: (
+                    <div className="bg-green-100 text-green-700 p-1 rounded-md">
+                      Envio
+                    </div>
+                  ),
+                  value: "envio",
+                },
+                {
+                  label: (
+                    <div className="bg-yellow-100 text-yellow-700 p-1 rounded-md">
+                      Retira local
+                    </div>
+                  ),
+                  value: "retiraLocal",
+                },
+                {
+                  label: (
+                    <div className="bg-red-100 text-red-700 p-1 rounded-md">
+                      NRL
+                    </div>
+                  ),
+                  value: "nrl",
+                },
+              ]}
             />
           </div>
-        )}
+          <div className="ml-2 inline-block">
+            <label className="mr-1">Salida:</label>
 
-        <div className="inline-block">
-          <label className="ml-5 mr-1">Por Aprobado:</label>
-          <DatePicker
-            onChange={(date: any) =>
-              !loading &&
-              dispatchCost(
-                costActions.getCostsByDateApproved({
-                  dateApproved: date.format("YYYY-MM-DD"),
-                  store: user.store === "ALL" ? "" : user.store,
-                })(dispatchCost)
-              )
-            }
-            className={themeStyles[theme].datePickerIndicator}
-            style={themeStyles[theme].datePicker}
-            popupClassName={themeStyles[theme].classNameDatePicker}
-            allowClear={false}
-            format={dateFormat}
-            defaultValue={dayjs(new Date())}
-          />
+            <Select
+              value={mappingCheckoutDate[filters.checkoutDate]}
+              className={themeStyles[theme].classNameSelector}
+              dropdownStyle={themeStyles[theme].dropdownStylesCustom}
+              popupClassName={themeStyles[theme].classNameSelectorItem}
+              style={{ width: 120 }}
+              onSelect={(value: any) =>
+                setFilters((props) => ({
+                  ...props,
+                  checkoutDate: value,
+                }))
+              }
+              options={[
+                { label: "Todos", value: "" },
+                { label: "Con Salida", value: "with" },
+                { label: "Sin Salida", value: "wihtout" },
+              ]}
+            />
+          </div>
+          <div className="ml-2 inline-block">
+            <label className="mr-1">Aprobado:</label>
+
+            <Select
+              value={mappingApproved[filters.approved]}
+              className={themeStyles[theme].classNameSelector}
+              dropdownStyle={themeStyles[theme].dropdownStylesCustom}
+              popupClassName={themeStyles[theme].classNameSelectorItem}
+              style={{ width: 120 }}
+              onSelect={(value: any) =>
+                setFilters((props) => ({
+                  ...props,
+                  approved: value,
+                }))
+              }
+              options={[
+                { label: "Todos", value: "" },
+                { label: "Aprobado", value: "approved" },
+                { label: "Sin Aprobar", value: "withoutApproved" },
+              ]}
+            />
+          </div>
+          {user.store === "ALL" && (
+            <div className="ml-2 inline-block">
+              <label className="mr-1">Sucursal:</label>
+
+              <Select
+                value={mappingListStore[filters.store]}
+                className={themeStyles[theme].classNameSelector}
+                dropdownStyle={themeStyles[theme].dropdownStylesCustom}
+                popupClassName={themeStyles[theme].classNameSelectorItem}
+                style={{ width: 120 }}
+                onSelect={(value: any) =>
+                  setFilters((props) => ({ ...props, store: value }))
+                }
+                onClick={() =>
+                  !loading &&
+                  dispatchCost(costActions.getCosts(filters)(dispatchCost))
+                }
+                options={listStore.map((data: any) => ({
+                  value: data.value === "ALL" ? "" : data.value,
+                  label: data.name,
+                }))}
+              />
+            </div>
+          )}
+        </div>
+
+        <div>
+          <div className="flex items-center">
+            <FcApproval className="text-2xl mr-1" />
+            <DatePicker
+              onChange={(date: any) =>
+                !loading &&
+                dispatchCost(
+                  costActions.getCostsByDateApproved({
+                    dateApproved: date.format("YYYY-MM-DD"),
+                    store: user.store === "ALL" ? "" : user.store,
+                  })(dispatchCost)
+                )
+              }
+              className={themeStyles[theme].datePickerIndicator}
+              style={themeStyles[theme].datePicker}
+              popupClassName={themeStyles[theme].classNameDatePicker}
+              allowClear={false}
+              format={dateFormat}
+              defaultValue={dayjs(new Date())}
+            />
+          </div>
         </div>
       </div>
 
@@ -475,7 +604,7 @@ const CostContainer = () => {
             dropdownStyle={themeStyles[theme].dropdownStylesCustom}
             popupClassName={themeStyles[theme].classNameSelectorItem}
             style={{
-              width: "350px",
+              width: "200px",
             }}
             onSelect={(value: any) =>
               setFilters((props: any) => ({
@@ -515,7 +644,7 @@ const CostContainer = () => {
             dropdownStyle={themeStyles[theme].dropdownStylesCustom}
             popupClassName={themeStyles[theme].classNameSelectorItem}
             style={{
-              width: "350px",
+              width: "200px",
             }}
             onSelect={(value: any) =>
               setFilters((props: any) => ({
@@ -545,6 +674,33 @@ const CostContainer = () => {
               })),
             ]}
           />
+        </div>
+        <div className="ml-2 inline-block">
+          <div className="flex items-center space-x-1">
+            <input
+              type="text"
+              className={`w-[150px] p-1 border-2 border-[#1BA1E2] rounded-md text-center hover:cursor-pointer ${themeStyles[theme].tailwindcss.inputText}`}
+              value={filters.q}
+              placeholder="Texto"
+              onChange={(value: any) => {
+                setFilters((props: any) => ({
+                  ...props,
+                  q: value.target.value,
+                }));
+              }}
+            />
+            <div
+              className="bg-gray-700 w-5 text-white py-1 rounded-md flex items-center justify-center select-none transition-opacity duration-200 hover:opacity-80 active:scale-95"
+              onClick={() =>
+                setFilters((props: any) => ({
+                  ...props,
+                  q: "",
+                }))
+              }
+            >
+              <MdCleaningServices />
+            </div>
+          </div>
         </div>
         <div className="ml-2 inline-block">
           <div
@@ -595,17 +751,98 @@ const CostContainer = () => {
           {Boolean(itemsIdSelected.length) && (
             <div
               className=" ml-2 bg-red-700 hover:bg-red-800 hover:cursor-pointer text-white px-2  py-1 rounded-md flex items-center justify-center select-none"
-              onClick={() => {
+              onClick={() => setIsModalConfirmDeleteOpen(true)}
+            >
+              Eliminar Items
+            </div>
+          )}
+        </div>
+
+        <div className="ml-2 inline-block">
+          {Boolean(itemsIdSelected.length) && (
+            <Select
+              value="Asignar Color"
+              className={themeStyles[theme].classNameSelector}
+              dropdownStyle={themeStyles[theme].dropdownStylesCustom}
+              popupClassName={themeStyles[theme].classNameSelectorItem}
+              style={{ width: 150 }}
+              onSelect={(value: any) => {
+                const mappingObjColor: any = {
+                  "": {
+                    backgroundColor: "",
+                    textColor: "",
+                    color: "",
+                  },
+                  green: {
+                    backgroundColor: "bg-green-100",
+                    textColor: "text-green-700",
+                    color: "green",
+                  },
+                  yellow: {
+                    backgroundColor: "bg-yellow-100",
+                    textColor: "text-yellow-700",
+                    color: "yellow",
+                  },
+                  red: {
+                    backgroundColor: "bg-red-100",
+                    textColor: "text-red-700",
+                    color: "red",
+                  },
+                  blue: {
+                    backgroundColor: "bg-blue-100",
+                    textColor: "text-blue-700",
+                    color: "blue",
+                  },
+                };
                 dispatchCost(
-                  costActions.removeCosts({
+                  costActions.updateColorCost({
                     costsIds: itemsIdSelected,
+                    backgroundColor: mappingObjColor[value].backgroundColor,
+                    textColor: mappingObjColor[value].textColor,
+                    color: mappingObjColor[value].color,
                   })(dispatchCost)
                 );
                 setItemsIdSelected([]);
               }}
-            >
-              Eliminar Items
-            </div>
+              options={[
+                {
+                  label: "Sin Color",
+                  value: "",
+                },
+                {
+                  label: (
+                    <div className="bg-green-100 text-green-700 p-1 rounded-md">
+                      Verde
+                    </div>
+                  ),
+                  value: "green",
+                },
+                {
+                  label: (
+                    <div className="bg-yellow-100 text-yellow-700 p-1 rounded-md">
+                      Amarillo
+                    </div>
+                  ),
+                  value: "yellow",
+                },
+                {
+                  label: (
+                    <div className="bg-red-100 text-red-700 p-1 rounded-md">
+                      Rojo
+                    </div>
+                  ),
+                  value: "red",
+                },
+                {
+                  label: (
+                    <div className="bg-blue-100 text-blue-700 p-1 rounded-md">
+                      Azul
+                    </div>
+                  ),
+                  value: "blue",
+                },
+              ]}
+            />
           )}
         </div>
       </div>
@@ -615,6 +852,7 @@ const CostContainer = () => {
           data={costsData}
           columns={columns}
           handleAction={handleAction}
+          handleClean={handleClean}
           editableRow={editableRow}
           handleEditClick={handleEditClick}
           itemsIdSelected={itemsIdSelected}
@@ -632,6 +870,19 @@ const CostContainer = () => {
       <ModalAccount
         isModalOpen={isModalAccountOpen}
         setIsModaOpen={setIsModalAccountOpen}
+      />
+      <ModalConfirmDelete
+        isModalOpen={isModalConfirmDeleteOpen}
+        setIsModaOpen={setIsModalConfirmDeleteOpen}
+        handleAction={() => {
+          dispatchCost(
+            costActions.removeCosts({
+              costsIds: itemsIdSelected,
+            })(dispatchCost)
+          );
+          setItemsIdSelected([]);
+          setIsModalConfirmDeleteOpen(false);
+        }}
       />
     </>
   );

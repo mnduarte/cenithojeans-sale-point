@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useReducer } from "react";
 import Api from "../services/Api";
 import { ERROR_MESSAGE_TIMEOUT } from "../utils/error";
-import { formatDate } from "../utils/formatUtils";
 
 // Definir las acciones disponibles para el usuario
 const actionTypes = {
@@ -10,6 +9,7 @@ const actionTypes = {
   ERROR: "error",
   ADD_COST: "add_cost",
   UPDATE_COST: "update_cost",
+  UPDATE_COLOR_COST: "update_color_cost",
   LIST_COST: "list_cost",
   REMOVE_COSTS: "remove_costs",
   LIST_ACCOUNTS: "list_accounts",
@@ -111,6 +111,22 @@ export const CostProvider: React.FC<CostProviderProps> = ({ children }) => {
           }),
         };
       }
+      case actionTypes.UPDATE_COLOR_COST: {
+        const { costsIds, backgroundColor, textColor, color } = action.payload;
+        const idsToChangeColor = costsIds.map((cost: any) => cost.id);
+
+        return {
+          ...state,
+          loading: false,
+          error: null,
+          costs: state.costs.map((cost: any) => {
+            if (idsToChangeColor.includes(cost.id)) {
+              return { ...cost, backgroundColor, textColor, color };
+            }
+            return cost;
+          }),
+        };
+      }
       case actionTypes.REMOVE_COSTS: {
         const { costsIds } = action.payload;
         const idsToDelete = costsIds.map((cost: any) => cost.id);
@@ -205,32 +221,6 @@ export const useCost = () => {
 };
 
 export const costActions = {
-  removeCosts:
-    ({ costsIds }: any) =>
-    async (dispatch: any) => {
-      dispatch({
-        type: actionTypes.LOADING,
-        payload: { loading: true },
-      });
-
-      try {
-        await Api.removeCosts({
-          costsIds,
-        });
-
-        dispatch({
-          type: actionTypes.REMOVE_COSTS,
-          payload: { costsIds },
-        });
-      } catch (error) {
-        console.log(error);
-
-        dispatch({
-          type: actionTypes.ERROR,
-          payload: ERROR_MESSAGE_TIMEOUT,
-        });
-      }
-    },
   getCosts:
     ({
       startDate,
@@ -239,7 +229,9 @@ export const costActions = {
       employees,
       typeShipment,
       checkoutDate,
+      approved,
       store,
+      q,
     }: any) =>
     async (dispatch: any) => {
       dispatch({
@@ -255,7 +247,9 @@ export const costActions = {
           employees: employees.join(","),
           typeShipment,
           checkoutDate,
+          approved,
           store,
+          q,
         });
 
         dispatch({
@@ -408,6 +402,62 @@ export const costActions = {
         dispatch({
           type: actionTypes.UPDATE_COST,
           payload: formattedPayload,
+        });
+      } catch (error) {
+        console.log(error);
+
+        dispatch({
+          type: actionTypes.ERROR,
+          payload: ERROR_MESSAGE_TIMEOUT,
+        });
+      }
+    },
+  updateColorCost:
+    ({ costsIds, backgroundColor, textColor, color }: any) =>
+    async (dispatch: any) => {
+      dispatch({
+        type: actionTypes.LOADING,
+        payload: { loading: true },
+      });
+
+      try {
+        await Api.updateColorCost({
+          costsIds,
+          backgroundColor,
+          textColor,
+          color,
+        });
+
+        dispatch({
+          type: actionTypes.UPDATE_COLOR_COST,
+          payload: { costsIds, backgroundColor, textColor, color },
+        });
+      } catch (error) {
+        console.log(error);
+
+        dispatch({
+          type: actionTypes.ERROR,
+          payload: ERROR_MESSAGE_TIMEOUT,
+        });
+      }
+    },
+
+  removeCosts:
+    ({ costsIds }: any) =>
+    async (dispatch: any) => {
+      dispatch({
+        type: actionTypes.LOADING,
+        payload: { loading: true },
+      });
+
+      try {
+        await Api.removeCosts({
+          costsIds,
+        });
+
+        dispatch({
+          type: actionTypes.REMOVE_COSTS,
+          payload: { costsIds },
         });
       } catch (error) {
         console.log(error);

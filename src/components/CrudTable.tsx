@@ -1,5 +1,5 @@
 import React from "react";
-import { MdOutlinePendingActions, MdAssignmentAdd } from "react-icons/md";
+import { MdOutlinePendingActions, MdCleaningServices } from "react-icons/md";
 import {
   formatCurrency,
   formatDateStringToYYYYMMDD,
@@ -15,6 +15,7 @@ const CrudTable = ({
   data,
   columns,
   handleAction,
+  handleClean,
   editableRow,
   handleEditClick = () => {},
   table = "0-",
@@ -53,16 +54,30 @@ const CrudTable = ({
         />
       </div>
     ),
-    select: ({ value, action, dataSelect }: any) => (
-      <Select
-        value={value ? value : ""}
-        className={themeStyles[theme].classNameSelector}
-        dropdownStyle={themeStyles[theme].dropdownStylesCustom}
-        popupClassName={themeStyles[theme].classNameSelectorItem}
-        style={{ width: 120 }}
-        onSelect={(e: any) => action({ value: e })}
-        options={dataSelect.map((data: any) => ({ value: data, label: data }))}
-      />
+    select: ({ value, action, dataSelect, enableClean, onClean }: any) => (
+      <div className="flex items-center space-x-1">
+        <Select
+          value={value ? value : ""}
+          className={themeStyles[theme].classNameSelector}
+          dropdownStyle={themeStyles[theme].dropdownStylesCustom}
+          popupClassName={themeStyles[theme].classNameSelectorItem}
+          style={{ width: 120 }}
+          onSelect={(e: any) => action({ value: e })}
+          options={dataSelect.map((data: any) => ({
+            value: data.value,
+            label: data.label,
+          }))}
+        />
+
+        {enableClean && (
+          <div
+            className="bg-gray-700 w-5 text-white py-1 rounded-md flex items-center justify-center select-none transition-opacity duration-200 hover:opacity-80 active:scale-95"
+            onClick={onClean}
+          >
+            <MdCleaningServices />
+          </div>
+        )}
+      </div>
     ),
     string: ({ value, action, inputExpanded }: any) => (
       <input
@@ -117,17 +132,27 @@ const CrudTable = ({
         />
       );
     },
-    date: ({ value, action }: any) => (
-      <DatePicker
-        onChange={action}
-        className={`${themeStyles[theme].datePickerIndicator} w-24`}
-        style={themeStyles[theme].datePicker}
-        popupClassName={themeStyles[theme].classNameDatePicker}
-        allowClear={false}
-        format={dateFormat}
-        placeholder="Seleccione Fecha"
-        value={value ? dayjs(formatDateStringToYYYYMMDD(value)) : ""}
-      />
+    date: ({ value, action, enableClean, onClean }: any) => (
+      <div className="flex items-center space-x-1">
+        <DatePicker
+          onChange={action}
+          className={`${themeStyles[theme].datePickerIndicator} w-24`}
+          style={themeStyles[theme].datePicker}
+          popupClassName={themeStyles[theme].classNameDatePicker}
+          allowClear={false}
+          format={dateFormat}
+          placeholder="Seleccione Fecha"
+          value={value ? dayjs(formatDateStringToYYYYMMDD(value)) : ""}
+        />
+        {enableClean && (
+          <div
+            className="bg-gray-700 w-5 text-white py-1 rounded-md flex items-center justify-center select-none transition-opacity duration-200 hover:opacity-80 active:scale-95"
+            onClick={onClean}
+          >
+            <MdCleaningServices />
+          </div>
+        )}
+      </div>
     ),
   };
 
@@ -256,9 +281,15 @@ const CrudTable = ({
                               inputValue,
                             }),
                           inputExpanded: column.inputExpanded,
+                          enableClean: column.enableClean,
+                          onClean: () =>
+                            handleClean({
+                              dataIndex: column.dataIndex,
+                              id: row.id,
+                            }),
                         })
                       : column.defaultValue
-                      ? column.defaultValue(row[column.dataIndex])
+                      ? column.defaultValue(row[column.dataIndex], row)
                       : Boolean(row[column.dataIndex])
                       ? column.format
                         ? column.format(row[column.dataIndex])

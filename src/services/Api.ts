@@ -73,6 +73,7 @@ const getOrders = ({
   employee,
   typeShipment,
   checkoutDate,
+  q,
 }: any) => {
   const config: AxiosRequestConfig = {
     params: {
@@ -83,6 +84,7 @@ const getOrders = ({
       employee,
       typeShipment,
       checkoutDate,
+      q,
     },
   };
 
@@ -373,7 +375,9 @@ const getCosts = ({
   employees,
   typeShipment,
   checkoutDate,
+  approved,
   store,
+  q,
 }: any) => {
   const config: AxiosRequestConfig = {
     params: {
@@ -383,7 +387,9 @@ const getCosts = ({
       employees,
       typeShipment,
       checkoutDate,
+      approved,
       store,
+      q,
     },
   };
 
@@ -451,6 +457,19 @@ const updateCost = ({
     customer,
     typeShipment,
     checkoutDate,
+  });
+
+const updateColorCost = ({
+  costsIds,
+  backgroundColor,
+  textColor,
+  color,
+}: any) =>
+  instance.put("/cost/update-color-cost", {
+    costsIds,
+    backgroundColor,
+    textColor,
+    color,
   });
 
 const removeCosts = ({ costsIds }: any) =>
@@ -528,6 +547,7 @@ const Api = {
   getCostsByDateApproved,
   addCost,
   updateCost,
+  updateColorCost,
   removeCosts,
 
   getAccounts,

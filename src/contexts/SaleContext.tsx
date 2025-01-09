@@ -400,6 +400,7 @@ export const saleActions = {
       employee,
       typeShipment,
       checkoutDate,
+      q,
     }: any) =>
     async (dispatch: any) => {
       dispatch({
@@ -416,6 +417,7 @@ export const saleActions = {
           employee,
           typeShipment,
           checkoutDate,
+          q,
         });
 
         dispatch({
