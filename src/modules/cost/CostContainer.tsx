@@ -161,6 +161,7 @@ const CostContainer = () => {
       title: "Fecha Aprobado",
       dataIndex: "dateApproved",
       editableCell: user.role === "ADMIN",
+      enableClean: user.role === "ADMIN",
       type: "date",
     },
     {
@@ -187,7 +188,7 @@ const CostContainer = () => {
       title: "Tipo",
       dataIndex: "typeShipment",
       editableCell: true,
-      enableClean: true,
+      enableClean: user.role === "ADMIN",
       type: "select",
       dataSelect: [
         {
@@ -241,7 +242,7 @@ const CostContainer = () => {
       title: "Salida",
       dataIndex: "checkoutDate",
       editableCell: true,
-      enableClean: true,
+      enableClean: user.role === "ADMIN",
       type: "date",
     },
   ];
