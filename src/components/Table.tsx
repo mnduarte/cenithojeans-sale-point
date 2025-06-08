@@ -11,6 +11,7 @@ const Table = ({
   enableSelectItem = false,
   itemsIdSelected = false,
   setItemsIdSelected = false,
+  showZero = false,
 }: any) => {
   const {
     state: { theme, themeStyles },
@@ -96,7 +97,8 @@ const Table = ({
                   ) : (
                     "-"
                   )
-                ) : Boolean(item[column.dataIndex]) ? (
+                ) : Boolean(item[column.dataIndex]) ||
+                  (item[column.dataIndex] === 0 && showZero) ? (
                   item[column.dataIndex]
                 ) : (
                   "-"

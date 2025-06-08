@@ -10,6 +10,7 @@ import Toast from "../../components/Toast";
 import KeyboardNum from "../../components/KeyboardNum";
 import { useUser } from "../../contexts/UserContext";
 import { concepts } from "../../utils/constants";
+import { useAccountForTransfer } from "../../contexts/AccountForTransferContext";
 
 const SalesContainer = () => {
   const {
@@ -36,6 +37,10 @@ const SalesContainer = () => {
   } = useSale();
 
   const [employeesFiltered, setEmployeesFiltered] = useState<any[]>([]);
+
+  const {
+    state: { accountsForTransfer }
+  } = useAccountForTransfer();
 
   const [pricesSelected, setPricesSelected] = useState<any[]>([]);
   const [devolutionPricesSelected, setDevolutionPricesSelected] = useState<
@@ -328,6 +333,7 @@ const SalesContainer = () => {
       </div>
       <ConfirmSale
         employees={employeesFiltered}
+        accountsForTransfer={accountsForTransfer}
         isModalSaleOpen={isModalSaleOpen}
         setIsModalSaleOpen={setIsModalSaleOpen}
         totalItems={totalItems}

@@ -54,24 +54,26 @@ import PricesEmployeesContainer from "./modules/price.employee/PricesEmployeesCo
 import SalesByDayContainer from "./modules/local.sale/SalesByDayContainer";
 import OrdersContainer from "./modules/order/OrdersContainer";
 import ReportsContainer from "./modules/report/ReportsContainer";
-import GraphContainer from "./modules/graph/GraphContainer";
 import AdminContainer from "./modules/admin/AdminContainer";
 import CostContainer from "./modules/cost/CostContainer";
 import { CostProvider } from "./contexts/CostContext";
+import {
+  accountForTransferActions,
+  AccountForTransferProvider,
+  useAccountForTransfer,
+} from "./contexts/AccountForTransferContext";
 
 setupIonicReact();
 
-type TabKey = "Ventas" | "Precios y Empleados" | "Pedidos";
-
-const mappingTabs = {
+const mappingTabs: any = {
   Ventas: {
     title: "Ventas",
     icon: <MdOutlineAddShoppingCart />,
     container: <SalesContainer />,
     permission: ["EMPLOYEE", "ADMIN"],
   },
-  "Precios y Empleados": {
-    title: "Precios y Empleados",
+  "Precios | Empleados | CPT": {
+    title: "Precios | Empleados | CPT",
     icon: <FaList />,
     container: <PricesEmployeesContainer />,
     permission: ["ADMIN"],
@@ -115,10 +117,11 @@ const mappingTabs = {
 };
 
 const SalePointContainer = ({ role, store }: any) => {
-  const [activeTab, setActiveTab] = useState<TabKey>("Ventas");
+  const [activeTab, setActiveTab] = useState("Ventas");
   const { dispatch: dispatchPrice } = usePrice();
   const { dispatch: dispatchEmployee } = useEmployee();
   const { dispatch: dispatchStore } = useStore();
+  const { dispatch: dispatchAccountForTransfer } = useAccountForTransfer();
 
   const {
     state: { theme, themeStyles },
@@ -129,6 +132,9 @@ const SalePointContainer = ({ role, store }: any) => {
     dispatchPrice(priceActions.getAll()(dispatchPrice));
     dispatchEmployee(employeeActions.getAll({ store })(dispatchEmployee));
     dispatchStore(storeActions.getAll()(dispatchStore));
+    dispatchAccountForTransfer(
+      accountForTransferActions.getAll({ store })(dispatchAccountForTransfer)
+    );
   }, []);
 
   const mappingTabsByRole = Object.values(mappingTabs).filter((tabs: any) =>
@@ -303,17 +309,19 @@ const App: React.FC = () => {
           <SaleProvider>
             <PriceProvider>
               <EmployeeProvider>
-                <CashflowProvider>
-                  <ObservationProvider>
-                    <GraphProvider>
-                      <AdminProvider>
-                        <CostProvider>
-                          <AppContainer />
-                        </CostProvider>
-                      </AdminProvider>
-                    </GraphProvider>
-                  </ObservationProvider>
-                </CashflowProvider>
+                <AccountForTransferProvider>
+                  <CashflowProvider>
+                    <ObservationProvider>
+                      <GraphProvider>
+                        <AdminProvider>
+                          <CostProvider>
+                            <AppContainer />
+                          </CostProvider>
+                        </AdminProvider>
+                      </GraphProvider>
+                    </ObservationProvider>
+                  </CashflowProvider>
+                </AccountForTransferProvider>
               </EmployeeProvider>
             </PriceProvider>
           </SaleProvider>

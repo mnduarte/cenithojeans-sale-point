@@ -52,6 +52,28 @@ const updateEmployee = ({
 const removeEmployee = ({ id }: any) =>
   instance.delete(`/employee/remove-employee/${id}`);
 
+const getAccountsForTransfer = ({ store }: any) =>
+  instance.post("/accounttransfer/", { store });
+const addAccountForTransfer = ({ name, store, position, active }: any) =>
+  instance.post("/accounttransfer/add", {
+    name,
+    store,
+    position,
+    active,
+  });
+
+const updateAccountForTransfer = ({ id, name, store, position, active }: any) =>
+  instance.put("/accounttransfer/", {
+    id,
+    name,
+    store,
+    position,
+    active,
+  });
+
+const removeAccountForTransfer = ({ id }: any) =>
+  instance.delete(`/accounttransfer/${id}`);
+
 const getSales = ({ startDate, endDate, store, employee }: any) => {
   const config: AxiosRequestConfig = {
     params: {
@@ -204,6 +226,7 @@ const addSale = ({
   totalToPay,
   totalFinal,
   isWithPrepaid,
+  accountForTransfer,
 }: any) =>
   instance.post("/sale/add-sale", {
     store,
@@ -227,6 +250,7 @@ const addSale = ({
     totalToPay,
     totalFinal,
     isWithPrepaid,
+    accountForTransfer,
   });
 
 const addNewNumOrder = ({ employeeId, newNumOrder }: any) =>
@@ -513,6 +537,11 @@ const Api = {
   addEmployee,
   updateEmployee,
   removeEmployee,
+
+  getAccountsForTransfer,
+  addAccountForTransfer,
+  updateAccountForTransfer,
+  removeAccountForTransfer,
 
   addSale,
   addNewNumOrder,

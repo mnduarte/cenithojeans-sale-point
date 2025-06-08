@@ -11,10 +11,9 @@ const styles = StyleSheet.create({
   },
   table: {
     display: "flex",
-    width: 360,
     flexDirection: "row", // Cambiado para disposición horizontal
     flexWrap: "wrap", // Para que se envuelvan los elementos si no caben en una sola fila
-    marginLeft: 2, // Margen inferior para separar las tablas
+    marginLeft: 2,
   },
   tableDetail: {
     display: "flex",
@@ -51,7 +50,6 @@ const styles = StyleSheet.create({
   },
 
   tableRow: {
-    margin: "auto",
     flexDirection: "row",
   },
   tableCol: {
@@ -140,6 +138,9 @@ const TableListTranfer = ({ data }: any) => (
       <View style={styles.tableCol}>
         <Text style={styles.text}>Prendas</Text>
       </View>
+      <View style={{ ...styles.tableCol, width: 100 }}>
+        <Text style={styles.text}>Cuenta para transferir</Text>
+      </View>
       <View style={styles.tableCol}>
         <Text style={styles.text}>Total</Text>
       </View>
@@ -166,6 +167,9 @@ const TableListTranfer = ({ data }: any) => (
         <View style={styles.tableCol}>
           <Text style={styles.text}>{resume.items}</Text>
         </View>
+        <View style={{ ...styles.tableCol, width: 100 }}>
+          <Text style={styles.text}>{resume.accountForTransfer}</Text>
+        </View>
         <View style={styles.tableCol}>
           <Text style={styles.text}>${formatCurrency(resume.total)}</Text>
         </View>
@@ -189,6 +193,9 @@ const TableListTranfer = ({ data }: any) => (
         <Text style={styles.textResume}>
           {data.reduce((acc: any, current: any) => acc + current.items, 0)}
         </Text>
+      </View>
+      <View style={{ ...styles.tableCol, width: 100 }}>
+        <Text style={styles.textResume}></Text>
       </View>
       <View style={styles.tableCol}>
         <Text style={styles.textResume}></Text>

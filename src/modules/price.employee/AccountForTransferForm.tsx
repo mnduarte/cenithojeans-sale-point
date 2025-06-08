@@ -4,12 +4,12 @@ import Spinner from "../../components/Spinner";
 import { Select } from "antd";
 import { useTheme } from "../../contexts/ThemeContext";
 
-const EmployeeForm = ({
+const AccountForTransferForm = ({
   itemSelected,
   setItemSelected,
-  onAddEmployee,
-  onUpdateEmployee,
-  onDeleteEmployee,
+  onAddAccountTransfer,
+  onUpdateAccountTransfer,
+  onDeleteAccountTransfer,
   isLoading,
   stores,
   totalPositions,
@@ -25,21 +25,21 @@ const EmployeeForm = ({
     active: true,
     activeForCost: false,
   };
-  const [isNewEmployee, setIsNewEmployee] = useState(true);
-  const [employeeValues, setEmployeeValues] = useState(initialValues);
+  const [isNewAccountTransfer, setIsNewAccountTransfer] = useState(true);
+  const [accountTransferValues, setAccountTransfer] = useState(initialValues);
 
-  const titleForm = `${isNewEmployee ? "Carga de" : "Editar"} empleado`;
+  const titleForm = `${isNewAccountTransfer ? "Carga de" : "Editar"} cuenta`;
 
   const handleAction = (action: any) => {
-    action(employeeValues);
-    setEmployeeValues(initialValues);
-    setIsNewEmployee(true);
+    action(accountTransferValues);
+    setAccountTransfer(initialValues);
+    setIsNewAccountTransfer(true);
   };
 
   useEffect(() => {
     if (itemSelected.id) {
-      setEmployeeValues(itemSelected);
-      setIsNewEmployee(false);
+      setAccountTransfer(itemSelected);
+      setIsNewAccountTransfer(false);
     }
   }, [itemSelected]);
 
@@ -47,12 +47,12 @@ const EmployeeForm = ({
     <div className="p-4 rounded-md">
       <h3 className="text-2xl mb-4 flex items-center justify-center gap-2">
         <label>{titleForm}</label>
-        {!isNewEmployee && (
+        {!isNewAccountTransfer && (
           <div
             className="w-1/5 h-[4vh] bg-[#007c2f] p-1 hover:cursor-pointer hover:bg-[#006b29] flex items-center justify-center rounded-md"
             onClick={() => {
-              setEmployeeValues(initialValues);
-              setIsNewEmployee(true);
+              setAccountTransfer(initialValues);
+              setIsNewAccountTransfer(true);
               setItemSelected({});
             }}
           >
@@ -62,12 +62,12 @@ const EmployeeForm = ({
       </h3>
 
       <div className="mb-4">
-        <label className="block mb-2">Nombre:</label>
+        <label className="block mb-2">Nombre de Cuenta:</label>
         <input
           type="text"
-          value={employeeValues.name}
+          value={accountTransferValues.name}
           onChange={(e) =>
-            setEmployeeValues({ ...employeeValues, name: e.target.value })
+            setAccountTransfer({ ...accountTransferValues, name: e.target.value })
           }
           className={`p-1 rounded-md w-full ${themeStyles[theme].tailwindcss.inputText}`}
         />
@@ -77,12 +77,12 @@ const EmployeeForm = ({
         <label className="block mb-2">Sucursal:</label>
 
         <Select
-          value={employeeValues.store}
+          value={accountTransferValues.store}
           className={`${themeStyles[theme].classNameSelector} w-full`}
           dropdownStyle={themeStyles[theme].dropdownStylesCustom}
           popupClassName={themeStyles[theme].classNameSelectorItem}
           onSelect={(value: any) =>
-            setEmployeeValues({ ...employeeValues, store: value })
+            setAccountTransfer({ ...accountTransferValues, store: value })
           }
           options={stores.map((data: any) => ({
             value: data.name,
@@ -95,12 +95,12 @@ const EmployeeForm = ({
         <label className="block mb-2">Posicion:</label>
 
         <Select
-          value={employeeValues.position}
+          value={accountTransferValues.position}
           className={`${themeStyles[theme].classNameSelector} w-full`}
           dropdownStyle={themeStyles[theme].dropdownStylesCustom}
           popupClassName={themeStyles[theme].classNameSelectorItem}
           onSelect={(value: any) =>
-            setEmployeeValues({ ...employeeValues, position: value })
+            setAccountTransfer({ ...accountTransferValues, position: value })
           }
           options={Array.from(
             { length: totalPositions + 1 },
@@ -116,9 +116,9 @@ const EmployeeForm = ({
         <label className="block mb-2 cursor-pointer">
           <input
             type="checkbox"
-            checked={employeeValues.active}
+            checked={accountTransferValues.active}
             onChange={({ target }) =>
-              setEmployeeValues({ ...employeeValues, active: target.checked })
+              setAccountTransfer({ ...accountTransferValues, active: target.checked })
             }
             className="mr-2"
           />
@@ -126,37 +126,20 @@ const EmployeeForm = ({
         </label>
       </div>
 
-      <div className="mb-4">
-        <label className="block mb-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={employeeValues.activeForCost}
-            onChange={({ target }) =>
-              setEmployeeValues({
-                ...employeeValues,
-                activeForCost: target.checked,
-              })
-            }
-            className="mr-2"
-          />
-          <span>Activo para Pagos</span>
-        </label>
-      </div>
-
       <div className="flex justify-between items-center mt-4">
-        {isNewEmployee ? (
+        {isNewAccountTransfer ? (
           <button
             className={`${
-              !Boolean(employeeValues.name) || !Boolean(employeeValues.store)
+              !Boolean(accountTransferValues.name) || !Boolean(accountTransferValues.store)
                 ? "bg-gray-600"
                 : "bg-[#007c2f] hover:opacity-80 transition-opacity"
             } text-white px-4 py-2 rounded-md flex items-center mx-auto`}
             disabled={
-              !Boolean(employeeValues.name) || !Boolean(employeeValues.store)
+              !Boolean(accountTransferValues.name) || !Boolean(accountTransferValues.store)
             }
-            onClick={() => !isLoading && handleAction(onAddEmployee)}
+            onClick={() => !isLoading && handleAction(onAddAccountTransfer)}
           >
-            <FaPlus className="mr-2" /> Agregar Empleado
+            <FaPlus className="mr-2" /> Agregar Cuenta
             {isLoading && (
               <div className="ml-2">
                 <Spinner />
@@ -167,7 +150,7 @@ const EmployeeForm = ({
           <>
             <button
               className={`bg-red-500 text-white px-4 py-2 rounded-md hover:opacity-80 transition-opacity flex items-center mx-auto`}
-              onClick={() => !isLoading && handleAction(onDeleteEmployee)}
+              onClick={() => !isLoading && handleAction(onDeleteAccountTransfer)}
             >
               Eliminar
               {isLoading && (
@@ -178,7 +161,7 @@ const EmployeeForm = ({
             </button>
             <button
               className={`bg-blue-500 text-white px-4 py-2 rounded-md hover:opacity-80 transition-opacity flex items-center mx-auto`}
-              onClick={() => !isLoading && onUpdateEmployee(employeeValues)}
+              onClick={() => !isLoading && onUpdateAccountTransfer(accountTransferValues)}
             >
               Guardar
               {isLoading && (
@@ -194,4 +177,4 @@ const EmployeeForm = ({
   );
 };
 
-export default EmployeeForm;
+export default AccountForTransferForm;

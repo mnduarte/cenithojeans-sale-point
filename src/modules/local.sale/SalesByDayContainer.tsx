@@ -24,6 +24,7 @@ import Keyboard from "../../components/Keyboard";
 
 import PdfLocalSale from "./PdfLocalSale";
 import PdfLocalTransfer from "./PdfLocalTransfer";
+import { useAccountForTransfer } from "../../contexts/AccountForTransferContext";
 
 const mappingConceptToUpdate: Record<string, string> = {
   cash: "Efectivo",
@@ -181,6 +182,9 @@ const ModalListTranferSale = ({
   const {
     state: { user },
   } = useUser();
+  const {
+    state: { accountsForTransfer },
+  } = useAccountForTransfer();
   const [itemsIdSelected, setItemsIdSelected] = useState<any[]>([]);
   const [editableRow, setEditableRow] = useState<number | null>(null);
   const [isModalKeyboardNumOpen, setIsModalKeyboardNumOpen] = useState(false);
@@ -191,10 +195,13 @@ const ModalListTranferSale = ({
     dataIndex: "",
   });
 
-  const {
-    state: { loading },
-    dispatch: dispatchSale,
-  } = useSale();
+  const [salesFiltered, setSalesFiltered] = useState(sales);
+
+  const { dispatch: dispatchSale } = useSale();
+
+  useEffect(() => {
+    setSalesFiltered(sales);
+  }, [sales]);
 
   const columns = [
     { title: "N°", dataIndex: "order", size: "w-5" },
@@ -223,6 +230,13 @@ const ModalListTranferSale = ({
       editableCell: true,
       type: "string",
       sumAcc: true,
+    },
+    {
+      title: "Cuenta para transferir",
+      dataIndex: "accountForTransfer",
+      editableCell: true,
+      type: "select",
+      dataSelect: accountsForTransfer.map(({ name }) => name),
     },
     {
       title: "Total",
@@ -256,25 +270,32 @@ const ModalListTranferSale = ({
     );
   };
 
-  const handleAction = ({ dataIndex, value, id, inputType }: any) => {
+  const handleAction = ({
+    dataIndex,
+    value,
+    id,
+    inputType,
+    inputValue,
+  }: any) => {
     if (inputType === "string") {
       setPropSale({ dataIndex, id });
       setValue(value ? value : 0);
       setIsModalKeyboardNumOpen(true);
     }
-  };
 
-  const handleItemsSelected = (row: any, checked: any) => {
-    const setIdsSelected =
-      row.type === "ingreso" ? setCashflowIdSelected : setItemsIdSelected;
+    if (inputType === "select") {
+      dispatchSale(
+        saleActions.updateSaleByEmployee({
+          id: id,
+          dataIndex: dataIndex,
+          value: inputValue.value,
+        })(dispatchSale)
+      );
 
-    setIdsSelected((items: any) => {
-      if (checked) {
-        return [...items, { id: row.id }];
-      }
-
-      return items.filter((i: any) => i.id !== row.id);
-    });
+      setTimeout(() => {
+        setEditableRow(null);
+      }, 50);
+    }
   };
 
   return (
@@ -283,7 +304,7 @@ const ModalListTranferSale = ({
         <div className="fixed inset-0 bg-[#252525] bg-opacity-60 flex items-center justify-center">
           {/* Contenido del modal */}
           <div
-            className={`w-[70vh] h-[65vh] p-8 rounded-md shadow-md relative ${themeStyles[theme].tailwindcss.modal}`}
+            className={`w-[80vh] h-[65vh] p-8 rounded-md shadow-md relative ${themeStyles[theme].tailwindcss.modal}`}
           >
             {/* Icono de cerrar en la esquina superior derecha */}
             <button
@@ -298,12 +319,41 @@ const ModalListTranferSale = ({
             </h2>
 
             <div className="mt-2 h-[4vh] mx-auto max-w flex items-center">
+              <div className="inline-block">
+                <label className="mr-2">
+                  Filtrar por Cuenta para transferir:
+                </label>
+
+                <Select
+                  className={themeStyles[theme].classNameSelector}
+                  dropdownStyle={themeStyles[theme].dropdownStylesCustom}
+                  popupClassName={themeStyles[theme].classNameSelectorItem}
+                  style={{ width: 110 }}
+                  onSelect={(value: any) => {
+                    setSalesFiltered(() =>
+                      value === "Todos"
+                        ? sales
+                        : sales.filter(
+                            (sale: any) => sale.accountForTransfer === value
+                          )
+                    );
+                  }}
+                  options={[
+                    { label: "Todos", value: "Todos" },
+                    ...accountsForTransfer.map((data: any) => ({
+                      value: data.name,
+                      label: data.name,
+                    })),
+                  ]}
+                />
+              </div>
+
               <PDFDownloadLink
                 document={
                   <PdfLocalTransfer
                     date={dayjs(date).format("DD-MM-YYYY")}
                     store={mappingListStore[store]}
-                    data={sales}
+                    data={salesFiltered}
                   />
                 }
                 fileName={`listado-transferencias-${dayjs(date).format(
@@ -342,7 +392,7 @@ const ModalListTranferSale = ({
 
             <div className="mt-2 h-[50vh] mx-auto max-w overflow-hidden overflow-y-auto overflow-x-auto">
               <EditableTable
-                data={sales}
+                data={salesFiltered}
                 columns={columns}
                 handleAction={handleAction}
                 editableRow={editableRow}

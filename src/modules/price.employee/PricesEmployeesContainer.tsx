@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { usePrice, priceActions } from "../../contexts/PriceContext";
 import { useEmployee, employeeActions } from "../../contexts/EmployeeContext";
 import Table from "../../components/Table";
@@ -9,6 +9,12 @@ import { FaUsers } from "react-icons/fa";
 import { formatCurrency } from "../../utils/formatUtils";
 import { useStore } from "../../contexts/StoreContext";
 import { useTheme } from "../../contexts/ThemeContext";
+import { MdAccountTree } from "react-icons/md";
+import {
+  accountForTransferActions,
+  useAccountForTransfer,
+} from "../../contexts/AccountForTransferContext";
+import AccountForTransferForm from "./AccountForTransferForm";
 
 const PricesContainer = () => {
   const {
@@ -145,6 +151,7 @@ const EmployeesContainer = () => {
             columns={columns}
             itemSelected={itemSelected}
             setItemSelected={setItemSelected}
+            showZero={true}
           />
         </div>
       </div>
@@ -170,6 +177,78 @@ const EmployeesContainer = () => {
   );
 };
 
+const AccountsForTransferContainer = () => {
+  const {
+    state: { accountsForTransfer, loading },
+    dispatch,
+  } = useAccountForTransfer();
+  const {
+    state: { stores },
+  } = useStore();
+  const [itemSelected, setItemSelected] = useState<any>({});
+
+  useEffect(() => {
+    dispatch(accountForTransferActions.getAll({ store: "ALL" })(dispatch));
+  }, []);
+
+  const columns = [
+    {
+      title: "Nombre de cuenta",
+      dataIndex: "name",
+    },
+    { title: "Posicion", dataIndex: "position" },
+    { title: "Sucursal", dataIndex: "store" },
+    { title: "Activo", dataIndex: "active" },
+  ];
+
+  return (
+    <div className="h-[73vh] mx-auto flex">
+      <div className="w-4/5 p-2">
+        <h3 className="text-2xl mb-4">Listado de Cuentas para Transferir</h3>
+        <div className="h-[65vh] mx-auto max-w overflow-hidden overflow-y-auto">
+          <Table
+            data={accountsForTransfer}
+            columns={columns}
+            itemSelected={itemSelected}
+            setItemSelected={setItemSelected}
+            showZero={true}
+          />
+        </div>
+      </div>
+      <div className="w-1/3 p-2">
+        <AccountForTransferForm
+          itemSelected={itemSelected}
+          setItemSelected={setItemSelected}
+          onAddAccountTransfer={(accountTransfer: any) =>
+            dispatch(
+              accountForTransferActions.addAccountForTransfer(accountTransfer)(
+                dispatch
+              )
+            )
+          }
+          onUpdateAccountTransfer={(accountTransfer: any) =>
+            dispatch(
+              accountForTransferActions.updateAccountForTransfer(
+                accountTransfer
+              )(dispatch)
+            )
+          }
+          onDeleteAccountTransfer={(accountTransfer: any) =>
+            dispatch(
+              accountForTransferActions.removeAccountForTransfer(
+                accountTransfer
+              )(dispatch)
+            )
+          }
+          isLoading={loading}
+          stores={stores}
+          totalPositions={accountsForTransfer.length}
+        />
+      </div>
+    </div>
+  );
+};
+
 type TabKey = "Precios" | "Empleados";
 
 const mappingTabs = {
@@ -183,6 +262,11 @@ const mappingTabs = {
     icon: <FaUsers />,
     container: <EmployeesContainer />,
   },
+  CPT: {
+    title: "CPT",
+    icon: <MdAccountTree />,
+    container: <AccountsForTransferContainer />,
+  },
 };
 
 const PricesEmployeesContainer = () => {
@@ -193,7 +277,7 @@ const PricesEmployeesContainer = () => {
 
   return (
     <div className="max-w-5xl mx-auto mt-5 h-2/3 h-[90vh]">
-      <div className="w-1/3 h-[5vh] flex mb-4">
+      <div className="w-1/2 h-[5vh] flex mb-4">
         {Object.values(mappingTabs).map((tab: any) => (
           <button
             key={tab.title}

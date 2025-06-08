@@ -13,6 +13,7 @@ import { useTheme } from "../../contexts/ThemeContext";
 
 const ConfirmSale = ({
   employees,
+  accountsForTransfer,
   isModalSaleOpen,
   setIsModalSaleOpen,
   totalItems,
@@ -41,6 +42,7 @@ const ConfirmSale = ({
   const [typeSale, setTypeSale] = useState("");
   const [typePayment, setTypePayment] = useState("");
   const [typeShipment, setTypeShipment] = useState("");
+  const [accountForTransfer, setAccountForTransfer] = useState("");
   const [payment, setPayment] = useState({ cash: "", transfer: "" });
   const [
     percentageToDisccountOrAddPayment,
@@ -66,6 +68,7 @@ const ConfirmSale = ({
     setTypeSale("");
     setTypePayment("");
     setTypeShipment("");
+    setAccountForTransfer("");
     setPercentageToDisccountOrAddPayment({
       cash: 0,
       transfer: 0,
@@ -246,6 +249,7 @@ const ConfirmSale = ({
       totalToPay,
       totalFinal,
       isWithPrepaid,
+      accountForTransfer,
     };
     onSale(data);
   };
@@ -472,7 +476,7 @@ const ConfirmSale = ({
                 </>
               )}
 
-              <div className="mt-2 h-[5vh] flex items-center justify-start">
+              <div className="mt-2 h-[5vh] flex items-center justify-start mb-2">
                 <label
                   onClick={() => {
                     setPercentageToDisccountOrAddPayment({
@@ -605,6 +609,33 @@ const ConfirmSale = ({
                   </div>
                   ({transferWithRecharge})
                 </div>
+              </div>
+              <div className="text-base font-bold mb-2 flex items-center justify-end h-[30px]">
+                {Boolean(
+                  payment.cash === "" && payment.transfer === String(totalToPay)
+                ) && (
+                  <>
+                    <label className="mx-2 "> Cuenta para transferir:</label>
+
+                    <Select
+                      value={accountForTransfer}
+                      className={themeStyles[theme].classNameSelector}
+                      dropdownStyle={{
+                        ...themeStyles[theme].dropdownStylesCustom,
+                        width: 160,
+                      }}
+                      popupClassName={themeStyles[theme].classNameSelectorItem}
+                      style={{ width: 160 }}
+                      onSelect={(value: any) => {
+                        setAccountForTransfer(value);
+                      }}
+                      options={accountsForTransfer.map((data: any) => ({
+                        value: data.name,
+                        label: data.name,
+                      }))}
+                    />
+                  </>
+                )}
               </div>
               <div className="h-[12vh]">
                 {Boolean(transferWithRecharge) && (
