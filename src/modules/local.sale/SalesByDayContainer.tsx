@@ -1089,7 +1089,11 @@ const SalesByDayContainer = () => {
           isModalListTransferSaleOpen={isModalListTranferSaleOpen}
           setIsModalListTransferSaleOpen={setIsModalListTranferSaleOpen}
           date={date}
-          sales={salesTransferByEmployees}
+          sales={salesTransferByEmployees.sort((a, b) => {
+            if (a.position === null) return 1;
+            if (b.position === null) return -1;
+            return a.position - b.position;
+          })}
           store={store}
         />
         <ModalListOutgoing

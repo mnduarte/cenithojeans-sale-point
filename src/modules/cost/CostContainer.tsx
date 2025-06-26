@@ -416,9 +416,8 @@ const CostContainer = () => {
     <>
       <div
         className={`h-12 relative p-2 border-x border-t ${themeStyles[theme].tailwindcss.border} flex justify-between items-center`}
-        onClick={removeCellSelected}
       >
-        <div className={`flex space-between`} onClick={removeCellSelected}>
+        <div className={`flex space-between`}>
           <div className="inline-block">
             <label className="mr-1">Desde:</label>
             <DatePicker

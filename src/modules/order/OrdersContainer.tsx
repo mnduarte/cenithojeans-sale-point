@@ -670,7 +670,7 @@ const OrdersContainer = () => {
         )}
 
         <Tag color="#3B3B3B" className="ml-2 py-1 px-2 text-sm">
-          Cantidad Pedidos: {ordersFiltered.length}
+          Cantidad Pedidos: {ordersFiltered.filter(order => !Boolean(order.cancelled)).length}
         </Tag>
       </div>
 
