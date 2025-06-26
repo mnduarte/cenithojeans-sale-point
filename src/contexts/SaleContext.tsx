@@ -9,6 +9,7 @@ const actionTypes = {
   LIST_SALES: "list_sales",
   LIST_ORDERS: "list_orders",
   LIST_REPORTS: "list_reports",
+  LIST_REPORTS_BY_EMPLOYEES: "list_reports_by_employees",
   LIST_SALES_BY_EMPLOYEES: "list_sales_by_employees",
   LIST_SALES_TRANSFER_BY_EMPLOYEES: "list_sales_transfer_by_employees",
   LIST_SALE_BY_EMPLOYEES: "list_sale_by_employees",
@@ -32,6 +33,7 @@ type SaleState = {
   loading: boolean;
   error: any;
   reports: any;
+  reportsByEmployees: any;
   orders: any[];
   sales: any[];
   lastSaleUpdated: any;
@@ -64,6 +66,68 @@ export const SaleProvider: React.FC<SaleProviderProps> = ({ children }) => {
     reports: {
       salesGeneral: [],
       typeSale: null,
+    },
+    reportsByEmployees: {
+      BOGOTA: {
+        byItemWeek: {
+          employees: [],
+          totalItems: 0,
+        },
+        byQuantitySalePedido: {
+          employees: [],
+          totalItems: 0,
+        },
+        byItemSaleLocal: {
+          employees: [],
+          totalItems: 0,
+        },
+        byItemShipmentRetiraLocal: {
+          employees: [],
+          totalItems: 0,
+        },
+        byItemShipmentEnvio: {
+          employees: [],
+          totalItems: 0,
+        },
+        byItemConceptEmployee: {
+          employees: [],
+          totalItems: 0,
+        },
+        byItemConcept: {
+          concepts: [],
+          totalItems: 0,
+        },
+      },
+      HELGUERA: {
+        byItemWeek: {
+          employees: [],
+          totalItems: 0,
+        },
+        byQuantitySalePedido: {
+          employees: [],
+          totalItems: 0,
+        },
+        byItemSaleLocal: {
+          employees: [],
+          totalItems: 0,
+        },
+        byItemShipmentRetiraLocal: {
+          employees: [],
+          totalItems: 0,
+        },
+        byItemShipmentEnvio: {
+          employees: [],
+          totalItems: 0,
+        },
+        byItemConceptEmployee: {
+          employees: [],
+          totalItems: 0,
+        },
+        byItemConcept: {
+          concepts: [],
+          totalItems: 0,
+        },
+      },
     },
     orders: [],
     sales: [],
@@ -281,6 +345,13 @@ export const SaleProvider: React.FC<SaleProviderProps> = ({ children }) => {
           reports: { ...action.payload },
         };
       }
+      case actionTypes.LIST_REPORTS_BY_EMPLOYEES: {
+        return {
+          ...state,
+          loading: false,
+          reportsByEmployees: { ...action.payload },
+        };
+      }
       case actionTypes.LIST_SALES_BY_EMPLOYEES: {
         return {
           ...state,
@@ -381,6 +452,37 @@ export const saleActions = {
         dispatch({
           type: actionTypes.LIST_REPORTS,
           payload: data.results,
+        });
+      } catch (error) {
+        console.log(error);
+
+        dispatch({
+          type: actionTypes.ERROR,
+          payload: ERROR_MESSAGE_TIMEOUT,
+        });
+      }
+    },
+  getReportsByEmployees:
+    ({ startDate, endDate, month, year, employees, typeDate }: any) =>
+    async (dispatch: any) => {
+      dispatch({
+        type: actionTypes.LOADING,
+        payload: { loading: true },
+      });
+
+      try {
+        const { data } = await Api.getReportsByEmployees({
+          startDate,
+          endDate,
+          month,
+          year,
+          employees: employees.join(","),
+          typeDate,
+        });
+
+        dispatch({
+          type: actionTypes.LIST_REPORTS_BY_EMPLOYEES,
+          payload: data,
         });
       } catch (error) {
         console.log(error);
