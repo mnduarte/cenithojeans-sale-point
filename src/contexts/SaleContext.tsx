@@ -25,6 +25,7 @@ const actionTypes = {
   UPDATE_ORDER: "update_order",
   UPDATE_SALE_BY_EMPLOYEE: "update_sale_by_employee",
   CANCEL_ORDERS: "cancel_orders",
+  ENABLE_ORDERS: "enable_orders",
   LAST_NUM_ORDER_BY_SELLER: "last_num_order_by_seller",
 };
 
@@ -240,6 +241,25 @@ export const SaleProvider: React.FC<SaleProviderProps> = ({ children }) => {
           error: null,
           showSuccessToast: true,
           showSuccessToastMsg: "Pedidos anulados",
+          orders: state.orders.map((order: any) => {
+            const foundItem = action.payload.find(
+              (orderUpdated: any) => orderUpdated.id === order.id
+            );
+
+            if (foundItem) {
+              return { ...order, ...foundItem };
+            }
+            return order;
+          }),
+        };
+      }
+      case actionTypes.ENABLE_ORDERS: {
+        return {
+          ...state,
+          loading: false,
+          error: null,
+          showSuccessToast: true,
+          showSuccessToastMsg: "Pedidos Habilitados",
           orders: state.orders.map((order: any) => {
             const foundItem = action.payload.find(
               (orderUpdated: any) => orderUpdated.id === order.id
@@ -824,6 +844,39 @@ export const saleActions = {
       }
     },
   cancelOrders:
+    ({ itemsIdSelected, reason, user }: any) =>
+    async (dispatch: any) => {
+      dispatch({
+        type: actionTypes.LOADING,
+        payload: { loading: true },
+      });
+
+      try {
+        const now = new Date();
+        const offset = now.getTimezoneOffset();
+        const localDate = new Date(now.getTime() - offset * 60000);
+
+        const { data } = await Api.cancelOrders({
+          itemsIdSelected,
+          reason,
+          user,
+          cancellationDate: localDate.toISOString(),
+        });
+
+        dispatch({
+          type: actionTypes.CANCEL_ORDERS,
+          payload: data.results,
+        });
+      } catch (error) {
+        console.log(error);
+
+        dispatch({
+          type: actionTypes.ERROR,
+          payload: ERROR_MESSAGE_TIMEOUT,
+        });
+      }
+    },
+  enableOrders:
     ({ itemsIdSelected }: any) =>
     async (dispatch: any) => {
       dispatch({
@@ -832,12 +885,13 @@ export const saleActions = {
       });
 
       try {
-        const { data } = await Api.cancelOrders({
-          itemsIdSelected,
+
+        const { data } = await Api.enableOrders({
+          itemsIdSelected
         });
 
         dispatch({
-          type: actionTypes.CANCEL_ORDERS,
+          type: actionTypes.ENABLE_ORDERS,
           payload: data.results,
         });
       } catch (error) {

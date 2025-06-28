@@ -22,7 +22,7 @@ import {
   mappingTypeShipment,
 } from "../../utils/constants";
 import { useTheme } from "../../contexts/ThemeContext";
-import { FcApproval } from "react-icons/fc";
+import { MdClose } from "react-icons/md";
 import * as XLSX from "xlsx";
 import ModalSearchByText from "./ModalSearchByText";
 
@@ -32,6 +32,91 @@ const mappingConceptToUpdate: Record<string, string> = {
   transfer: "Transferencia",
   items: "Prendas",
   total: "Total",
+};
+
+const ModalCancellation = ({ isModalOpen, setIsModalOpen, onSubmit }: any) => {
+  const {
+    state: { theme, themeStyles },
+  } = useTheme();
+  const {
+    state: { user },
+  } = useUser();
+  const [reason, setReason] = useState("");
+
+  const handleSubmit = () => {
+    onSubmit({ reason, user: user.username });
+    setIsModalOpen(false);
+  };
+
+  return (
+    <>
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-[#252525] bg-opacity-60 flex items-center justify-center">
+          {/* Contenido del modal */}
+          <div
+            className={`w-[350px] p-8 rounded-md shadow-md relative ${themeStyles[theme].tailwindcss.modal}`}
+          >
+            {/* Icono de cerrar en la esquina superior derecha */}
+            <button
+              className="absolute top-4 right-4"
+              onClick={() => {
+                setIsModalOpen(false);
+              }}
+            >
+              <MdClose className="text-2xl" />
+            </button>
+
+            <h2 className="text-lg font-bold mb-4">
+              Seleccione Motivo de anulacion
+            </h2>
+
+            <Select
+              value={reason}
+              className={themeStyles[theme].classNameSelector}
+              dropdownStyle={{
+                ...themeStyles[theme].dropdownStylesCustom,
+                width: 250,
+              }}
+              popupClassName={themeStyles[theme].classNameSelectorItem}
+              style={{ width: 250, marginBottom: "1rem" }}
+              onSelect={(value: any) => setReason(value)}
+              options={[
+                { name: "No contesta" },
+                { name: "Hizo otro pedido" },
+                { name: "Pedido duplicado" },
+              ].map((data: any) => ({
+                value: data.name,
+                label: data.name,
+              }))}
+            />
+
+            <br />
+
+            <div className="flex space-x-4">
+              <div
+                className="w-1/2 bg-blue-800 hover:bg-blue-800 hover:cursor-pointer text-white px-4 py-2 rounded-md flex items-center justify-center mx-auto select-none"
+                onClick={() => {
+                  setIsModalOpen(false);
+                }}
+              >
+                Cancelar
+              </div>
+              <div
+                className={`${
+                  !Boolean(reason)
+                    ? "bg-gray-500"
+                    : "bg-green-800 hover:bg-green-800 hover:cursor-pointer"
+                }  w-1/2 text-white px-4 py-2 rounded-md flex items-center justify-center mx-auto select-none `}
+                onClick={() => Boolean(reason) && handleSubmit()}
+              >
+                Guardar
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
 };
 
 const OrdersContainer = () => {
@@ -81,9 +166,17 @@ const OrdersContainer = () => {
   });
   const [isModalKeyboardNumOpen, setIsModalKeyboardNumOpen] = useState(false);
   const [isModalSearchByTextOpen, setIsModalSearchByTextOpen] = useState(false);
-  const [itemsIdSelected, setItemsIdSelected] = useState<any[]>([]);
+  const [isModalCancellationReasonOpen, setIsModalCancellationReasonOpen] =
+    useState(false);
+  const [itemsSelected, setItemsSelected] = useState<any[]>([]);
+
+  const [showToastDetail, setShowToastDetail] = useState(false);
 
   const [editableRow, setEditableRow] = useState<number | null>(null);
+  const [selectedOrderCancelled, setSelectedOrderCancelled] =
+    useState<any>(null);
+
+  let timeoutId: ReturnType<typeof setTimeout>;
 
   const statusRelatedToCostByCost: any = {
     approved: "text-green-500",
@@ -653,25 +746,41 @@ const OrdersContainer = () => {
           </div>
         </div>
 
-        {Boolean(itemsIdSelected.length) && (
+        <Tag color="#3B3B3B" className="ml-2 py-1 px-2 text-sm">
+          Cantidad Pedidos:{" "}
+          {ordersFiltered.filter((order) => !Boolean(order.cancelled)).length}
+        </Tag>
+      </div>
+
+      <div className={`h-[30px] flex`}>
+        {Boolean(itemsSelected.filter((item) => !item.cancelled).length) && (
           <div
-            className="w-25 ml-2 bg-red-700 hover:bg-red-800 hover:cursor-pointer text-white px-4 py-1 rounded-md flex items-center justify-center select-none"
+            className="w-[230px] ml-2 bg-red-700 hover:bg-red-800 hover:cursor-pointer text-white px-4 py-1 rounded-md flex items-center justify-center select-none"
             onClick={() => {
-              setItemsIdSelected([]);
-              dispatchSale(
-                saleActions.cancelOrders({
-                  itemsIdSelected,
-                })(dispatchSale)
-              );
+              setIsModalCancellationReasonOpen(true);
             }}
           >
-            Anular Ped. Seleccionados
+            Anular Pedidos Seleccionados
           </div>
         )}
-
-        <Tag color="#3B3B3B" className="ml-2 py-1 px-2 text-sm">
-          Cantidad Pedidos: {ordersFiltered.filter(order => !Boolean(order.cancelled)).length}
-        </Tag>
+        {user.role === "ADMIN" &&
+          Boolean(itemsSelected.filter((item) => item.cancelled).length) && (
+            <div
+              className="w-[230px] ml-2 bg-green-700 hover:bg-green-800 hover:cursor-pointer text-white px-4 py-1 rounded-md flex items-center justify-center select-none"
+              onClick={() => {
+                setItemsSelected([]);
+                dispatchSale(
+                  saleActions.enableOrders({
+                    itemsIdSelected: itemsSelected
+                      .filter((item) => item.cancelled)
+                      .map(({ id }) => id),
+                  })(dispatchSale)
+                );
+              }}
+            >
+              Habilitar Pedidos Seleccionados
+            </div>
+          )}
       </div>
 
       <div className="mt-5 h-[74vh] mx-auto max-w overflow-hidden overflow-y-auto overflow-x-auto">
@@ -680,11 +789,63 @@ const OrdersContainer = () => {
           columns={columns}
           handleAction={handleAction}
           editableRow={editableRow}
-          handleEditClick={handleEditClick}
-          itemsIdSelected={itemsIdSelected}
-          setItemsIdSelected={setItemsIdSelected}
+          handleEditClick={(row: any, e: any) => {
+            const orderSelected = ordersFiltered[row.split("-")[1]];
+
+            if (orderSelected.cancelled) {
+              setSelectedOrderCancelled({
+                ...orderSelected,
+                clientX: e.clientX,
+                clientY: e.clientY,
+              });
+              setShowToastDetail(true);
+
+              if (timeoutId) {
+                clearTimeout(timeoutId);
+              }
+
+              timeoutId = setTimeout(() => {
+                setShowToastDetail(false);
+              }, 4000);
+
+              return;
+            }
+
+            return handleEditClick(row);
+          }}
+          itemsIdSelected={itemsSelected}
+          setItemsIdSelected={setItemsSelected}
+          setAllValueRow={true}
           enableSelectItem={true}
         />
+        {Boolean(showToastDetail) && Boolean(selectedOrderCancelled) && (
+          <div
+            className={`absolute shadow-lg rounded-lg p-4 ${themeStyles[theme].tailwindcss.modal}`}
+            style={{
+              top: selectedOrderCancelled.clientY,
+              left: selectedOrderCancelled.clientX,
+            }}
+          >
+            <div>
+              Motivo de anulacion:
+              <span className="font-bold mx-2">
+                {selectedOrderCancelled.cancellationReason}
+              </span>
+            </div>
+            <div>
+              Anulacion por usuario:
+              <span className="font-bold mx-2">
+                {selectedOrderCancelled.cancellationByUser}
+              </span>
+            </div>
+            <div>
+              Fecha de anulacion:
+              <span className="font-bold mx-2">
+                {selectedOrderCancelled.cancellationDate}
+              </span>
+            </div>
+          </div>
+        )}
       </div>
 
       <KeyboardNum
@@ -728,6 +889,22 @@ const OrdersContainer = () => {
             q: value,
           }));
           setIsModalSearchByTextOpen(false);
+        }}
+      />
+      <ModalCancellation
+        isModalOpen={isModalCancellationReasonOpen}
+        setIsModalOpen={setIsModalCancellationReasonOpen}
+        onSubmit={(e: any) => {
+          setItemsSelected([]);
+          dispatchSale(
+            saleActions.cancelOrders({
+              itemsIdSelected: itemsSelected
+                .filter((item) => !item.cancelled)
+                .map(({ id }) => id),
+              reason: e.reason,
+              user: e.user,
+            })(dispatchSale)
+          );
         }}
       />
     </>

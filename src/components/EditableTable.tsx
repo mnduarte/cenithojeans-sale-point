@@ -23,6 +23,7 @@ const EditableTable = ({
   setCashflowIdSelected = false,
   setItemsIdSelected = false,
   rowWithoutActions = "cancelled",
+  setAllValueRow,
 }: any) => {
   const {
     state: { theme, themeStyles },
@@ -113,13 +114,13 @@ const EditableTable = ({
                 <td
                   className={`pt-1 ${themeStyles[theme].tailwindcss.table.tbody.td}`}
                 >
-                  {!row[rowWithoutActions] && (
-                    <input
+                  {
+                    /*!row[rowWithoutActions] &&*/ <input
                       type="checkbox"
                       checked={[...itemsIdSelected, ...cashflowIdSelected]
                         .map(({ id }: any) => id)
                         .includes(row.id)}
-                      disabled={row[rowWithoutActions]}
+                      //disabled={row[rowWithoutActions]}
                       onChange={(e) => {
                         const setIdsSelected =
                           row.type === "ingreso"
@@ -128,7 +129,10 @@ const EditableTable = ({
 
                         setIdsSelected((items: any) => {
                           if (e.target.checked) {
-                            return [...items, { id: row.id }];
+                            const customValue = setAllValueRow
+                              ? row
+                              : { id: row.id };
+                            return [...items, customValue];
                           }
 
                           return items.filter((i: any) => i.id !== row.id);
@@ -141,7 +145,7 @@ const EditableTable = ({
                         themeStyles[theme].tailwindcss.table.checkbox
                       } rounded p-2`}
                     />
-                  )}
+                  }
                 </td>
               )}
               {columns.map((column: any, columnIndex: any) => {
@@ -155,10 +159,13 @@ const EditableTable = ({
                       row.isWithPrepaid &&
                       "text-cyan-500"
                     }`}
-                    onClick={() =>
-                      !row[rowWithoutActions] &&
+                    onClick={(e) =>
+                      //!row[rowWithoutActions] &&
                       !row.withBackground &&
-                      handleEditClick(setItemInOnClick ? row : table + rowIndex)
+                      handleEditClick(
+                        setItemInOnClick ? row : table + rowIndex,
+                        e
+                      )
                     }
                   >
                     {editableRow === table + rowIndex &&

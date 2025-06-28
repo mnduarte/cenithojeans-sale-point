@@ -307,8 +307,25 @@ const updatSaleByEmployee = ({ id, dataIndex, value }: any) =>
 const updateCashflow = ({ id, dataIndex, value }: any) =>
   instance.put("/cashflow/update-cashflow", { id, dataIndex, value });
 
-const cancelOrders = ({ itemsIdSelected }: any) =>
-  instance.post("/sale/cancel-order", { itemsIdSelected });
+const cancelOrders = ({
+  itemsIdSelected,
+  reason,
+  user,
+  cancellationDate,
+}: any) =>
+  instance.post("/sale/cancel-order", {
+    itemsIdSelected,
+    reason,
+    user,
+    cancellationDate,
+  });
+
+const enableOrders = ({
+  itemsIdSelected
+}: any) =>
+  instance.post("/sale/enable-order", {
+    itemsIdSelected
+  });
 
 const removeSales = ({ salesIds, cashflowIds }: any) =>
   instance.post("/sale/remove-sale", { salesIds, cashflowIds });
@@ -572,6 +589,7 @@ const Api = {
   updatSaleByEmployee,
   updateCashflow,
   cancelOrders,
+  enableOrders,
   removeSales,
   removeCashflows,
   printSale,
