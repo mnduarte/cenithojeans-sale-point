@@ -7,6 +7,7 @@ import { useUser } from "../../contexts/UserContext";
 import KeyboardNum from "../../components/KeyboardNum";
 import Toast from "../../components/Toast";
 import EditableTable from "../../components/EditableTable";
+import Keyboard from "../../components/Keyboard";
 import {
   MdCleaningServices,
   MdOutlineApproval,
@@ -42,9 +43,15 @@ const ModalCancellation = ({ isModalOpen, setIsModalOpen, onSubmit }: any) => {
     state: { user },
   } = useUser();
   const [reason, setReason] = useState("");
+  const [customReason, setCustomReason] = useState("");
 
   const handleSubmit = () => {
-    onSubmit({ reason, user: user.username });
+    onSubmit({
+      reason: reason === "Otro" ? reason + " - " + customReason : reason,
+      user: user.username,
+    });
+    setReason("");
+    setCustomReason("");
     setIsModalOpen(false);
   };
 
@@ -54,7 +61,7 @@ const ModalCancellation = ({ isModalOpen, setIsModalOpen, onSubmit }: any) => {
         <div className="fixed inset-0 bg-[#252525] bg-opacity-60 flex items-center justify-center">
           {/* Contenido del modal */}
           <div
-            className={`w-[350px] p-8 rounded-md shadow-md relative ${themeStyles[theme].tailwindcss.modal}`}
+            className={`w-[520px] p-8 rounded-md shadow-md relative ${themeStyles[theme].tailwindcss.modal}`}
           >
             {/* Icono de cerrar en la esquina superior derecha */}
             <button
@@ -84,12 +91,45 @@ const ModalCancellation = ({ isModalOpen, setIsModalOpen, onSubmit }: any) => {
                 { name: "No contesta" },
                 { name: "Hizo otro pedido" },
                 { name: "Pedido duplicado" },
+                { name: "Otro" },
               ].map((data: any) => ({
                 value: data.name,
                 label: data.name,
               }))}
             />
 
+            <br />
+
+            {reason === "Otro" && (
+              <>
+                <div className="mb-4">
+                  <textarea
+                    value={customReason}
+                    readOnly
+                    className={`w-[420px] p-2 rounded-md mr-2 text-lg ${themeStyles[theme].tailwindcss.inputText}`}
+                  />
+                </div>
+                <Keyboard
+                  onKeyPress={(e: any) => {
+                    let newDescription = customReason;
+
+                    if (e.action === "deleteLast") {
+                      newDescription = newDescription.slice(0, -1);
+                    }
+
+                    if (e.action === "addSpace") {
+                      newDescription = newDescription + " ";
+                    }
+
+                    if (!e.action) {
+                      newDescription = newDescription + e.value.toLowerCase();
+                    }
+
+                    setCustomReason(newDescription);
+                  }}
+                />
+              </>
+            )}
             <br />
 
             <div className="flex space-x-4">

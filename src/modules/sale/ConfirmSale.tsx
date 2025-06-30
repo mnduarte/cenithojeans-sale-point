@@ -249,10 +249,16 @@ const ConfirmSale = ({
       totalToPay,
       totalFinal,
       isWithPrepaid,
-      accountForTransfer,
+      accountForTransfer: Boolean(payment.transfer) ? accountForTransfer : "",
     };
     onSale(data);
   };
+
+  useEffect(() => {
+    if (accountForTransfer === "" && accountsForTransfer.length > 0) {
+      setAccountForTransfer(accountsForTransfer[0].name);
+    }
+  }, [accountsForTransfer]);
 
   return (
     <>
@@ -611,11 +617,9 @@ const ConfirmSale = ({
                 </div>
               </div>
               <div className="text-base font-bold mb-2 flex items-center justify-end h-[30px]">
-                {Boolean(
-                  payment.cash === "" && payment.transfer === String(totalToPay)
-                ) && (
+                {Boolean(payment.transfer) && (
                   <>
-                    <label className="mx-2 "> Cuenta para transferir:</label>
+                    <label className="mx-2 "> Cuenta:</label>
 
                     <Select
                       value={accountForTransfer}

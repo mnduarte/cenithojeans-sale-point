@@ -1,6 +1,10 @@
 import { useState } from "react";
 import { saleActions, useSale } from "../../contexts/SaleContext";
-import { formatCurrency, formatDateToYYYYMMDD } from "../../utils/formatUtils";
+import {
+  formatCurrency,
+  formatDateToYYYYMMDD,
+  formatDate,
+} from "../../utils/formatUtils";
 import { dateFormat, mappingListStore, months } from "../../utils/constants";
 import Spinner from "../../components/Spinner";
 import EditableTable from "../../components/EditableTable";
@@ -306,7 +310,11 @@ const ReportByEmployee = () => {
                     columns={
                       idx === 0
                         ? [
-                            { title: "Semana", dataIndex: "week" },
+                            {
+                              title:
+                                "\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0Semana\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0",
+                              dataIndex: "weekdays",
+                            },
                             ...columnsByItemWeek(saleByItemWeek.employee),
                           ]
                         : columnsByItemWeek(saleByItemWeek.employee)
@@ -322,7 +330,12 @@ const ReportByEmployee = () => {
           </div>
 
           <div className="my-2 text-[0.75rem] text-gray-400 ">
-            Por periodo seleccionado:
+            Por periodo seleccionado:{" "}
+            {filters.typeDate === "byDate"
+              ? `${dayjs(filters.startDate).format("DD/MM/YYYY")} - ${dayjs(
+                  filters.endDate
+                ).format("DD/MM/YYYY")}`
+              : months[filters.month]}
           </div>
           <div className="my-2 text-[0.8rem] text-gray-300 ">
             Cantidad de pedidos:
@@ -422,7 +435,11 @@ const ReportByEmployee = () => {
                     columns={
                       idx === 0
                         ? [
-                            { title: "Semana", dataIndex: "week" },
+                            {
+                              title:
+                                "\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0Semana\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0",
+                              dataIndex: "weekdays",
+                            },
                             ...columnsByItemWeek(saleByItemWeek.employee),
                           ]
                         : columnsByItemWeek(saleByItemWeek.employee)
@@ -438,7 +455,39 @@ const ReportByEmployee = () => {
           </div>
 
           <div className="my-2 text-[0.75rem] text-gray-400 ">
-            Por periodo seleccionado:
+            Por periodo seleccionado:{" "}
+            {filters.typeDate === "byDate"
+              ? `${dayjs(filters.startDate).format("DD/MM/YYYY")} - ${dayjs(
+                  filters.endDate
+                ).format("DD/MM/YYYY")}`
+              : months[filters.month]}
+          </div>
+          <div className="my-2 text-[0.8rem] text-gray-300 ">
+            Cantidad de pedidos:
+          </div>
+          <div className=" max-w overflow-hidden overflow-y-auto overflow-x-auto flex flex-no-wrap">
+            {dataHelguera.byQuantitySalePedido.employees.map(
+              (saleByQuantitySalePedido: any, idx: number) => (
+                <div
+                  className={`mr-0.5 text-xs`}
+                  key={idx + "byQuantitySalePedido"}
+                >
+                  <EditableTable
+                    data={saleByQuantitySalePedido.data}
+                    columns={[
+                      {
+                        title: saleByQuantitySalePedido.employee,
+                        dataIndex: "quantity",
+                      },
+                    ]}
+                    table={`-byQuantitySalePedido`}
+                  />
+                </div>
+              )
+            )}
+          </div>
+          <div className="my-2 text-[0.9rem] border-b border-gray-700 pb-1">
+            Total: {dataHelguera.byQuantitySalePedido.totalItems}
           </div>
 
           <div className="my-2 text-[0.8rem] text-gray-300 ">Prendas:</div>
@@ -451,21 +500,19 @@ const ReportByEmployee = () => {
                   key={idx + "byItemConceptEmployee"}
                 >
                   <EditableTable
-                    data={saleByItemConceptEmployee.data.filter(
-                      (data: any) => data.concept === "Venta local"
-                    )}
+                    data={saleByItemConceptEmployee.data}
                     columns={
                       idx === 0
                         ? [
                             { title: "Concepto", dataIndex: "concept" },
                             ...columnsByItemConceptEmployee(
                               saleByItemConceptEmployee.employee,
-                              false
+                              true
                             ),
                           ]
                         : columnsByItemConceptEmployee(
                             saleByItemConceptEmployee.employee,
-                            false
+                            true
                           )
                     }
                     table={`-byItemConceptEmployee`}

@@ -123,12 +123,13 @@ const PdfSectionByBranch = ({ title, data, includeOrderQuantity }: any) => {
           dataIndex: e.employee,
         }));
         const dataRows = (() => {
-          const weeks =
-            data.byItemWeek.employees[0]?.data.map((d: any) => d.week) || [];
-          return weeks.map((week: any) => {
-            const row: Record<string, any> = { label: week };
+          const weekdays =
+            data.byItemWeek.employees[0]?.data.map((d: any) => d.weekdays) ||
+            [];
+          return weekdays.map((weekdays: any) => {
+            const row: Record<string, any> = { label: weekdays };
             for (const emp of data.byItemWeek.employees) {
-              const match = emp.data.find((d: any) => d.week === week);
+              const match = emp.data.find((d: any) => d.weekdays === weekdays);
               row[emp.employee] = match?.items ?? "-";
             }
             return row;
@@ -140,6 +141,7 @@ const PdfSectionByBranch = ({ title, data, includeOrderQuantity }: any) => {
           <Table
             columns={[{ title: "Semana", dataIndex: "label" }, ...columns]}
             data={[...dataRows, totalRow]}
+            firstColumnWidth={70}
           />
         );
       })()}
@@ -257,7 +259,11 @@ const PdfReportByEmployee = ({
       </Text>
       <Text style={{ height: 80 }}> </Text>
       <Text style={styles.sectionTitle}>{timePeriod}</Text>
-      <PdfSectionByBranch title="HELGUERA" data={dataHelguera} />
+      <PdfSectionByBranch
+        title="HELGUERA"
+        data={dataHelguera}
+        includeOrderQuantity={true}
+      />
       <Text style={styles.sectionTitle}>
         Total de Prendas (Bogota y Helguera):{" "}
         {dataBogota.byItemConcept.totalItems +
