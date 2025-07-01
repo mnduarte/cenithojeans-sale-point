@@ -301,7 +301,7 @@ const ModalListTranferSale = ({
   return (
     <>
       {isModalListTransferSaleOpen && (
-        <div className="fixed inset-0 z-[9999] bg-[#252525] bg-opacity-60 flex items-center justify-center">
+        <div className="fixed inset-0 z-[1050] bg-[#252525] bg-opacity-60 flex items-center justify-center">
           {/* Contenido del modal */}
           <div
             className={`w-[80vh] h-[65vh] p-8 rounded-md shadow-md relative ${themeStyles[theme].tailwindcss.modal}`}
