@@ -4,7 +4,9 @@ import { formatCurrency } from "../../utils/formatUtils";
 import { Price, PriceSelected } from "../../types";
 import { mappingConceptWithIcon } from "../../utils/mappings";
 import { useTheme } from "../../contexts/ThemeContext";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useCashier } from "../../contexts/CashierContext";
+import { message } from "antd";
 
 const ShoppingPrices = ({
   prices,
@@ -131,6 +133,9 @@ const ShoppingCartContainer = ({
     state: { theme, themeStyles },
   } = useTheme();
 
+  // Obtener cajero seleccionado
+  const { selectedCashier } = useCashier();
+
   const addManualPrice = () => {
     if (manualPrice.length) {
       setPricesItems((items: any) => {
@@ -198,6 +203,25 @@ const ShoppingCartContainer = ({
   const onCleanAllProductsSeleted = () => {
     setPricesSelected([]);
     setDevolutionPricesSelected([]);
+  };
+
+  // Validar cajero y abrir modal de venta
+  const handleOpenSale = () => {
+    const hasItems =
+      Boolean(pricesSelected.length) ||
+      Boolean(devolutionPricesSelected.length);
+
+    if (!hasItems) {
+      return;
+    }
+
+    // Validar que haya cajero seleccionado
+    if (!selectedCashier) {
+      message.error("Debe seleccionar un cajero antes de confirmar la venta");
+      return;
+    }
+
+    openModalSale();
   };
 
   return (
@@ -295,11 +319,7 @@ const ShoppingCartContainer = ({
               ? "bg-green-600 hover:cursor-pointer hover:bg-[#006b29]"
               : "bg-gray-600"
           } text-white text-lg flex items-center justify-center select-none`}
-          onClick={() =>
-            (Boolean(pricesSelected.length) ||
-              Boolean(devolutionPricesSelected.length)) &&
-            openModalSale()
-          }
+          onClick={handleOpenSale}
         >
           <MdPointOfSale className="text-2xl" /> Vender
         </div>

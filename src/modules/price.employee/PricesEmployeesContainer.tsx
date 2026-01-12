@@ -4,8 +4,10 @@ import { useEmployee, employeeActions } from "../../contexts/EmployeeContext";
 import Table from "../../components/Table";
 import PriceForm from "./PriceForm";
 import EmployeeForm from "./EmployeeForm";
+import CashierForm from "./CashierForm";
 import { IoIosPricetags } from "react-icons/io";
 import { FaUsers } from "react-icons/fa";
+import { FaCashRegister } from "react-icons/fa";
 import { formatCurrency } from "../../utils/formatUtils";
 import { useStore } from "../../contexts/StoreContext";
 import { useTheme } from "../../contexts/ThemeContext";
@@ -15,6 +17,8 @@ import {
   useAccountForTransfer,
 } from "../../contexts/AccountForTransferContext";
 import AccountForTransferForm from "./AccountForTransferForm";
+import { useCashier } from "../../contexts/CashierContext";
+import { CASHIER_COLORS, getTextColorForBackground } from "../../utils/cashierColors";
 
 const PricesContainer = () => {
   const {
@@ -249,7 +253,88 @@ const AccountsForTransferContainer = () => {
   );
 };
 
-type TabKey = "Precios" | "Empleados";
+const CashiersContainer = () => {
+  const {
+    cashiers,
+    loading,
+    fetchAllCashiers,
+    addCashier,
+    editCashier,
+    removeCashier,
+  } = useCashier();
+  const {
+    state: { stores },
+  } = useStore();
+  const [itemSelected, setItemSelected] = useState<any>({});
+
+  useEffect(() => {
+    fetchAllCashiers();
+  }, []);
+
+  // Transformar cashiers para mostrar el color visualmente
+  const cashiersWithColorDisplay = cashiers.map((cashier: any) => ({
+    ...cashier,
+    colorDisplay: cashier.color, // Para la columna visual
+  }));
+
+  const columns = [
+    {
+      title: "Nombre",
+      dataIndex: "name",
+    },
+    { title: "Posición", dataIndex: "position" },
+    { title: "Sucursal", dataIndex: "store" },
+    {
+      title: "Color",
+      dataIndex: "colorDisplay",
+      format: (color: string) => (
+        <div
+          style={{
+            backgroundColor: color,
+            color: getTextColorForBackground(color),
+            padding: "4px 12px",
+            borderRadius: "4px",
+            textAlign: "center" as const,
+            fontWeight: 500,
+          }}
+        >
+          {CASHIER_COLORS.find((c) => c.value === color)?.label || color}
+        </div>
+      ),
+    },
+  ];
+
+  return (
+    <div className="h-[73vh] mx-auto flex">
+      <div className="w-4/5 p-2">
+        <h3 className="text-2xl mb-4">Listado de Cajeros</h3>
+        <div className="h-[65vh] mx-auto max-w overflow-hidden overflow-y-auto">
+          <Table
+            data={cashiersWithColorDisplay}
+            columns={columns}
+            itemSelected={itemSelected}
+            setItemSelected={setItemSelected}
+            showZero={true}
+          />
+        </div>
+      </div>
+      <div className="w-1/3 p-2">
+        <CashierForm
+          itemSelected={itemSelected}
+          setItemSelected={setItemSelected}
+          onAddCashier={addCashier}
+          onUpdateCashier={editCashier}
+          onDeleteCashier={removeCashier}
+          isLoading={loading}
+          stores={stores}
+          totalPositions={cashiers.length}
+        />
+      </div>
+    </div>
+  );
+};
+
+type TabKey = "Precios" | "Empleados" | "CPT" | "Cajeros";
 
 const mappingTabs = {
   Precios: {
@@ -267,6 +352,11 @@ const mappingTabs = {
     icon: <MdAccountTree />,
     container: <AccountsForTransferContainer />,
   },
+  Cajeros: {
+    title: "Cajeros",
+    icon: <FaCashRegister />,
+    container: <CashiersContainer />,
+  },
 };
 
 const PricesEmployeesContainer = () => {
@@ -277,7 +367,7 @@ const PricesEmployeesContainer = () => {
 
   return (
     <div className="max-w-5xl mx-auto mt-5 h-2/3 h-[90vh]">
-      <div className="w-1/2 h-[5vh] flex mb-4">
+      <div className="w-2/3 h-[5vh] flex mb-4">
         {Object.values(mappingTabs).map((tab: any) => (
           <button
             key={tab.title}

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useEmployee } from "../../contexts/EmployeeContext";
+import { useCashier } from "../../contexts/CashierContext";
 import { formatCurrency, formatDateToYYYYMMDD } from "../../utils/formatUtils";
 import Spinner from "../../components/Spinner";
 import { useUser } from "../../contexts/UserContext";
@@ -38,6 +39,21 @@ const CostContainer = () => {
   const {
     state: { user },
   } = useUser();
+  const { cashiers, fetchAllCashiers } = useCashier();
+  const [cashierFilter, setCashierFilter] = useState<string>("none");
+
+  // Obtener cajero activo del localStorage (el de Ventas)
+  const getStoredCashier = () => {
+    const stored = localStorage.getItem("selectedCashier");
+    if (stored) {
+      try {
+        return JSON.parse(stored);
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  };
 
   const [filters, setFilters] = useState({
     startDate: formatDateToYYYYMMDD(new Date()),
@@ -81,6 +97,35 @@ const CostContainer = () => {
       dataIndex: "date",
       editableCell: user.role === "ADMIN",
       type: "date",
+      defaultValue: (value: any, row: any) => {
+        const displayCashierId = row.lastEditCashierId || row.cashierId;
+        const displayCashierName = row.lastEditCashierName || row.cashierName;
+        const cashier = displayCashierId
+          ? cashiers.find((c: any) => (c.id || c._id) === displayCashierId)
+          : null;
+
+        return (
+          <div className="flex flex-col">
+            <span>{value || "-"}</span>
+            {displayCashierName && (
+              <span className="text-gray-400 text-xs inline-flex items-center gap-1">
+                {cashier && (
+                  <span
+                    style={{
+                      width: 6,
+                      height: 6,
+                      borderRadius: "50%",
+                      backgroundColor: cashier.color,
+                      display: "inline-block",
+                    }}
+                  />
+                )}
+                {displayCashierName}
+              </span>
+            )}
+          </div>
+        );
+      },
     },
     {
       title: "Cuenta",
@@ -283,27 +328,63 @@ const CostContainer = () => {
 
   const saveRow = (customValues: any) => {
     const dataValues = customValues ?? rowValues;
+    const storedCashier = getStoredCashier();
+
+    let cashierData = {};
+    if (storedCashier) {
+      if (dataValues.id) {
+        // Es update
+        // Solo agregar lastEditCashierId si NO viene checkoutCashierId
+        // (para no sobrescribir cuando es edición de Salida)
+        if (!dataValues.checkoutCashierId) {
+          cashierData = {
+            lastEditCashierId: storedCashier.id,
+            lastEditCashierName: storedCashier.name,
+          };
+        }
+      } else {
+        // Es create - asignar cajero inicial
+        cashierData = {
+          cashierId: storedCashier.id,
+          cashierName: storedCashier.name,
+        };
+      }
+    }
+
     const actionCost = (values: any) =>
       dataValues.id
         ? costActions.updateCost(values)
         : costActions.addCost(values);
 
-    dispatchCost(actionCost(dataValues)(dispatchCost));
+    dispatchCost(actionCost({ ...dataValues, ...cashierData })(dispatchCost));
     setRowValues(INITIAL_VALUES_COST);
     setEditableRow(null);
   };
 
   const handleAction = ({ dataIndex, inputType, inputValue }: any) => {
+    const storedCashier = getStoredCashier();
+
     if (inputType === "date") {
+      const newValues = {
+        ...rowValues,
+        [dataIndex]: dayjs(inputValue).format("DD/MM/YYYY"),
+      };
+
+      // Si es checkoutDate, agregar checkoutCashier
+      if (dataIndex === "checkoutDate" && storedCashier && rowValues.id) {
+        saveRow({
+          ...newValues,
+          checkoutCashierId: storedCashier.id,
+          checkoutCashierName: storedCashier.name,
+        });
+      } else {
+        saveRow(newValues);
+      }
+
       setRowValues((e: any) => ({
         ...e,
         [dataIndex]: dayjs(inputValue).format("DD/MM/YYYY"),
       }));
-
-      saveRow({
-        ...rowValues,
-        [dataIndex]: dayjs(inputValue).format("DD/MM/YYYY"),
-      });
     }
 
     if (["currency"].includes(inputType)) {
@@ -410,6 +491,7 @@ const CostContainer = () => {
 
   useEffect(() => {
     dispatchCost(costActions.getAccounts({})(dispatchCost));
+    fetchAllCashiers();
   }, []);
 
   return (
@@ -590,22 +672,20 @@ const CostContainer = () => {
         </div>
       </div>
 
+      {/* Fila 2: Filtros secundarios */}
       <div
-        className={`h-[50px] relative p-2 border-x border-t ${themeStyles[theme].tailwindcss.border} flex`}
+        className={`min-h-[48px] relative p-2 border-x border-t ${themeStyles[theme].tailwindcss.border} flex flex-wrap items-center gap-2`}
         onClick={removeCellSelected}
       >
-        <div className="inline-block">
+        <div className="inline-flex items-center">
           <label className="mr-1">Cuenta:</label>
-
           <Select
             mode="multiple"
             value={filters.accounts.length ? filters.accounts : ["Todos"]}
             className={themeStyles[theme].classNameSelector}
             dropdownStyle={themeStyles[theme].dropdownStylesCustom}
             popupClassName={themeStyles[theme].classNameSelectorItem}
-            style={{
-              width: "200px",
-            }}
+            style={{ width: "180px" }}
             onSelect={(value: any) =>
               setFilters((props: any) => ({
                 ...props,
@@ -634,18 +714,15 @@ const CostContainer = () => {
           />
         </div>
 
-        <div className="ml-2 inline-block">
+        <div className="inline-flex items-center">
           <label className="mr-1">Vendedor:</label>
-
           <Select
             mode="multiple"
             value={filters.employees.length ? filters.employees : ["Todos"]}
             className={themeStyles[theme].classNameSelector}
             dropdownStyle={themeStyles[theme].dropdownStylesCustom}
             popupClassName={themeStyles[theme].classNameSelectorItem}
-            style={{
-              width: "200px",
-            }}
+            style={{ width: "180px" }}
             onSelect={(value: any) =>
               setFilters((props: any) => ({
                 ...props,
@@ -675,179 +752,279 @@ const CostContainer = () => {
             ]}
           />
         </div>
-        <div className="ml-2 inline-block">
-          <div className="flex items-center space-x-1">
-            <input
-              type="text"
-              className={`w-[150px] p-1 border-2 border-[#1BA1E2] rounded-md text-center hover:cursor-pointer ${themeStyles[theme].tailwindcss.inputText}`}
-              value={filters.q}
-              placeholder="Texto"
-              onChange={(value: any) => {
-                setFilters((props: any) => ({
-                  ...props,
-                  q: value.target.value,
-                }));
-              }}
-            />
-            <div
-              className="bg-gray-700 w-5 text-white py-1 rounded-md flex items-center justify-center select-none transition-opacity duration-200 hover:opacity-80 active:scale-95"
-              onClick={() =>
-                setFilters((props: any) => ({
-                  ...props,
-                  q: "",
-                }))
-              }
-            >
-              <MdCleaningServices />
-            </div>
-          </div>
-        </div>
-        <div className="ml-2 inline-block">
+
+        <div className="inline-flex items-center gap-1">
+          <input
+            type="text"
+            className={`w-[120px] p-1 border-2 border-[#1BA1E2] rounded-md text-center hover:cursor-pointer ${themeStyles[theme].tailwindcss.inputText}`}
+            value={filters.q}
+            placeholder="Texto"
+            onChange={(value: any) => {
+              setFilters((props: any) => ({
+                ...props,
+                q: value.target.value,
+              }));
+            }}
+          />
           <div
-            className={`inline-block px-4 py-1 rounded-md border text-white select-none ${
-              Boolean(filters.startDate.length) &&
-              Boolean(filters.endDate.length) &&
-              "bg-[#1b78e2] border-[#1b78e2] hover:cursor-pointer hover:opacity-80 transition-opacity"
-            } flex items-center mx-auto`}
+            className="bg-gray-700 w-5 text-white py-1 rounded-md flex items-center justify-center select-none transition-opacity duration-200 hover:opacity-80 active:scale-95 cursor-pointer"
             onClick={() =>
-              !loading &&
-              dispatchCost(costActions.getCosts(filters)(dispatchCost))
+              setFilters((props: any) => ({
+                ...props,
+                q: "",
+              }))
             }
           >
-            Buscar
-            {loading && (
-              <div className="ml-2">
-                <Spinner />
-              </div>
-            )}
+            <MdCleaningServices />
           </div>
         </div>
 
-        <Tag color="#3B3B3B" className="ml-2 py-1 px-2 text-sm">
-          Cantidad Tickets: {costs.length}
-        </Tag>
+        <div
+          className={`px-4 py-1 rounded-md border text-white select-none ${
+            Boolean(filters.startDate.length) && Boolean(filters.endDate.length)
+              ? "bg-[#1b78e2] border-[#1b78e2] hover:cursor-pointer hover:opacity-80 transition-opacity"
+              : ""
+          } flex items-center`}
+          onClick={() =>
+            !loading &&
+            dispatchCost(costActions.getCosts(filters)(dispatchCost))
+          }
+        >
+          Buscar
+          {loading && (
+            <div className="ml-2">
+              <Spinner />
+            </div>
+          )}
+        </div>
 
-        <div className="inline-block">
-          <div
-            className=" ml-2 bg-green-800 hover:bg-green-900 hover:cursor-pointer text-white px-2  py-1 rounded-md flex items-center justify-center select-none"
-            onClick={downloadExcel}
-          >
-            Excel
-          </div>
+        <div
+          className="bg-green-800 hover:bg-green-900 hover:cursor-pointer text-white px-2 py-1 rounded-md flex items-center justify-center select-none"
+          onClick={downloadExcel}
+        >
+          Excel
         </div>
 
         {user.store === "ALL" && (
-          <div className="inline-block">
-            <div
-              className=" ml-2 bg-pink-700 hover:bg-pink-800 hover:cursor-pointer text-white px-2  py-1 rounded-md flex items-center justify-center select-none"
-              onClick={() => setIsModalAccountOpen(true)}
-            >
-              Cuentas
-            </div>
+          <div
+            className="bg-pink-700 hover:bg-pink-800 hover:cursor-pointer text-white px-2 py-1 rounded-md flex items-center justify-center select-none"
+            onClick={() => setIsModalAccountOpen(true)}
+          >
+            Cuentas
           </div>
         )}
 
-        <div className="ml-2 inline-block">
-          {Boolean(itemsIdSelected.length) && (
-            <div
-              className=" ml-2 bg-red-700 hover:bg-red-800 hover:cursor-pointer text-white px-2  py-1 rounded-md flex items-center justify-center select-none"
-              onClick={() => setIsModalConfirmDeleteOpen(true)}
-            >
-              Eliminar Items
-            </div>
-          )}
-        </div>
+        {Boolean(itemsIdSelected.length) && (
+          <div
+            className="bg-red-700 hover:bg-red-800 hover:cursor-pointer text-white px-2 py-1 rounded-md flex items-center justify-center select-none"
+            onClick={() => setIsModalConfirmDeleteOpen(true)}
+          >
+            Eliminar Items
+          </div>
+        )}
 
-        <div className="ml-2 inline-block">
-          {Boolean(itemsIdSelected.length) && (
-            <Select
-              value="Asignar Color"
-              className={themeStyles[theme].classNameSelector}
-              dropdownStyle={themeStyles[theme].dropdownStylesCustom}
-              popupClassName={themeStyles[theme].classNameSelectorItem}
-              style={{ width: 150 }}
-              onSelect={(value: any) => {
-                const mappingObjColor: any = {
-                  "": {
-                    backgroundColor: "",
-                    textColor: "",
-                    color: "",
-                  },
-                  green: {
-                    backgroundColor: "bg-green-100",
-                    textColor: "text-green-700",
-                    color: "green",
-                  },
-                  yellow: {
-                    backgroundColor: "bg-yellow-100",
-                    textColor: "text-yellow-700",
-                    color: "yellow",
-                  },
-                  red: {
-                    backgroundColor: "bg-red-100",
-                    textColor: "text-red-700",
-                    color: "red",
-                  },
-                  blue: {
-                    backgroundColor: "bg-blue-100",
-                    textColor: "text-blue-700",
-                    color: "blue",
-                  },
-                };
-                dispatchCost(
-                  costActions.updateColorCost({
-                    costsIds: itemsIdSelected,
-                    backgroundColor: mappingObjColor[value].backgroundColor,
-                    textColor: mappingObjColor[value].textColor,
-                    color: mappingObjColor[value].color,
-                  })(dispatchCost)
-                );
-                setItemsIdSelected([]);
-              }}
-              options={[
-                {
-                  label: "Sin Color",
-                  value: "",
+        {Boolean(itemsIdSelected.length) && (
+          <Select
+            value="Asignar Color"
+            className={themeStyles[theme].classNameSelector}
+            dropdownStyle={themeStyles[theme].dropdownStylesCustom}
+            popupClassName={themeStyles[theme].classNameSelectorItem}
+            style={{ width: 130 }}
+            onSelect={(value: any) => {
+              const mappingObjColor: any = {
+                "": {
+                  backgroundColor: "",
+                  textColor: "",
+                  color: "",
                 },
-                {
-                  label: (
-                    <div className="bg-green-100 text-green-700 p-1 rounded-md">
-                      Verde
-                    </div>
-                  ),
-                  value: "green",
+                green: {
+                  backgroundColor: "bg-green-100",
+                  textColor: "text-green-700",
+                  color: "green",
                 },
-                {
-                  label: (
-                    <div className="bg-yellow-100 text-yellow-700 p-1 rounded-md">
-                      Amarillo
-                    </div>
-                  ),
-                  value: "yellow",
+                yellow: {
+                  backgroundColor: "bg-yellow-100",
+                  textColor: "text-yellow-700",
+                  color: "yellow",
                 },
-                {
-                  label: (
-                    <div className="bg-red-100 text-red-700 p-1 rounded-md">
-                      Rojo
-                    </div>
-                  ),
-                  value: "red",
+                red: {
+                  backgroundColor: "bg-red-100",
+                  textColor: "text-red-700",
+                  color: "red",
                 },
-                {
-                  label: (
-                    <div className="bg-blue-100 text-blue-700 p-1 rounded-md">
-                      Azul
-                    </div>
-                  ),
-                  value: "blue",
+                blue: {
+                  backgroundColor: "bg-blue-100",
+                  textColor: "text-blue-700",
+                  color: "blue",
                 },
-              ]}
-            />
-          )}
-        </div>
+              };
+              dispatchCost(
+                costActions.updateColorCost({
+                  costsIds: itemsIdSelected,
+                  backgroundColor: mappingObjColor[value].backgroundColor,
+                  textColor: mappingObjColor[value].textColor,
+                  color: mappingObjColor[value].color,
+                })(dispatchCost)
+              );
+              setItemsIdSelected([]);
+            }}
+            options={[
+              { label: "Sin Color", value: "" },
+              {
+                label: (
+                  <div className="bg-green-100 text-green-700 p-1 rounded-md">
+                    Verde
+                  </div>
+                ),
+                value: "green",
+              },
+              {
+                label: (
+                  <div className="bg-yellow-100 text-yellow-700 p-1 rounded-md">
+                    Amarillo
+                  </div>
+                ),
+                value: "yellow",
+              },
+              {
+                label: (
+                  <div className="bg-red-100 text-red-700 p-1 rounded-md">
+                    Rojo
+                  </div>
+                ),
+                value: "red",
+              },
+              {
+                label: (
+                  <div className="bg-blue-100 text-blue-700 p-1 rounded-md">
+                    Azul
+                  </div>
+                ),
+                value: "blue",
+              },
+            ]}
+          />
+        )}
       </div>
 
-      <div className="mt-5 h-[74vh] mx-auto max-w overflow-hidden overflow-y-auto overflow-x-auto">
+      {/* Fila 3: Cajero + Leyenda + Editando + Cantidad */}
+      <div
+        className={`min-h-[48px] relative p-2 border-x border-b ${themeStyles[theme].tailwindcss.border} flex flex-wrap items-center justify-center gap-3`}
+      >
+        <div className="inline-flex items-center">
+          <label className="mr-1">Cajero:</label>
+          <Select
+            value={cashierFilter}
+            className={themeStyles[theme].classNameSelector}
+            dropdownStyle={themeStyles[theme].dropdownStylesCustom}
+            popupClassName={themeStyles[theme].classNameSelectorItem}
+            style={{ width: 120 }}
+            onChange={(value: string) => setCashierFilter(value)}
+            optionLabelProp="label"
+          >
+            <Select.Option value="none" label="Ninguno">
+              Ninguno
+            </Select.Option>
+            <Select.Option value="all" label="Todos">
+              Todos
+            </Select.Option>
+            {cashiers.map((c: any) => (
+              <Select.Option
+                key={c.id || c._id}
+                value={String(c.id || c._id)}
+                label={
+                  <span
+                    style={{ display: "flex", alignItems: "center", gap: 8 }}
+                  >
+                    <span
+                      style={{
+                        width: 10,
+                        height: 10,
+                        borderRadius: "50%",
+                        backgroundColor: c.color,
+                        display: "inline-block",
+                      }}
+                    />
+                    {c.name}
+                  </span>
+                }
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span
+                    style={{
+                      width: 12,
+                      height: 12,
+                      borderRadius: "50%",
+                      backgroundColor: c.color,
+                      display: "inline-block",
+                    }}
+                  />
+                  {c.name}
+                </div>
+              </Select.Option>
+            ))}
+          </Select>
+        </div>
+
+        {/* Leyenda de colores - solo visible cuando filtro es "all" */}
+        {cashierFilter === "all" && cashiers.length > 0 && (
+          <div className="inline-flex items-center gap-2 px-2 py-1 bg-gray-700/30 rounded">
+            {cashiers.map((c: any) => (
+              <div
+                key={c.id || c._id}
+                className="inline-flex items-center gap-1 text-xs text-gray-300"
+              >
+                <span
+                  style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: "50%",
+                    backgroundColor: c.color,
+                    display: "inline-block",
+                  }}
+                />
+                <span>{c.name}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Indicador del cajero activo (del localStorage) */}
+        {(() => {
+          const storedCashier = getStoredCashier();
+          if (storedCashier) {
+            const cashierColor =
+              cashiers.find((c: any) => c.id === storedCashier.id)?.color ||
+              storedCashier.color;
+            return (
+              <div className="inline-flex items-center gap-1 text-xs text-gray-400 bg-gray-700/50 px-2 py-1 rounded">
+                <span>Editando:</span>
+                <span
+                  style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: "50%",
+                    backgroundColor: cashierColor,
+                    display: "inline-block",
+                  }}
+                />
+                <span className="text-gray-200">{storedCashier.name}</span>
+              </div>
+            );
+          }
+          return (
+            <div className="text-xs text-yellow-500">
+              ⚠ Sin cajero en Ventas
+            </div>
+          );
+        })()}
+
+        <Tag color="#3B3B3B" className="py-1 px-2 text-sm">
+          Cantidad Tickets: {costs.length}
+        </Tag>
+      </div>
+
+      <div className="mt-2 h-[68vh] mx-auto max-w overflow-hidden overflow-y-auto overflow-x-auto">
         <CrudTable
           data={costsData}
           columns={columns}
@@ -863,6 +1040,45 @@ const CostContainer = () => {
           saveRow={saveRow}
           onEnterPress={() => {
             console.log("Enter pressed on row:");
+          }}
+          getCellStyle={(row: any, column: any) => {
+            if (cashierFilter === "none") return {};
+            if (!row.id) return {}; // Fila vacía para agregar
+
+            // Determinar qué cajero usar según la columna
+            const isCheckoutColumn = column.dataIndex === "checkoutDate";
+            const cellCashierId = isCheckoutColumn
+              ? row.checkoutCashierId
+              : row.lastEditCashierId || row.cashierId;
+
+            if (!cellCashierId) return {};
+
+            // Para "all", colorear según el cajero de cada celda
+            if (cashierFilter === "all") {
+              const cashier = cashiers.find(
+                (c: any) => (c.id || c._id) === cellCashierId
+              );
+              if (cashier) {
+                return {
+                  backgroundColor: cashier.color + "30",
+                };
+              }
+              return {};
+            }
+
+            // Para cajero específico, colorear solo si coincide
+            const filterCashierId = parseInt(cashierFilter);
+            if (cellCashierId === filterCashierId) {
+              const cashier = cashiers.find(
+                (c: any) => (c.id || c._id) === cellCashierId
+              );
+              if (cashier) {
+                return {
+                  backgroundColor: cashier.color + "30",
+                };
+              }
+            }
+            return {};
           }}
         />
       </div>

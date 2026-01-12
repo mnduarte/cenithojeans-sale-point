@@ -15,10 +15,43 @@ const TableSaleByDay = ({
   enableSelectItem,
   rowsSelected,
   handleItemsSelected,
+  cashierFilter = "none",
+  cashiers = [],
 }: any) => {
   const {
     state: { theme, themeStyles },
   } = useTheme();
+  const getRowStyle = (row: any) => {
+    if (cashierFilter === "none") return {};
+
+    if (!row.cashierId) return {}; // Sin cajero asignado, sin color
+
+    if (cashierFilter === "all") {
+      const cashier = cashiers.find(
+        (c: any) => c.id === row.cashierId || c._id === row.cashierId
+      );
+      if (cashier?.color) {
+        return {
+          backgroundColor: cashier.color + "40", // 40 = 25% opacity en hex
+          borderLeft: `3px solid ${cashier.color}`,
+        };
+      }
+    }
+
+    if (cashierFilter === row.cashierId) {
+      const cashier = cashiers.find(
+        (c: any) => c.id === row.cashierId || c._id === row.cashierId
+      );
+      if (cashier?.color) {
+        return {
+          backgroundColor: cashier.color + "40",
+          borderLeft: `3px solid ${cashier.color}`,
+        };
+      }
+    }
+
+    return {};
+  };
 
   return (
     <table
@@ -56,6 +89,7 @@ const TableSaleByDay = ({
               } ${row.withBackground && "text-red-400"} ${
                 row.typeSale === "pedido" && "text-green-600"
               }`}
+              style={getRowStyle(row)}
             >
               {enableSelectItem && (
                 <td

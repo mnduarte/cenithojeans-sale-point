@@ -25,6 +25,8 @@ import Keyboard from "../../components/Keyboard";
 import PdfLocalSale from "./PdfLocalSale";
 import PdfLocalTransfer from "./PdfLocalTransfer";
 import { useAccountForTransfer } from "../../contexts/AccountForTransferContext";
+import { useCashier } from "../../contexts/CashierContext";
+import { getTextColorForBackground } from "../../utils/cashierColors";
 
 const mappingConceptToUpdate: Record<string, string> = {
   cash: "Efectivo",
@@ -42,6 +44,7 @@ const ModalListOutgoing = ({
   const {
     state: { theme, themeStyles },
   } = useTheme();
+  const { cashiers } = useCashier();
   const [itemsIdSelected, setItemsIdSelected] = useState<any[]>([]);
   const [editableRow, setEditableRow] = useState<number | null>(null);
   const [isModalKeyboardNumOpen, setIsModalKeyboardNumOpen] = useState(false);
@@ -102,41 +105,60 @@ const ModalListOutgoing = ({
     }
   };
 
+  // Función para obtener color del cajero
+  const getCashierColor = (cashierId: any) => {
+    if (!cashierId) return null;
+    const cashier = cashiers.find(
+      (c: any) => c.id === cashierId || c._id === cashierId
+    );
+    return cashier?.color || null;
+  };
+
   return (
     <>
       {isModalListOutgoingOpen && (
-        <div className="fixed inset-0 z-[9999] bg-[#252525] bg-opacity-60 flex items-center justify-center">
-          {/* Contenido del modal */}
+        <div className="fixed inset-0 z-[9999] bg-black bg-opacity-50 flex items-center justify-center">
           <div
-            className={`w-[65vh] h-[60vh] p-8 rounded-md shadow-md relative ${themeStyles[theme].tailwindcss.modal}`}
+            className={`w-[70vh] rounded-lg shadow-xl relative ${themeStyles[theme].tailwindcss.modal}`}
+            style={{ border: "1px solid #3f3f46" }}
           >
-            {/* Icono de cerrar en la esquina superior derecha */}
-            <button
-              className="absolute top-4 right-4"
-              onClick={() => setIsModalListOutgoingOpen(false)}
-            >
-              <MdClose className="text-2xl" />
-            </button>
-
-            <h2 className="text-lg font-bold mb-4">
-              Listado de Egresos - {date}
-            </h2>
-            {Boolean(itemsIdSelected.length) && (
-              <div
-                className="w-15 ml-2 bg-red-700 hover:bg-red-800 hover:cursor-pointer text-white px-4 py-1 rounded-md flex items-center justify-center select-none"
-                onClick={() => {
-                  setItemsIdSelected([]);
-                  dispatchCashflow(
-                    cashflowActions.removeCashflows({
-                      cashflowIds: itemsIdSelected,
-                    })(dispatchCashflow)
-                  );
-                }}
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-gray-700 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-2 h-6 bg-rose-500 rounded-full"></div>
+                <h2 className="text-lg font-semibold text-gray-100">
+                  Listado de Egresos - {date}
+                </h2>
+              </div>
+              <button
+                className="text-gray-400 hover:text-gray-200 p-1 rounded transition-colors"
+                onClick={() => setIsModalListOutgoingOpen(false)}
               >
-                Eliminar Items Seleccionados
+                <MdClose className="text-xl" />
+              </button>
+            </div>
+
+            {/* Actions */}
+            {Boolean(itemsIdSelected.length) && (
+              <div className="px-6 py-3 border-b border-gray-700">
+                <button
+                  className="bg-red-600 hover:bg-red-700 text-white px-4 py-1.5 rounded-md text-sm font-medium transition-colors"
+                  onClick={() => {
+                    setItemsIdSelected([]);
+                    dispatchCashflow(
+                      cashflowActions.removeCashflows({
+                        cashflowIds: itemsIdSelected,
+                      })(dispatchCashflow)
+                    );
+                  }}
+                >
+                  Eliminar Items Seleccionados
+                </button>
               </div>
             )}
-            <div className="mt-5 h-[43vh] mx-auto max-w overflow-hidden overflow-y-auto overflow-x-auto">
+
+            {/* Table */}
+            <div className="p-6 max-h-[50vh] overflow-y-auto">
               <EditableTable
                 data={outgoings}
                 columns={columns}
@@ -148,6 +170,16 @@ const ModalListOutgoing = ({
                 itemsIdSelected={itemsIdSelected}
                 setItemsIdSelected={setItemsIdSelected}
                 enableSelectItem={true}
+                getRowStyle={(row: any) => {
+                  const color = getCashierColor(row.cashierId);
+                  if (color) {
+                    return {
+                      backgroundColor: color + "40",
+                      borderLeft: `3px solid ${color}`,
+                    };
+                  }
+                  return {};
+                }}
               />
 
               <KeyboardNum
@@ -655,6 +687,7 @@ const SalesByDayContainer = () => {
   const {
     state: { user },
   } = useUser();
+  const { cashiers, fetchAllCashiers } = useCashier();
 
   let timeoutId: ReturnType<typeof setTimeout>;
 
@@ -683,6 +716,8 @@ const SalesByDayContainer = () => {
   const [editableRow, setEditableRow] = useState<number | null>(null);
   const [employeeSelectedForNewRowSale, setEmployeeSelectedForNewRowSale] =
     useState("");
+  const [cashierFilter, setCashierFilter] = useState<string>("none");
+  const [isModalCashierTotals, setIsModalCashierTotals] = useState(false);
 
   const [totals, setTotals] = useState({
     items: 0,
@@ -787,6 +822,10 @@ const SalesByDayContainer = () => {
   };
 
   useEffect(() => {
+    fetchAllCashiers();
+  }, []);
+
+  useEffect(() => {
     setTotals({
       cash: Object.values(salesByEmployees).reduce(
         (acc: any, current: any) =>
@@ -817,6 +856,34 @@ const SalesByDayContainer = () => {
       ),
     });
   }, [salesByEmployees, salesTransferByEmployees, outgoings]);
+
+  const totalsByCashier = Object.values(salesByEmployees)
+    .flat()
+    .reduce((acc: any, sale: any) => {
+      if (sale.cashierId && sale.cashierName) {
+        if (!acc[sale.cashierId]) {
+          const cashier = cashiers.find(
+            (c: any) => c.id === sale.cashierId || c._id === sale.cashierId
+          );
+          acc[sale.cashierId] = {
+            name: sale.cashierName,
+            color: cashier?.color || "#666",
+            items: 0,
+            cash: 0,
+          };
+        }
+        acc[sale.cashierId].items += sale.items || 0;
+        acc[sale.cashierId].cash += sale.cash || 0;
+      }
+      return acc;
+    }, {} as Record<string, { name: string; color: string; items: number; cash: number }>);
+
+  const totalsByCashierArray = Object.values(totalsByCashier) as {
+    name: string;
+    color: string;
+    items: number;
+    cash: number;
+  }[];
 
   const totalItemsSold = Object.entries(salesByEmployees).reduce(
     (acc: any, current: any) => {
@@ -952,6 +1019,69 @@ const SalesByDayContainer = () => {
           Egresos
         </div>
 
+        <div className="ml-4 inline-block">
+          <label className="mr-2">Cajero:</label>
+          <Select
+            value={cashierFilter}
+            className={themeStyles[theme].classNameSelector}
+            dropdownStyle={themeStyles[theme].dropdownStylesCustom}
+            popupClassName={themeStyles[theme].classNameSelectorItem}
+            style={{ width: 140 }}
+            onChange={(value: string) => setCashierFilter(value)}
+            optionLabelProp="label"
+          >
+            <Select.Option value="none" label="Ninguno">
+              Ninguno
+            </Select.Option>
+            <Select.Option value="all" label="Todos">
+              Todos
+            </Select.Option>
+            {cashiers.map((c: any) => (
+              <Select.Option
+                key={c.id || c._id}
+                value={c.id || c._id}
+                label={
+                  <span
+                    style={{ display: "flex", alignItems: "center", gap: 8 }}
+                  >
+                    <span
+                      style={{
+                        width: 10,
+                        height: 10,
+                        borderRadius: "50%",
+                        backgroundColor: c.color,
+                        display: "inline-block",
+                      }}
+                    />
+                    {c.name}
+                  </span>
+                }
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span
+                    style={{
+                      width: 12,
+                      height: 12,
+                      borderRadius: "50%",
+                      backgroundColor: c.color,
+                      display: "inline-block",
+                    }}
+                  />
+                  {c.name}
+                </div>
+              </Select.Option>
+            ))}
+          </Select>
+        </div>
+
+        {/* Botón Totales por Cajero */}
+        <div
+          className="w-25 ml-2 bg-purple-700 hover:bg-purple-800 hover:cursor-pointer text-white px-4 py-1 rounded-md flex items-center justify-center select-none"
+          onClick={() => setIsModalCashierTotals(true)}
+        >
+          Totales Cajeros
+        </div>
+
         <PDFDownloadLink
           document={
             <PdfLocalSale
@@ -1012,6 +1142,8 @@ const SalesByDayContainer = () => {
                       enableSelectItem={true}
                       rowsSelected={[...itemsIdSelected, ...cashflowIdSelected]}
                       handleItemsSelected={handleItemsSelected}
+                      cashierFilter={cashierFilter}
+                      cashiers={cashiers}
                     />
                     {Boolean(showToastDetailSale) && Boolean(selectedRow) && (
                       <div
@@ -1168,6 +1300,70 @@ const SalesByDayContainer = () => {
             dispatchSale(saleActions.setHideToasts()(dispatchSale))
           }
         />
+      )}
+
+      {/* Modal Totales por Cajero */}
+      {isModalCashierTotals && (
+        <div className="fixed inset-0 z-[9999] bg-[#252525] bg-opacity-60 flex items-center justify-center">
+          <div
+            className={`w-[50vh] p-8 rounded-md shadow-md relative ${themeStyles[theme].tailwindcss.modal}`}
+          >
+            <button
+              className="absolute top-4 right-4"
+              onClick={() => setIsModalCashierTotals(false)}
+            >
+              <MdClose className="text-2xl" />
+            </button>
+
+            <h2 className="text-lg font-bold mb-4">Totales por Cajero</h2>
+
+            {totalsByCashierArray.length === 0 ? (
+              <p className="text-gray-400">No hay ventas con cajero asignado</p>
+            ) : (
+              <div className="space-y-3">
+                {totalsByCashierArray.map((cashier, idx) => (
+                  <div
+                    key={idx}
+                    className="p-3 rounded-md"
+                    style={{
+                      backgroundColor: cashier.color + "30",
+                      borderLeft: `4px solid ${cashier.color}`,
+                    }}
+                  >
+                    <div className="font-bold text-lg">{cashier.name}</div>
+                    <div className="flex justify-between mt-1">
+                      <span>
+                        Prendas: <strong>{cashier.items}</strong>
+                      </span>
+                      <span>
+                        Cash: <strong>${formatCurrency(cashier.cash)}</strong>
+                      </span>
+                    </div>
+                  </div>
+                ))}
+
+                {/* Total general */}
+                <div className="border-t border-gray-500 pt-3 mt-3">
+                  <div className="flex justify-between font-bold">
+                    <span>
+                      Total Prendas:{" "}
+                      {totalsByCashierArray.reduce(
+                        (acc, c) => acc + c.items,
+                        0
+                      )}
+                    </span>
+                    <span>
+                      Total Cash: $
+                      {formatCurrency(
+                        totalsByCashierArray.reduce((acc, c) => acc + c.cash, 0)
+                      )}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       )}
     </>
   );

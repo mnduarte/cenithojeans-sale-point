@@ -11,6 +11,7 @@ import KeyboardNum from "../../components/KeyboardNum";
 import { useUser } from "../../contexts/UserContext";
 import { concepts } from "../../utils/constants";
 import { useAccountForTransfer } from "../../contexts/AccountForTransferContext";
+import { useCashier } from "../../contexts/CashierContext";
 
 const SalesContainer = () => {
   const {
@@ -23,6 +24,7 @@ const SalesContainer = () => {
   const {
     state: { user },
   } = useUser();
+  const { selectedCashier } = useCashier();
 
   const {
     state: {
@@ -39,7 +41,7 @@ const SalesContainer = () => {
   const [employeesFiltered, setEmployeesFiltered] = useState<any[]>([]);
 
   const {
-    state: { accountsForTransfer }
+    state: { accountsForTransfer },
   } = useAccountForTransfer();
 
   const [pricesSelected, setPricesSelected] = useState<any[]>([]);
@@ -118,6 +120,8 @@ const SalesContainer = () => {
     data.subTotalDevolutionItems = totalDevolutionPrices;
     data.percentageToDisccountOrAdd = percentageToDisccountOrAdd;
     data.username = user.username;
+    data.cashierId = selectedCashier?.id || null;
+    data.cashierName = selectedCashier?.name || null;
 
     dispatchSale(saleActions.addSale(data)(dispatchSale));
   };
@@ -286,6 +290,7 @@ const SalesContainer = () => {
         totalTransfer,
         totalToPay,
         total: totalFinal,
+        cashierName: selectedCashier?.name || "",
       })(dispatchSale)
     );
 

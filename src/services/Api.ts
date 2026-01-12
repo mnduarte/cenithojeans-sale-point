@@ -249,6 +249,8 @@ const addSale = ({
   totalFinal,
   isWithPrepaid,
   accountForTransfer,
+  cashierId,
+  cashierName,
 }: any) =>
   instance.post("/sale/add-sale", {
     store,
@@ -273,6 +275,8 @@ const addSale = ({
     totalFinal,
     isWithPrepaid,
     accountForTransfer,
+    cashierId,
+    cashierName,
   });
 
 const addNewNumOrder = ({ employeeId, newNumOrder }: any) =>
@@ -298,8 +302,14 @@ const addNewSaleByEmployee = ({
     username,
   });
 
-const updateOrder = ({ id, dataIndex, value }: any) =>
-  instance.put("/sale/update-order", { id, dataIndex, value });
+const updateOrder = ({ id, dataIndex, value, cashierId, cashierName }: any) =>
+  instance.put("/sale/update-order", {
+    id,
+    dataIndex,
+    value,
+    cashierId,
+    cashierName,
+  });
 
 const updatSaleByEmployee = ({ id, dataIndex, value }: any) =>
   instance.put("/sale/update-sale-by-employee", { id, dataIndex, value });
@@ -320,11 +330,9 @@ const cancelOrders = ({
     cancellationDate,
   });
 
-const enableOrders = ({
-  itemsIdSelected
-}: any) =>
+const enableOrders = ({ itemsIdSelected }: any) =>
   instance.post("/sale/enable-order", {
-    itemsIdSelected
+    itemsIdSelected,
   });
 
 const removeSales = ({ salesIds, cashflowIds }: any) =>
@@ -388,6 +396,8 @@ const addCashflow = ({
   items,
   typePayment,
   date,
+  cashierId,
+  cashierName,
 }: any) =>
   instance.post("/cashflow/add-cashflow", {
     type,
@@ -398,6 +408,8 @@ const addCashflow = ({
     items,
     typePayment,
     date,
+    cashierId,
+    cashierName,
   });
 
 const addObservation = ({ observation, store, username }: any) =>
@@ -481,6 +493,8 @@ const addCost = ({
   customer,
   typeShipment,
   checkoutDate,
+  cashierId,
+  cashierName,
 }: any) =>
   instance.post("/cost/add-cost", {
     date,
@@ -493,6 +507,8 @@ const addCost = ({
     customer,
     typeShipment,
     checkoutDate,
+    cashierId,
+    cashierName,
   });
 
 const updateCost = ({
@@ -507,6 +523,10 @@ const updateCost = ({
   customer,
   typeShipment,
   checkoutDate,
+  lastEditCashierId,
+  lastEditCashierName,
+  checkoutCashierId,
+  checkoutCashierName,
 }: any) =>
   instance.put("/cost/update-cost", {
     id,
@@ -520,6 +540,10 @@ const updateCost = ({
     customer,
     typeShipment,
     checkoutDate,
+    lastEditCashierId,
+    lastEditCashierName,
+    checkoutCashierId,
+    checkoutCashierName,
   });
 
 const updateColorCost = ({
@@ -560,6 +584,69 @@ const updateAccount = ({ id, name }: any) =>
 
 const removeAccounts = ({ accountsIds }: any) =>
   instance.post("/cost/remove-account", { accountsIds });
+
+export interface Cashier {
+  id: string;
+  name: string;
+  store: string;
+  color: string;
+  position: number;
+  active?: boolean;
+}
+
+export interface CashierResponse {
+  results: Cashier[];
+}
+
+// Obtener todos los cajeros
+const getAllCashiers = async (): Promise<Cashier[]> => {
+  const response = await instance.get<CashierResponse>(`/cashier`);
+  return response.data.results;
+};
+
+// Obtener cajeros por sucursal
+const getCashiersByStore = async (store: string): Promise<Cashier[]> => {
+  const response = await instance.post<CashierResponse>(`/cashier/by-store`, {
+    store,
+  });
+  return response.data.results;
+};
+
+// Crear cajero
+const createCashier = async (cashier: {
+  name: string;
+  store: string;
+  color: string;
+  position: number;
+}): Promise<Cashier[]> => {
+  const response = await instance.post<CashierResponse>(
+    `/cashier/add`,
+    cashier
+  );
+  return response.data.results;
+};
+
+// Actualizar cajero
+const updateCashier = async (cashier: {
+  id: string;
+  name: string;
+  store: string;
+  color: string;
+  position: number;
+  active?: boolean;
+}): Promise<Cashier[]> => {
+  const response = await instance.put<CashierResponse>(
+    `/cashier/update`,
+    cashier
+  );
+  return response.data.results;
+};
+
+// Eliminar cajero
+const deleteCashier = async (id: string): Promise<Cashier[]> => {
+  const response = await instance.delete<CashierResponse>(`/cashier/${id}`);
+  return response.data.results;
+};
 
 const Api = {
   login,
@@ -624,6 +711,12 @@ const Api = {
   addAccount,
   updateAccount,
   removeAccounts,
+
+  getAllCashiers,
+  getCashiersByStore,
+  createCashier,
+  updateCashier,
+  deleteCashier,
 };
 
 export default Api;

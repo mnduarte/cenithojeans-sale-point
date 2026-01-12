@@ -62,6 +62,7 @@ import {
   AccountForTransferProvider,
   useAccountForTransfer,
 } from "./contexts/AccountForTransferContext";
+import { CashierProvider } from "./contexts/CashierContext";
 
 setupIonicReact();
 
@@ -315,7 +316,9 @@ const App: React.FC = () => {
                       <GraphProvider>
                         <AdminProvider>
                           <CostProvider>
-                            <AppContainer />
+                            <CashierProvider>
+                              <AppContainer />
+                            </CashierProvider>
                           </CostProvider>
                         </AdminProvider>
                       </GraphProvider>

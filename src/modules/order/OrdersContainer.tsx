@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useEmployee } from "../../contexts/EmployeeContext";
+import { useCashier } from "../../contexts/CashierContext";
 import { saleActions, useSale } from "../../contexts/SaleContext";
 import { formatCurrency, formatDateToYYYYMMDD } from "../../utils/formatUtils";
 import Spinner from "../../components/Spinner";
@@ -179,6 +180,21 @@ const OrdersContainer = () => {
   const {
     state: { user },
   } = useUser();
+  const { cashiers, fetchAllCashiers } = useCashier();
+  const [cashierFilter, setCashierFilter] = useState<string>("none");
+
+  const getStoredCashier = () => {
+    const stored = localStorage.getItem("selectedCashier");
+    if (stored) {
+      try {
+        return JSON.parse(stored);
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  };
+
   const [filters, setFilters] = useState({
     startDate: formatDateToYYYYMMDD(new Date()),
     endDate: formatDateToYYYYMMDD(new Date()),
@@ -225,7 +241,39 @@ const OrdersContainer = () => {
   };
 
   const columns = [
-    { title: "Fecha", dataIndex: "date" },
+    {
+      title: "Fecha",
+      dataIndex: "date",
+      render: (row: any) => {
+        const displayCashierId = row.lastEditCashierId || row.cashierId;
+        const displayCashierName = row.lastEditCashierName || row.cashierName;
+        const cashier = displayCashierId
+          ? cashiers.find((c: any) => (c.id || c._id) === displayCashierId)
+          : null;
+
+        return (
+          <div className="flex flex-col">
+            <span>{row.date}</span>
+            {displayCashierName && (
+              <span className="text-gray-400 text-xs inline-flex items-center gap-1">
+                {cashier && (
+                  <span
+                    style={{
+                      width: 6,
+                      height: 6,
+                      borderRadius: "50%",
+                      backgroundColor: cashier.color,
+                      display: "inline-block",
+                    }}
+                  />
+                )}
+                {displayCashierName}
+              </span>
+            )}
+          </div>
+        );
+      },
+    },
     {
       title: "Vendedor",
       dataIndex: "employee",
@@ -332,8 +380,15 @@ const OrdersContainer = () => {
     }
 
     if (item.action === "addPrice") {
+      const storedCashier = getStoredCashier();
+      const cashierData = storedCashier
+        ? { cashierId: storedCashier.id, cashierName: storedCashier.name }
+        : {};
+
       dispatchSale(
-        saleActions.updateOrder({ ...propSale, value })(dispatchSale)
+        saleActions.updateOrder({ ...propSale, value, ...cashierData })(
+          dispatchSale
+        )
       );
       setValue(0);
       setEditableRow(null);
@@ -352,6 +407,11 @@ const OrdersContainer = () => {
     inputType,
     inputValue,
   }: any) => {
+    const storedCashier = getStoredCashier();
+    const cashierData = storedCashier
+      ? { cashierId: storedCashier.id, cashierName: storedCashier.name }
+      : {};
+
     if (inputType === "string") {
       setPropSale({ dataIndex, id });
       setValue(value ? value : 0);
@@ -364,6 +424,7 @@ const OrdersContainer = () => {
           dataIndex,
           id,
           value: formatDateToYYYYMMDD(new Date(inputValue)),
+          ...cashierData,
         })(dispatchSale)
       );
       setTimeout(() => {
@@ -377,6 +438,7 @@ const OrdersContainer = () => {
           dataIndex,
           id,
           value: inputValue.value,
+          ...cashierData,
         })(dispatchSale)
       );
       setTimeout(() => {
@@ -390,6 +452,7 @@ const OrdersContainer = () => {
           dataIndex,
           id,
           value: formatDateToYYYYMMDD(new Date()),
+          ...cashierData,
         })(dispatchSale)
       );
       setTimeout(() => {
@@ -407,6 +470,10 @@ const OrdersContainer = () => {
         )
     );
   };
+
+  useEffect(() => {
+    fetchAllCashiers();
+  }, []);
 
   useEffect(() => {
     setOrdersFiltered(orders);
@@ -455,10 +522,11 @@ const OrdersContainer = () => {
 
   return (
     <>
+      {/* Fila 1: Filtros principales */}
       <div
-        className={`h-12 relative p-2 border-x border-t ${themeStyles[theme].tailwindcss.border} flex justify-center`}
+        className={`min-h-[48px] relative p-2 border-x border-t ${themeStyles[theme].tailwindcss.border} flex flex-wrap items-center justify-center gap-2`}
       >
-        <div className="inline-block">
+        <div className="inline-flex items-center">
           <label className="mr-1">Desde:</label>
           <DatePicker
             onChange={(date: any) =>
@@ -474,8 +542,10 @@ const OrdersContainer = () => {
             format={dateFormat}
             value={dayjs(filters.startDate)}
           />
-          <label className="ml-1 mr-1">Hasta:</label>
+        </div>
 
+        <div className="inline-flex items-center">
+          <label className="mr-1">Hasta:</label>
           <DatePicker
             onChange={(date: any) =>
               setFilters((props) => ({
@@ -493,15 +563,14 @@ const OrdersContainer = () => {
         </div>
 
         {user.store === "ALL" && (
-          <div className="ml-2 inline-block">
+          <div className="inline-flex items-center">
             <label className="mr-1">Sucursal:</label>
-
             <Select
               value={mappingListStore[filters.store]}
               className={themeStyles[theme].classNameSelector}
               dropdownStyle={themeStyles[theme].dropdownStylesCustom}
               popupClassName={themeStyles[theme].classNameSelectorItem}
-              style={{ width: 110 }}
+              style={{ width: 100 }}
               onSelect={(value: any) =>
                 setFilters((props) => ({ ...props, store: value }))
               }
@@ -512,15 +581,15 @@ const OrdersContainer = () => {
             />
           </div>
         )}
-        <div className="ml-2 inline-block">
-          <label className="mr-1">Vendedor:</label>
 
+        <div className="inline-flex items-center">
+          <label className="mr-1">Vendedor:</label>
           <Select
             value={filters.employee === "" ? "Todos" : filters.employee}
             className={themeStyles[theme].classNameSelector}
             dropdownStyle={themeStyles[theme].dropdownStylesCustom}
             popupClassName={themeStyles[theme].classNameSelectorItem}
-            style={{ width: 120 }}
+            style={{ width: 110 }}
             onSelect={(value: any) =>
               setFilters((props) => ({
                 ...props,
@@ -537,15 +606,14 @@ const OrdersContainer = () => {
           />
         </div>
 
-        <div className="ml-2 inline-block">
+        <div className="inline-flex items-center">
           <label className="mr-1">Tipo:</label>
-
           <Select
             value={mappingTypeShipment[filters.typeShipment]}
             className={themeStyles[theme].classNameSelector}
             dropdownStyle={themeStyles[theme].dropdownStylesCustom}
             popupClassName={themeStyles[theme].classNameSelectorItem}
-            style={{ width: 120 }}
+            style={{ width: 100 }}
             onSelect={(value: any) =>
               setFilters((props) => ({
                 ...props,
@@ -559,15 +627,15 @@ const OrdersContainer = () => {
             ]}
           />
         </div>
-        <div className="ml-2 inline-block">
-          <label className="mr-1">Salida:</label>
 
+        <div className="inline-flex items-center">
+          <label className="mr-1">Salida:</label>
           <Select
             value={mappingCheckoutDate[filters.checkoutDate]}
             className={themeStyles[theme].classNameSelector}
             dropdownStyle={themeStyles[theme].dropdownStylesCustom}
             popupClassName={themeStyles[theme].classNameSelectorItem}
-            style={{ width: 120 }}
+            style={{ width: 100 }}
             onSelect={(value: any) =>
               setFilters((props) => ({
                 ...props,
@@ -581,71 +649,67 @@ const OrdersContainer = () => {
             ]}
           />
         </div>
-        <div className="ml-2 inline-block">
-          <div className="flex items-center space-x-1">
-            <input
-              type="text"
-              className={`w-[110px] p-1 border-2 border-[#1BA1E2] rounded-md text-center hover:cursor-pointer ${themeStyles[theme].tailwindcss.inputText}`}
-              value={filters.q}
-              placeholder="Texto"
-              onClick={() => setIsModalSearchByTextOpen(true)}
-            />
-            <div
-              className="bg-gray-700 w-5 text-white py-1 rounded-md flex items-center justify-center select-none transition-opacity duration-200 hover:opacity-80 active:scale-95"
-              onClick={() =>
-                setFilters((props: any) => ({
-                  ...props,
-                  q: "",
-                }))
-              }
-            >
-              <MdCleaningServices />
-            </div>
-          </div>
-        </div>
 
-        <div className="ml-2 inline-block">
+        <div className="inline-flex items-center gap-1">
+          <input
+            type="text"
+            className={`w-[90px] p-1 border-2 border-[#1BA1E2] rounded-md text-center hover:cursor-pointer ${themeStyles[theme].tailwindcss.inputText}`}
+            value={filters.q}
+            placeholder="Texto"
+            onClick={() => setIsModalSearchByTextOpen(true)}
+          />
           <div
-            className={`inline-block px-4 py-1 rounded-md border text-white select-none ${
-              Boolean(filters.startDate.length) &&
-              Boolean(filters.endDate.length) &&
-              "bg-[#1b78e2] border-[#1b78e2] hover:cursor-pointer hover:opacity-80 transition-opacity"
-            } flex items-center mx-auto`}
+            className="bg-gray-700 w-5 text-white py-1 rounded-md flex items-center justify-center select-none transition-opacity duration-200 hover:opacity-80 active:scale-95 cursor-pointer"
             onClick={() =>
-              !loading &&
-              dispatchSale(saleActions.getOrders(filters)(dispatchSale))
+              setFilters((props: any) => ({
+                ...props,
+                q: "",
+              }))
             }
           >
-            Buscar
-            {loading && (
-              <div className="ml-2">
-                <Spinner />
-              </div>
-            )}
+            <MdCleaningServices />
           </div>
         </div>
 
-        <div className="inline-block">
-          <div
-            className=" ml-2 bg-green-800 hover:bg-green-900 hover:cursor-pointer text-white px-2  py-1 rounded-md flex items-center justify-center select-none"
-            onClick={downloadExcel}
-          >
-            Excel
-          </div>
+        <div
+          className={`px-4 py-1 rounded-md border text-white select-none ${
+            Boolean(filters.startDate.length) &&
+            Boolean(filters.endDate.length)
+              ? "bg-[#1b78e2] border-[#1b78e2] hover:cursor-pointer hover:opacity-80 transition-opacity"
+              : ""
+          } flex items-center`}
+          onClick={() =>
+            !loading &&
+            dispatchSale(saleActions.getOrders(filters)(dispatchSale))
+          }
+        >
+          Buscar
+          {loading && (
+            <div className="ml-2">
+              <Spinner />
+            </div>
+          )}
+        </div>
+
+        <div
+          className="bg-green-800 hover:bg-green-900 hover:cursor-pointer text-white px-2 py-1 rounded-md flex items-center justify-center select-none"
+          onClick={downloadExcel}
+        >
+          Excel
         </div>
       </div>
 
+      {/* Fila 2: Filtros de salida */}
       <div
-        className={`h-12 relative p-2 border ${themeStyles[theme].tailwindcss.border} flex justify-center`}
+        className={`min-h-[48px] relative p-2 border-x ${themeStyles[theme].tailwindcss.border} flex flex-wrap items-center justify-center gap-2`}
       >
-        <div className="ml-2 inline-block">
-          <label className="mr-2">Ordenar:</label>
-
+        <div className="inline-flex items-center">
+          <label className="mr-1">Ordenar:</label>
           <Select
             className={themeStyles[theme].classNameSelector}
             dropdownStyle={themeStyles[theme].dropdownStylesCustom}
             popupClassName={themeStyles[theme].classNameSelectorItem}
-            style={{ width: 120 }}
+            style={{ width: 90 }}
             onSelect={onOrderAscDesc}
             options={[
               { label: "Mayor", value: "higher" },
@@ -654,8 +718,8 @@ const OrdersContainer = () => {
           />
         </div>
 
-        <div className="inline-block">
-          <label className="mx-1">Salida Desde:</label>
+        <div className="inline-flex items-center">
+          <label className="mr-1">Salida Desde:</label>
           <DatePicker
             onChange={(date: any) =>
               setCheckoutDateFilters((props) => ({
@@ -670,8 +734,10 @@ const OrdersContainer = () => {
             format={dateFormat}
             value={dayjs(checkoutDatefilters.startDate)}
           />
-          <label className="ml-1 mr-1">Hasta:</label>
+        </div>
 
+        <div className="inline-flex items-center">
+          <label className="mr-1">Hasta:</label>
           <DatePicker
             onChange={(date: any) =>
               setCheckoutDateFilters((props) => ({
@@ -689,15 +755,14 @@ const OrdersContainer = () => {
         </div>
 
         {user.store === "ALL" && (
-          <div className="ml-2 inline-block">
+          <div className="inline-flex items-center">
             <label className="mr-1">Sucursal:</label>
-
             <Select
               value={mappingListStore[checkoutDatefilters.store]}
               className={themeStyles[theme].classNameSelector}
               dropdownStyle={themeStyles[theme].dropdownStylesCustom}
               popupClassName={themeStyles[theme].classNameSelectorItem}
-              style={{ width: 110 }}
+              style={{ width: 100 }}
               onSelect={(value: any) =>
                 setCheckoutDateFilters((props) => ({ ...props, store: value }))
               }
@@ -709,9 +774,8 @@ const OrdersContainer = () => {
           </div>
         )}
 
-        <div className="ml-2 inline-block">
+        <div className="inline-flex items-center">
           <label className="mr-1">Vendedor:</label>
-
           <Select
             value={
               checkoutDatefilters.employee === ""
@@ -721,7 +785,7 @@ const OrdersContainer = () => {
             className={themeStyles[theme].classNameSelector}
             dropdownStyle={themeStyles[theme].dropdownStylesCustom}
             popupClassName={themeStyles[theme].classNameSelectorItem}
-            style={{ width: 120 }}
+            style={{ width: 110 }}
             onSelect={(value: any) =>
               setCheckoutDateFilters((props) => ({
                 ...props,
@@ -738,15 +802,14 @@ const OrdersContainer = () => {
           />
         </div>
 
-        <div className="ml-2 inline-block">
+        <div className="inline-flex items-center">
           <label className="mr-1">Tipo:</label>
-
           <Select
             value={mappingTypeShipment[checkoutDatefilters.typeShipment]}
             className={themeStyles[theme].classNameSelector}
             dropdownStyle={themeStyles[theme].dropdownStylesCustom}
             popupClassName={themeStyles[theme].classNameSelectorItem}
-            style={{ width: 120 }}
+            style={{ width: 100 }}
             onSelect={(value: any) =>
               setCheckoutDateFilters((props) => ({
                 ...props,
@@ -761,32 +824,144 @@ const OrdersContainer = () => {
           />
         </div>
 
-        <div className="ml-2 inline-block">
-          <div
-            className={`inline-block px-4 py-1 rounded-md border text-white select-none ${
-              Boolean(checkoutDatefilters.startDate.length) &&
-              Boolean(checkoutDatefilters.endDate.length) &&
-              "bg-[#1b78e2] border-[#1b78e2] hover:cursor-pointer hover:opacity-80 transition-opacity"
-            } flex items-center mx-auto`}
-            onClick={() =>
-              !loading &&
-              dispatchSale(
-                saleActions.getOrdersCheckoutDate(checkoutDatefilters)(
-                  dispatchSale
-                )
+        <div
+          className={`px-4 py-1 rounded-md border text-white select-none ${
+            Boolean(checkoutDatefilters.startDate.length) &&
+            Boolean(checkoutDatefilters.endDate.length)
+              ? "bg-[#1b78e2] border-[#1b78e2] hover:cursor-pointer hover:opacity-80 transition-opacity"
+              : ""
+          } flex items-center`}
+          onClick={() =>
+            !loading &&
+            dispatchSale(
+              saleActions.getOrdersCheckoutDate(checkoutDatefilters)(
+                dispatchSale
               )
-            }
+            )
+          }
+        >
+          Buscar
+          {loading && (
+            <div className="ml-2">
+              <Spinner />
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Fila 3: Cajero + Leyenda + Editando + Cantidad */}
+      <div
+        className={`min-h-[48px] relative p-2 border-x border-b ${themeStyles[theme].tailwindcss.border} flex flex-wrap items-center justify-center gap-3`}
+      >
+        <div className="inline-flex items-center">
+          <label className="mr-1">Cajero:</label>
+          <Select
+            value={cashierFilter}
+            className={themeStyles[theme].classNameSelector}
+            dropdownStyle={themeStyles[theme].dropdownStylesCustom}
+            popupClassName={themeStyles[theme].classNameSelectorItem}
+            style={{ width: 120 }}
+            onChange={(value: string) => setCashierFilter(value)}
+            optionLabelProp="label"
           >
-            Buscar
-            {loading && (
-              <div className="ml-2">
-                <Spinner />
-              </div>
-            )}
-          </div>
+            <Select.Option value="none" label="Ninguno">
+              Ninguno
+            </Select.Option>
+            <Select.Option value="all" label="Todos">
+              Todos
+            </Select.Option>
+            {cashiers.map((c: any) => (
+              <Select.Option
+                key={c.id || c._id}
+                value={String(c.id || c._id)}
+                label={
+                  <span
+                    style={{ display: "flex", alignItems: "center", gap: 8 }}
+                  >
+                    <span
+                      style={{
+                        width: 10,
+                        height: 10,
+                        borderRadius: "50%",
+                        backgroundColor: c.color,
+                        display: "inline-block",
+                      }}
+                    />
+                    {c.name}
+                  </span>
+                }
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span
+                    style={{
+                      width: 12,
+                      height: 12,
+                      borderRadius: "50%",
+                      backgroundColor: c.color,
+                      display: "inline-block",
+                    }}
+                  />
+                  {c.name}
+                </div>
+              </Select.Option>
+            ))}
+          </Select>
         </div>
 
-        <Tag color="#3B3B3B" className="ml-2 py-1 px-2 text-sm">
+        {/* Leyenda de colores - solo visible cuando filtro es "all" */}
+        {cashierFilter === "all" && cashiers.length > 0 && (
+          <div className="inline-flex items-center gap-2 px-2 py-1 bg-gray-700/30 rounded">
+            {cashiers.map((c: any) => (
+              <div
+                key={c.id || c._id}
+                className="inline-flex items-center gap-1 text-xs text-gray-300"
+              >
+                <span
+                  style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: "50%",
+                    backgroundColor: c.color,
+                    display: "inline-block",
+                  }}
+                />
+                <span>{c.name}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Indicador del cajero activo (del localStorage) */}
+        {(() => {
+          const storedCashier = getStoredCashier();
+          if (storedCashier) {
+            const cashierColor =
+              cashiers.find((c: any) => c.id === storedCashier.id)?.color ||
+              storedCashier.color;
+            return (
+              <div className="inline-flex items-center gap-1 text-xs text-gray-400 bg-gray-700/50 px-2 py-1 rounded">
+                <span>Editando:</span>
+                <span
+                  style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: "50%",
+                    backgroundColor: cashierColor,
+                    display: "inline-block",
+                  }}
+                />
+                <span className="text-gray-200">{storedCashier.name}</span>
+              </div>
+            );
+          }
+          return (
+            <div className="text-xs text-yellow-500">
+              ⚠ Sin cajero en Ventas
+            </div>
+          );
+        })()}
+
+        <Tag color="#3B3B3B" className="py-1 px-2 text-sm">
           Cantidad Pedidos:{" "}
           {ordersFiltered.filter((order) => !Boolean(order.cancelled)).length}
         </Tag>
@@ -857,6 +1032,44 @@ const OrdersContainer = () => {
           setItemsIdSelected={setItemsSelected}
           setAllValueRow={true}
           enableSelectItem={true}
+          getCellStyle={(row: any, column: any) => {
+            if (cashierFilter === "none") return {};
+
+            // Determinar qué cajero usar según la columna
+            const isCheckoutColumn = column.dataIndex === "checkoutDate";
+            const cellCashierId = isCheckoutColumn
+              ? row.checkoutCashierId
+              : (row.lastEditCashierId || row.cashierId);
+
+            if (!cellCashierId) return {};
+
+            // Para "all", colorear según el cajero de cada celda
+            if (cashierFilter === "all") {
+              const cashier = cashiers.find(
+                (c: any) => (c.id || c._id) === cellCashierId
+              );
+              if (cashier) {
+                return {
+                  backgroundColor: cashier.color + "30",
+                };
+              }
+              return {};
+            }
+
+            // Para cajero específico, colorear solo si coincide
+            const filterCashierId = parseInt(cashierFilter);
+            if (cellCashierId === filterCashierId) {
+              const cashier = cashiers.find(
+                (c: any) => (c.id || c._id) === cellCashierId
+              );
+              if (cashier) {
+                return {
+                  backgroundColor: cashier.color + "30",
+                };
+              }
+            }
+            return {};
+          }}
         />
         {Boolean(showToastDetail) && Boolean(selectedOrderCancelled) && (
           <div

@@ -24,6 +24,8 @@ const EditableTable = ({
   setItemsIdSelected = false,
   rowWithoutActions = "cancelled",
   setAllValueRow,
+  getRowStyle,
+  getCellStyle,
 }: any) => {
   const {
     state: { theme, themeStyles },
@@ -92,111 +94,120 @@ const EditableTable = ({
         </tr>
       </thead>
       <tbody>
-        {data.map((row: any, rowIndex: any) => (
-          <React.Fragment key={rowIndex}>
-            <tr
-              className={` ${
-                rowIndex % 2 === 0 &&
-                editableRow !== table + rowIndex &&
-                themeStyles[theme].tailwindcss.table.impar
-              } ${
-                editableRow === table + rowIndex
-                  ? themeStyles[theme].tailwindcss.table.par
-                  : themeStyles[theme].tailwindcss.table.hover
-              } ${
-                row[rowWithoutActions] &&
-                "bg-red-500 hover:bg-red-700 text-white"
-              }
-              ${row.withBackground && "text-red-400"}
-              `}
-            >
-              {enableSelectItem && (
-                <td
-                  className={`pt-1 ${themeStyles[theme].tailwindcss.table.tbody.td}`}
-                >
-                  {
-                    /*!row[rowWithoutActions] &&*/ <input
-                      type="checkbox"
-                      checked={[...itemsIdSelected, ...cashflowIdSelected]
-                        .map(({ id }: any) => id)
-                        .includes(row.id)}
-                      //disabled={row[rowWithoutActions]}
-                      onChange={(e) => {
-                        const setIdsSelected =
-                          row.type === "ingreso"
-                            ? setCashflowIdSelected
-                            : setItemsIdSelected;
-
-                        setIdsSelected((items: any) => {
-                          if (e.target.checked) {
-                            const customValue = setAllValueRow
-                              ? row
-                              : { id: row.id };
-                            return [...items, customValue];
-                          }
-
-                          return items.filter((i: any) => i.id !== row.id);
-                        });
-                      }}
-                      className={`form-checkbox h-4 w-4 border border-gray-300 ${
-                        ![...itemsIdSelected, ...cashflowIdSelected]
-                          .map(({ id }: any) => id)
-                          .includes(row.id) &&
-                        themeStyles[theme].tailwindcss.table.checkbox
-                      } rounded p-2`}
-                    />
-                  }
-                </td>
-              )}
-              {columns.map((column: any, columnIndex: any) => {
-                return (
+        {data.map((row: any, rowIndex: any) => {
+          const customRowStyle = getRowStyle ? getRowStyle(row) : {};
+          return (
+            <React.Fragment key={rowIndex}>
+              <tr
+                className={` ${
+                  rowIndex % 2 === 0 &&
+                  editableRow !== table + rowIndex &&
+                  !customRowStyle.backgroundColor &&
+                  themeStyles[theme].tailwindcss.table.impar
+                } ${
+                  editableRow === table + rowIndex
+                    ? themeStyles[theme].tailwindcss.table.par
+                    : !customRowStyle.backgroundColor &&
+                      themeStyles[theme].tailwindcss.table.hover
+                } ${
+                  row[rowWithoutActions] &&
+                  "bg-red-500 hover:bg-red-700 text-white"
+                }
+        ${row.withBackground && "text-red-400"}
+        `}
+                style={customRowStyle}
+              >
+                {enableSelectItem && (
                   <td
-                    key={columnIndex}
-                    className={`text-center py-1 ${
-                      themeStyles[theme].tailwindcss.table.tbody.td
-                    } ${
-                      column.applyColorText &&
-                      row.isWithPrepaid &&
-                      "text-cyan-500"
-                    }`}
-                    onClick={(e) =>
-                      //!row[rowWithoutActions] &&
-                      !row.withBackground &&
-                      handleEditClick(
-                        setItemInOnClick ? row : table + rowIndex,
-                        e
-                      )
-                    }
+                    className={`pt-1 ${themeStyles[theme].tailwindcss.table.tbody.td}`}
                   >
-                    {editableRow === table + rowIndex &&
-                    column.editableCell &&
-                    column.type
-                      ? mappingInputType[column.type]({
-                          value: row[column.dataIndex],
-                          dataIndex: column.dataIndex,
-                          dataSelect: column.dataSelect,
-                          action: (inputValue: any) =>
-                            handleAction({
-                              dataIndex: column.dataIndex,
-                              value: row[column.dataIndex],
-                              id: row.id,
-                              inputType: column.type,
-                              inputValue,
-                            }),
-                        })
-                      : column.defaultValue
-                      ? column.defaultValue(row[column.dataIndex])
-                      : Boolean(row[column.dataIndex])
-                      ? column.format
-                        ? column.format(row[column.dataIndex])
-                        : row[column.dataIndex]
-                      : "-"}
+                    {
+                      /*!row[rowWithoutActions] &&*/ <input
+                        type="checkbox"
+                        checked={[...itemsIdSelected, ...cashflowIdSelected]
+                          .map(({ id }: any) => id)
+                          .includes(row.id)}
+                        //disabled={row[rowWithoutActions]}
+                        onChange={(e) => {
+                          const setIdsSelected =
+                            row.type === "ingreso"
+                              ? setCashflowIdSelected
+                              : setItemsIdSelected;
+
+                          setIdsSelected((items: any) => {
+                            if (e.target.checked) {
+                              const customValue = setAllValueRow
+                                ? row
+                                : { id: row.id };
+                              return [...items, customValue];
+                            }
+
+                            return items.filter((i: any) => i.id !== row.id);
+                          });
+                        }}
+                        className={`form-checkbox h-4 w-4 border border-gray-300 ${
+                          ![...itemsIdSelected, ...cashflowIdSelected]
+                            .map(({ id }: any) => id)
+                            .includes(row.id) &&
+                          themeStyles[theme].tailwindcss.table.checkbox
+                        } rounded p-2`}
+                      />
+                    }
                   </td>
-                );
-              })}
-            </tr>
-          </React.Fragment>
-        ))}
+                )}
+                {columns.map((column: any, columnIndex: any) => {
+                  return (
+                    <td
+                      key={columnIndex}
+                      className={`text-center py-1 ${
+                        themeStyles[theme].tailwindcss.table.tbody.td
+                      } ${
+                        column.applyColorText &&
+                        row.isWithPrepaid &&
+                        "text-cyan-500"
+                      }`}
+                      style={getCellStyle ? getCellStyle(row, column) : {}}
+                      onClick={(e) =>
+                        //!row[rowWithoutActions] &&
+                        !row.withBackground &&
+                        handleEditClick(
+                          setItemInOnClick ? row : table + rowIndex,
+                          e
+                        )
+                      }
+                    >
+                      {editableRow === table + rowIndex &&
+                      column.editableCell &&
+                      column.type
+                        ? mappingInputType[column.type]({
+                            value: row[column.dataIndex],
+                            dataIndex: column.dataIndex,
+                            dataSelect: column.dataSelect,
+                            action: (inputValue: any) =>
+                              handleAction({
+                                dataIndex: column.dataIndex,
+                                value: row[column.dataIndex],
+                                id: row.id,
+                                inputType: column.type,
+                                inputValue,
+                              }),
+                          })
+                        : column.render
+                        ? column.render(row)
+                        : column.defaultValue
+                        ? column.defaultValue(row[column.dataIndex])
+                        : Boolean(row[column.dataIndex])
+                        ? column.format
+                          ? column.format(row[column.dataIndex])
+                          : row[column.dataIndex]
+                        : "-"}
+                    </td>
+                  );
+                })}
+              </tr>
+            </React.Fragment>
+          );
+        })}
 
         {columns.find(({ sumAcc }: any) => sumAcc) && (
           <tr>

@@ -693,6 +693,8 @@ export const saleActions = {
       totalFinal,
       isWithPrepaid,
       accountForTransfer,
+      cashierId,
+      cashierName,
     }: any) =>
     async (dispatch: any) => {
       dispatch({
@@ -724,6 +726,8 @@ export const saleActions = {
           totalFinal,
           isWithPrepaid,
           accountForTransfer,
+          cashierId,
+          cashierName,
         });
 
         dispatch({
@@ -787,7 +791,7 @@ export const saleActions = {
       });
     },
   updateOrder:
-    ({ id, dataIndex, value, onlyOneField }: any) =>
+    ({ id, dataIndex, value, onlyOneField, cashierId, cashierName }: any) =>
     async (dispatch: any) => {
       dispatch({
         type: actionTypes.LOADING,
@@ -800,6 +804,8 @@ export const saleActions = {
           dataIndex,
           value,
           onlyOneField,
+          cashierId,
+          cashierName,
         });
 
         dispatch({
@@ -885,9 +891,8 @@ export const saleActions = {
       });
 
       try {
-
         const { data } = await Api.enableOrders({
-          itemsIdSelected
+          itemsIdSelected,
         });
 
         dispatch({

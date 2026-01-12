@@ -123,13 +123,28 @@ const PdfSectionByBranch = ({ title, data, includeOrderQuantity }: any) => {
           dataIndex: e.employee,
         }));
         const dataRows = (() => {
-          const weekdays =
-            data.byItemWeek.employees[0]?.data.map((d: any) => d.weekdays) ||
-            [];
-          return weekdays.map((weekdays: any) => {
-            const row: Record<string, any> = { label: weekdays };
+          // Obtener todas las semanas únicas de TODOS los empleados
+          const allWeeks = [
+            ...new Set(
+              data.byItemWeek.employees.flatMap((e: any) =>
+                e.data.map((d: any) => d.week)
+              )
+            ),
+          ].sort((a: any, b: any) => a - b);
+
+          return allWeeks.map((week: any) => {
+            // Buscar el primer weekdays disponible para mostrar como label
+            const weekdaysLabel =
+              data.byItemWeek.employees
+                .flatMap((e: any) => e.data)
+                .find((d: any) => d.week === week)?.weekdays ||
+              `Semana ${week}`;
+
+            const row: Record<string, any> = { label: weekdaysLabel };
+
             for (const emp of data.byItemWeek.employees) {
-              const match = emp.data.find((d: any) => d.weekdays === weekdays);
+              // Buscar por número de semana, no por string
+              const match = emp.data.find((d: any) => d.week === week);
               row[emp.employee] = match?.items ?? "-";
             }
             return row;

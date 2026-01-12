@@ -304,6 +304,8 @@ export const costActions = {
       customer,
       typeShipment,
       checkoutDate,
+      cashierId,
+      cashierName,
     }: any) =>
     async (dispatch: any) => {
       dispatch({
@@ -323,6 +325,8 @@ export const costActions = {
           customer,
           typeShipment,
           checkoutDate,
+          cashierId,
+          cashierName,
         });
 
         const formattedPayload = {
@@ -364,6 +368,10 @@ export const costActions = {
       customer,
       typeShipment,
       checkoutDate,
+      lastEditCashierId,
+      lastEditCashierName,
+      checkoutCashierId,
+      checkoutCashierName,
     }: any) =>
     async (dispatch: any) => {
       dispatch({
@@ -384,6 +392,10 @@ export const costActions = {
           customer,
           typeShipment,
           checkoutDate,
+          lastEditCashierId,
+          lastEditCashierName,
+          checkoutCashierId,
+          checkoutCashierName,
         });
 
         const formattedPayload = {

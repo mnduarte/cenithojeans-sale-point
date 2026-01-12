@@ -1,12 +1,14 @@
 import { formatCurrency } from "../../utils/formatUtils";
 import Spinner from "../../components/Spinner";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import IncomeContainer from "./IncomeContainer";
 import OutgoingContainer from "./OutgoingContainer";
 import ObservationContainer from "./ObservationContainer";
 import { Select } from "antd";
 import { useTheme } from "../../contexts/ThemeContext";
 import { priceActions, usePrice } from "../../contexts/PriceContext";
+import { useCashier } from "../../contexts/CashierContext";
+import { useUser } from "../../contexts/UserContext";
 
 const ListOfPricesContainer = ({
   prices,
@@ -30,6 +32,45 @@ const ListOfPricesContainer = ({
     state: { order },
     dispatch: dispatchPrice,
   } = usePrice();
+
+  // Cajeros
+  const {
+    state: { user },
+  } = useUser();
+  const {
+    cashiers,
+    selectedCashier,
+    selectCashier,
+    fetchAllCashiers,
+    getCashiersForStore,
+  } = useCashier();
+
+  const isAdmin = user?.role === "ADMIN";
+  const userStore = user?.store || "ALL";
+
+  // Cargar cajeros al montar
+  useEffect(() => {
+    fetchAllCashiers();
+  }, []);
+
+  // Filtrar cajeros por sucursal (admin ve todos)
+  const filteredCashiers = isAdmin ? cashiers : getCashiersForStore(userStore);
+
+  const handleCashierChange = (cashierId: string | null) => {
+    if (!cashierId) {
+      selectCashier(null);
+    } else {
+      const cashier = filteredCashiers.find((c: any) => c.id === cashierId);
+      if (cashier) {
+        selectCashier({
+          id: cashier.id,
+          name: cashier.name,
+          color: cashier.color,
+          store: cashier.store,
+        });
+      }
+    }
+  };
 
   const pricesItems = devolutionModeActive
     ? devolutionPricesSelected
@@ -141,6 +182,64 @@ const ListOfPricesContainer = ({
           }}
         >
           OBSERVACIONES
+        </div>
+
+        {/* Divider vertical + Selector de Cajero */}
+        <div className="inline-block ml-4 pl-4 border-l border-gray-500">
+          <label className="mr-2 text-white font-medium">Cajero:</label>
+          <Select
+            className={themeStyles[theme].classNameSelector}
+            dropdownStyle={themeStyles[theme].dropdownStylesCustom}
+            popupClassName={themeStyles[theme].classNameSelectorItem}
+            style={{ width: 160 }}
+            value={selectedCashier?.id || undefined}
+            onChange={handleCashierChange}
+            allowClear
+            placeholder="Seleccione"
+            optionLabelProp="label"
+          >
+            {filteredCashiers.map((cashier: any) => (
+              <Select.Option
+                key={cashier.id}
+                value={cashier.id}
+                label={
+                  <span
+                    style={{ display: "flex", alignItems: "center", gap: 8 }}
+                  >
+                    <span
+                      style={{
+                        width: 12,
+                        height: 12,
+                        borderRadius: "50%",
+                        backgroundColor: cashier.color,
+                        display: "inline-block",
+                      }}
+                    />
+                    {cashier.name}
+                  </span>
+                }
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span
+                    style={{
+                      width: 14,
+                      height: 14,
+                      borderRadius: "50%",
+                      backgroundColor: cashier.color,
+                      display: "inline-block",
+                      flexShrink: 0,
+                    }}
+                  />
+                  <span>{cashier.name}</span>
+                  {isAdmin && cashier.store && (
+                    <span style={{ opacity: 0.6, fontSize: 11, marginLeft: 4 }}>
+                      ({cashier.store})
+                    </span>
+                  )}
+                </div>
+              </Select.Option>
+            ))}
+          </Select>
         </div>
       </div>
       <div

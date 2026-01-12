@@ -30,6 +30,7 @@ const CrudTable = ({
   rowValues,
   saveRow,
   onEnterPress = () => {},
+  getCellStyle,
 }: any) => {
   const {
     state: { theme, themeStyles },
@@ -259,6 +260,7 @@ const CrudTable = ({
                       row.isWithPrepaid &&
                       "text-cyan-500"
                     }`}
+                    style={getCellStyle ? getCellStyle(row, column) : {}}
                     onClick={() =>
                       !row[rowWithoutActions] &&
                       !row.withBackground &&
@@ -305,7 +307,10 @@ const CrudTable = ({
                 >
                   {editableRow === table + rowIndex ? (
                     <div className={`w-full flex items-center justify-center`}>
-                      <FaSave className={`cursor-pointer`} onClick={saveRow} />
+                      <FaSave
+                        className={`cursor-pointer`}
+                        onClick={() => saveRow()}
+                      />
                     </div>
                   ) : (
                     <div className={`text-center font-bold`}>
