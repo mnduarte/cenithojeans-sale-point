@@ -159,9 +159,7 @@ const TableSaleByDay = ({
                 data.reduce(
                   (acc: any, current: any) =>
                     acc +
-                    ((current[column.dataIndex] || 0) < 0
-                      ? 0
-                      : current[column.dataIndex]),
+                    (current[column.dataIndex] || 0) ,
                   0
                 );
 

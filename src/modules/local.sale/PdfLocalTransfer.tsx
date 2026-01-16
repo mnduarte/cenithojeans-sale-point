@@ -3,217 +3,302 @@ import { formatCurrency } from "../../utils/formatUtils";
 
 const styles = StyleSheet.create({
   page: {
-    padding: 10,
+    padding: 30,
+    fontSize: 9,
+    fontFamily: "Helvetica",
   },
-  row: {
-    flexDirection: "row",
-    flexWrap: "wrap",
+  header: {
+    marginBottom: 20,
+    borderBottomWidth: 2,
+    borderBottomColor: "#0891b2",
+    paddingBottom: 10,
+  },
+  title: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#0891b2",
+    marginBottom: 5,
+  },
+  subtitle: {
+    fontSize: 10,
+    color: "#666666",
   },
   table: {
     display: "flex",
-    flexDirection: "row", // Cambiado para disposición horizontal
-    flexWrap: "wrap", // Para que se envuelvan los elementos si no caben en una sola fila
-    marginLeft: 2,
+    width: "100%",
+    marginTop: 10,
   },
-  tableDetail: {
-    display: "flex",
-    width: 86,
-    flexDirection: "row", // Cambiado para disposición horizontal
-    flexWrap: "wrap", // Para que se envuelvan los elementos si no caben en una sola fila
-    marginLeft: 2, // Margen inferior para separar las tablas
-    marginTop: 10, // Margen inferior para separar las tablas
+  tableHeader: {
+    flexDirection: "row",
+    backgroundColor: "#0891b2",
+    borderTopLeftRadius: 4,
+    borderTopRightRadius: 4,
   },
-  tableDetailWithDate: {
-    display: "flex",
-    width: 136,
-    flexDirection: "row", // Cambiado para disposición horizontal
-    flexWrap: "wrap", // Para que se envuelvan los elementos si no caben en una sola fila
-    marginLeft: 2, // Margen inferior para separar las tablas
-    marginTop: 10, // Margen inferior para separar las tablas
+  tableHeaderCell: {
+    color: "#ffffff",
+    fontWeight: "bold",
+    padding: 8,
+    fontSize: 8,
+    textAlign: "center",
   },
-
-  tableDetailPedido: {
-    display: "flex",
-    width: 172,
-    flexDirection: "row", // Cambiado para disposición horizontal
-    flexWrap: "wrap", // Para que se envuelvan los elementos si no caben en una sola fila
-    marginLeft: 2, // Margen inferior para separar las tablas
-    marginTop: 10, // Margen inferior para separar las tablas
-  },
-  tableDetailWithDatePedido: {
-    display: "flex",
-    width: 222,
-    flexDirection: "row", // Cambiado para disposición horizontal
-    flexWrap: "wrap", // Para que se envuelvan los elementos si no caben en una sola fila
-    marginLeft: 2, // Margen inferior para separar las tablas
-    marginTop: 10, // Margen inferior para separar las tablas
-  },
-
   tableRow: {
     flexDirection: "row",
+    borderBottomWidth: 1,
+    borderBottomColor: "#e5e7eb",
   },
-  tableCol: {
-    width: 60,
-    borderStyle: "solid",
-    border: 0.5,
+  tableRowAlternate: {
+    flexDirection: "row",
+    borderBottomWidth: 1,
+    borderBottomColor: "#e5e7eb",
+    backgroundColor: "#f9fafb",
   },
-  tableColHeader: {
-    width: 86,
-    borderStyle: "solid",
-    borderWidth: 0.5,
-    borderLeftWidth: 0.5,
-    borderTopWidth: 0.5,
+  tableRowIngreso: {
+    flexDirection: "row",
+    borderBottomWidth: 1,
+    borderBottomColor: "#e5e7eb",
+    backgroundColor: "#fef3c7",
   },
-  tableColHeaderPedido: {
-    width: 172,
-    borderStyle: "solid",
-    borderWidth: 0.5,
-    borderLeftWidth: 0.5,
-    borderTopWidth: 0.5,
-  },
-  tableColOrder: {
-    color: "#FF0000",
-    width: 16,
-    borderStyle: "solid",
-    borderWidth: 0.5,
-    borderLeftWidth: 0.5,
-    borderTopWidth: 0,
-  },
-  tableColDate: {
-    width: 50,
-    borderStyle: "solid",
-    borderWidth: 0.5,
-    borderLeftWidth: 0,
-    borderTopWidth: 0,
-  },
-  tableColItem: {
-    width: 38,
-    borderStyle: "solid",
-    borderWidth: 0.5,
-    borderLeftWidth: 0,
-    borderTopWidth: 0,
-  },
-  tableColTotal: {
-    width: 48,
-    borderStyle: "solid",
-    borderWidth: 0.5,
-    borderLeftWidth: 0,
-    borderTopWidth: 0,
-  },
-  text: {
-    fontSize: 6,
+  tableCell: {
+    padding: 8,
+    fontSize: 8,
     textAlign: "center",
   },
-  textResume: {
-    fontSize: 6,
-    color: "#FF0000",
-    textAlign: "center",
+  tableCellLeft: {
+    padding: 8,
+    fontSize: 8,
+    textAlign: "left",
+  },
+  // Column widths
+  colOrder: { width: "6%" },
+  colVendedor: { width: "14%" },
+  colHora: { width: "8%" },
+  colEfectivo: { width: "12%" },
+  colTransfer: { width: "12%" },
+  colPrendas: { width: "10%" },
+  colCuenta: { width: "20%" },
+  colTotal: { width: "12%" },
+  // Footer
+  tableFooter: {
+    flexDirection: "row",
+    backgroundColor: "#0891b2",
+    borderBottomLeftRadius: 4,
+    borderBottomRightRadius: 4,
+  },
+  tableFooterCell: {
+    color: "#ffffff",
     fontWeight: "bold",
+    padding: 8,
+    fontSize: 8,
+    textAlign: "center",
   },
-  title: {
-    fontSize: 10,
+  // Summary section
+  summaryContainer: {
+    marginTop: 20,
+    padding: 15,
+    backgroundColor: "#f0fdfa",
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: "#0891b2",
+  },
+  summaryTitle: {
+    fontSize: 11,
+    fontWeight: "bold",
+    color: "#0891b2",
+    marginBottom: 10,
+  },
+  summaryRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginBottom: 5,
-    marginTop: 8,
   },
-  ingresoCell: {
-    backgroundColor: "#F2CDCB",
+  summaryLabel: {
+    fontSize: 9,
+    color: "#374151",
+  },
+  summaryValue: {
+    fontSize: 9,
+    fontWeight: "bold",
+    color: "#0891b2",
+  },
+  // Footer info
+  footerInfo: {
+    position: "absolute",
+    bottom: 20,
+    left: 30,
+    right: 30,
+    textAlign: "center",
+    color: "#9ca3af",
+    fontSize: 8,
+    borderTopWidth: 1,
+    borderTopColor: "#e5e7eb",
+    paddingTop: 10,
   },
 });
 
-const TableListTranfer = ({ data }: any) => (
-  <View style={styles.table}>
-    <View style={[styles.tableRow]}>
-      <View style={styles.tableCol}>
-        <Text style={styles.text}>N°</Text>
-      </View>
-      <View style={styles.tableCol}>
-        <Text style={styles.text}>Vendedor</Text>
-      </View>
-      <View style={styles.tableCol}>
-        <Text style={styles.text}>Efectivo</Text>
-      </View>
-      <View style={styles.tableCol}>
-        <Text style={styles.text}>Transfer</Text>
-      </View>
-      <View style={styles.tableCol}>
-        <Text style={styles.text}>Prendas</Text>
-      </View>
-      <View style={{ ...styles.tableCol, width: 100 }}>
-        <Text style={styles.text}>Cuenta para transferir</Text>
-      </View>
-      <View style={styles.tableCol}>
-        <Text style={styles.text}>Total</Text>
-      </View>
-    </View>
-    {data.map((resume: any) => (
-      <View
-        style={[
-          styles.tableRow,
-          resume.type === "ingreso" ? styles.ingresoCell : {},
-        ]}
-      >
-        <View style={styles.tableCol}>
-          <Text style={styles.text}>{resume.order}</Text>
-        </View>
-        <View style={styles.tableCol}>
-          <Text style={styles.text}>{resume.employee}</Text>
-        </View>
-        <View style={styles.tableCol}>
-          <Text style={styles.text}>${formatCurrency(resume.cash)}</Text>
-        </View>
-        <View style={styles.tableCol}>
-          <Text style={styles.text}>${formatCurrency(resume.transfer)}</Text>
-        </View>
-        <View style={styles.tableCol}>
-          <Text style={styles.text}>{resume.items}</Text>
-        </View>
-        <View style={{ ...styles.tableCol, width: 100 }}>
-          <Text style={styles.text}>{resume.accountForTransfer}</Text>
-        </View>
-        <View style={styles.tableCol}>
-          <Text style={styles.text}>${formatCurrency(resume.total)}</Text>
-        </View>
-      </View>
-    ))}
+const formatTime = (dateString: string) => {
+  if (!dateString) return "-";
+  const date = new Date(dateString);
+  return date.toLocaleTimeString("es-AR", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+};
 
-    <View style={[styles.tableRow]}>
-      <View style={styles.tableCol}>
-        <Text style={styles.textResume}></Text>
+const TableListTransfer = ({ data }: any) => {
+  const totals = data.reduce(
+    (acc: any, current: any) => ({
+      efectivo: acc.efectivo + (current.cash || 0),
+      transferencia: acc.transferencia + (current.transfer || 0),
+      prendas: acc.prendas + (current.items || 0),
+      total: acc.total + (current.total || 0),
+    }),
+    { efectivo: 0, transferencia: 0, prendas: 0, total: 0 }
+  );
+
+  return (
+    <View style={styles.table}>
+      {/* Header */}
+      <View style={styles.tableHeader}>
+        <View style={styles.colOrder}>
+          <Text style={styles.tableHeaderCell}>N°</Text>
+        </View>
+        <View style={styles.colVendedor}>
+          <Text style={styles.tableHeaderCell}>Vendedor</Text>
+        </View>
+        <View style={styles.colHora}>
+          <Text style={styles.tableHeaderCell}>Hora</Text>
+        </View>
+        <View style={styles.colEfectivo}>
+          <Text style={styles.tableHeaderCell}>Efectivo</Text>
+        </View>
+        <View style={styles.colTransfer}>
+          <Text style={styles.tableHeaderCell}>Transfer</Text>
+        </View>
+        <View style={styles.colPrendas}>
+          <Text style={styles.tableHeaderCell}>Prendas</Text>
+        </View>
+        <View style={styles.colCuenta}>
+          <Text style={styles.tableHeaderCell}>Cuenta</Text>
+        </View>
+        <View style={styles.colTotal}>
+          <Text style={styles.tableHeaderCell}>Total</Text>
+        </View>
       </View>
-      <View style={styles.tableCol}>
-        <Text style={styles.textResume}></Text>
-      </View>
-      <View style={styles.tableCol}>
-        <Text style={styles.textResume}></Text>
-      </View>
-      <View style={styles.tableCol}>
-        <Text style={styles.textResume}></Text>
-      </View>
-      <View style={styles.tableCol}>
-        <Text style={styles.textResume}>
-          {data.reduce((acc: any, current: any) => acc + current.items, 0)}
-        </Text>
-      </View>
-      <View style={{ ...styles.tableCol, width: 100 }}>
-        <Text style={styles.textResume}></Text>
-      </View>
-      <View style={styles.tableCol}>
-        <Text style={styles.textResume}></Text>
+
+      {/* Body */}
+      {data.map((item: any, index: number) => (
+        <View
+          key={index}
+          style={
+            item.type === "ingreso"
+              ? styles.tableRowIngreso
+              : index % 2 === 0
+              ? styles.tableRow
+              : styles.tableRowAlternate
+          }
+        >
+          <View style={styles.colOrder}>
+            <Text style={styles.tableCell}>{item.order || "-"}</Text>
+          </View>
+          <View style={styles.colVendedor}>
+            <Text style={styles.tableCellLeft}>{item.employee || "-"}</Text>
+          </View>
+          <View style={styles.colHora}>
+            <Text style={styles.tableCell}>{formatTime(item.createdAt)}</Text>
+          </View>
+          <View style={styles.colEfectivo}>
+            <Text style={styles.tableCell}>
+              {item.cash ? `$${formatCurrency(item.cash)}` : "-"}
+            </Text>
+          </View>
+          <View style={styles.colTransfer}>
+            <Text style={styles.tableCell}>
+              ${formatCurrency(item.transfer || 0)}
+            </Text>
+          </View>
+          <View style={styles.colPrendas}>
+            <Text style={styles.tableCell}>{item.items || 0}</Text>
+          </View>
+          <View style={styles.colCuenta}>
+            <Text style={styles.tableCellLeft}>
+              {item.accountForTransfer || "-"}
+            </Text>
+          </View>
+          <View style={styles.colTotal}>
+            <Text style={styles.tableCell}>
+              ${formatCurrency(item.total || 0)}
+            </Text>
+          </View>
+        </View>
+      ))}
+
+      {/* Footer */}
+      <View style={styles.tableFooter}>
+        <View style={styles.colOrder}>
+          <Text style={styles.tableFooterCell}></Text>
+        </View>
+        <View style={styles.colVendedor}>
+          <Text style={styles.tableFooterCell}>TOTALES</Text>
+        </View>
+        <View style={styles.colHora}>
+          <Text style={styles.tableFooterCell}></Text>
+        </View>
+        <View style={styles.colEfectivo}>
+          <Text style={styles.tableFooterCell}>
+            ${formatCurrency(totals.efectivo)}
+          </Text>
+        </View>
+        <View style={styles.colTransfer}>
+          <Text style={styles.tableFooterCell}>
+            ${formatCurrency(totals.transferencia)}
+          </Text>
+        </View>
+        <View style={styles.colPrendas}>
+          <Text style={styles.tableFooterCell}>{totals.prendas}</Text>
+        </View>
+        <View style={styles.colCuenta}>
+          <Text style={styles.tableFooterCell}></Text>
+        </View>
+        <View style={styles.colTotal}>
+          <Text style={styles.tableFooterCell}>
+            ${formatCurrency(totals.total)}
+          </Text>
+        </View>
       </View>
     </View>
-  </View>
-);
+  );
+};
 
 const PdfLocalTransfer = ({ date, store, data }: any) => {
+  const totalRegistros = data.length;
+  const totalTransferencias = data.reduce(
+    (acc: any, curr: any) => acc + (curr.transfer || 0),
+    0
+  );
+  const totalEfectivo = data.reduce(
+    (acc: any, curr: any) => acc + (curr.cash || 0),
+    0
+  );
+
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        <View style={styles.title}>
-          <Text>
-            Listado de transferencia Fecha {date} Sucursal: {store}
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.title}>Listado de Transferencias</Text>
+          <Text style={styles.subtitle}>
+            Fecha: {date} | Sucursal: {store} | Registros: {totalRegistros}
           </Text>
         </View>
-        <TableListTranfer data={data} />
+
+        {/* Table */}
+        <TableListTransfer data={data} />
+
+        {/* Footer */}
+        <Text style={styles.footerInfo}>
+          Documento generado automáticamente - {new Date().toLocaleString("es-AR")}
+        </Text>
       </Page>
     </Document>
   );

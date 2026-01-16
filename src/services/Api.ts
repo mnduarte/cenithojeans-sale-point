@@ -204,6 +204,17 @@ const getSalesTranferByDay = ({ date, store }: any) => {
   return instance.get("/sale/sales-transfer-by-employees", config);
 };
 
+const getSalesWithDevolutions = ({ date, store }: any) => {
+  const config: AxiosRequestConfig = {
+    params: {
+      date,
+      store,
+    },
+  };
+
+  return instance.get("/sale/sales-with-devolutions", config);
+};
+
 const getCashflowByDay = ({ date, store }: any) => {
   const config: AxiosRequestConfig = {
     params: {
@@ -726,6 +737,7 @@ const Api = {
   getObservations,
   getSalesCashByDay,
   getSalesTranferByDay,
+  getSalesWithDevolutions,
   getCashflowByDay,
   getOutgoingsByDay,
 

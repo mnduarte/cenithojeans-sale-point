@@ -10,7 +10,7 @@ import dayjs from "dayjs";
 import { DatePicker, Select, Tag } from "antd";
 
 import { MdClose } from "react-icons/md";
-import { FaPlus } from "react-icons/fa";
+import { FaPlus, FaSortUp, FaSortDown, FaSort } from "react-icons/fa";
 import { GrPowerReset } from "react-icons/gr";
 import Spinner from "../../components/Spinner";
 import KeyboardNum from "../../components/KeyboardNum";
@@ -24,6 +24,8 @@ import Keyboard from "../../components/Keyboard";
 
 import PdfLocalSale from "./PdfLocalSale";
 import PdfLocalTransfer from "./PdfLocalTransfer";
+import PdfLocalDevolutions from "./PdfLocalDevolutions";
+import Api from "../../services/Api";
 import { useAccountForTransfer } from "../../contexts/AccountForTransferContext";
 import { useCashier } from "../../contexts/CashierContext";
 import { getTextColorForBackground } from "../../utils/cashierColors";
@@ -533,6 +535,416 @@ const ModalItemsBreakdown = ({ isOpen, setIsOpen, salesData }: any) => {
   );
 };
 
+// ==================== MODAL LISTADO DEVOLUCIONES ====================
+const ModalListDevolutions = ({ isOpen, setIsOpen, date, store }: any) => {
+  const {
+    state: { theme, themeStyles },
+  } = useTheme();
+
+  const [salesWithDevolutions, setSalesWithDevolutions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [filterMode, setFilterMode] = useState("Consolidado");
+  const [sortConfig, setSortConfig] = useState<{
+    key: string;
+    direction: "asc" | "desc" | null;
+  }>({ key: "", direction: null });
+
+  // Obtener lista única de vendedores
+  const vendedores = [
+    ...new Set(
+      salesWithDevolutions.map((s: any) => s.employee).filter(Boolean)
+    ),
+  ];
+
+  useEffect(() => {
+    if (isOpen && date) {
+      fetchDevolutions();
+    }
+  }, [isOpen, date, store]);
+
+  const fetchDevolutions = async () => {
+    setLoading(true);
+    try {
+      const { data } = await Api.getSalesWithDevolutions({ date, store });
+      setSalesWithDevolutions(data.results || []);
+    } catch (error) {
+      console.log("Error fetching devolutions:", error);
+      setSalesWithDevolutions([]);
+    }
+    setLoading(false);
+  };
+
+  const handleSort = (key: string) => {
+    setSortConfig((prev) => {
+      if (prev.key === key) {
+        if (prev.direction === "asc") return { key, direction: "desc" };
+        if (prev.direction === "desc") return { key: "", direction: null };
+      }
+      return { key, direction: "asc" };
+    });
+  };
+
+  const getSortIcon = (key: string) => {
+    if (sortConfig.key !== key)
+      return <FaSort className="ml-1 text-gray-400 text-xs" />;
+    if (sortConfig.direction === "asc")
+      return <FaSortUp className="ml-1 text-red-400 text-xs" />;
+    return <FaSortDown className="ml-1 text-red-400 text-xs" />;
+  };
+
+  // Filtrar y ordenar datos
+  const getFilteredData = () => {
+    let data = [...salesWithDevolutions];
+
+    // Si no es consolidado, filtrar por vendedor específico
+    if (filterMode !== "Consolidado") {
+      data = data.filter((sale: any) => sale.employee === filterMode);
+    }
+
+    // Aplicar sorting
+    if (sortConfig.key && sortConfig.direction) {
+      data.sort((a: any, b: any) => {
+        let aValue = a[sortConfig.key];
+        let bValue = b[sortConfig.key];
+
+        if (typeof aValue === "number" && typeof bValue === "number") {
+          return sortConfig.direction === "asc"
+            ? aValue - bValue
+            : bValue - aValue;
+        }
+
+        aValue = String(aValue || "").toLowerCase();
+        bValue = String(bValue || "").toLowerCase();
+        if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
+        if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
+        return 0;
+      });
+    }
+
+    return data;
+  };
+
+  // Obtener datos consolidados por vendedor
+  const getConsolidatedData = () => {
+    const grouped = salesWithDevolutions.reduce((acc: any, sale: any) => {
+      const emp = sale.employee || "Sin vendedor";
+      if (!acc[emp]) {
+        acc[emp] = {
+          employee: emp,
+          items: 0,
+          devolutionItems: 0,
+          itemsDevolutionJeans: 0,
+          itemsDevolutionRemeras: 0,
+          montoDevolucionJeans: 0,
+          montoDevolucionRemeras: 0,
+          subTotalDevolutionItems: 0,
+          ventasCount: 0,
+        };
+      }
+      acc[emp].items += sale.items || 0;
+      acc[emp].devolutionItems += sale.devolutionItems || 0;
+      acc[emp].itemsDevolutionJeans += sale.itemsDevolutionJeans || 0;
+      acc[emp].itemsDevolutionRemeras += sale.itemsDevolutionRemeras || 0;
+      acc[emp].montoDevolucionJeans += sale.montoDevolucionJeans || 0;
+      acc[emp].montoDevolucionRemeras += sale.montoDevolucionRemeras || 0;
+      acc[emp].subTotalDevolutionItems += sale.subTotalDevolutionItems || 0;
+      acc[emp].ventasCount += 1;
+      return acc;
+    }, {});
+
+    let data = Object.values(grouped);
+
+    // Aplicar sorting a datos consolidados
+    if (sortConfig.key && sortConfig.direction) {
+      data.sort((a: any, b: any) => {
+        let aValue = a[sortConfig.key];
+        let bValue = b[sortConfig.key];
+
+        if (typeof aValue === "number" && typeof bValue === "number") {
+          return sortConfig.direction === "asc"
+            ? aValue - bValue
+            : bValue - aValue;
+        }
+
+        aValue = String(aValue || "").toLowerCase();
+        bValue = String(bValue || "").toLowerCase();
+        if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
+        if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
+        return 0;
+      });
+    }
+
+    return data as any[];
+  };
+
+  const filteredData =
+    filterMode === "Consolidado" ? getConsolidatedData() : getFilteredData();
+
+  // Calcular totales
+  const totals = filteredData.reduce(
+    (acc: any, item: any) => ({
+      items: acc.items + (item.items || 0),
+      devolutionItems: acc.devolutionItems + (item.devolutionItems || 0),
+      itemsDevolutionJeans:
+        acc.itemsDevolutionJeans + (item.itemsDevolutionJeans || 0),
+      itemsDevolutionRemeras:
+        acc.itemsDevolutionRemeras + (item.itemsDevolutionRemeras || 0),
+      montoDevolucionJeans:
+        acc.montoDevolucionJeans + (item.montoDevolucionJeans || 0),
+      montoDevolucionRemeras:
+        acc.montoDevolucionRemeras + (item.montoDevolucionRemeras || 0),
+      subTotalDevolutionItems:
+        acc.subTotalDevolutionItems + (item.subTotalDevolutionItems || 0),
+    }),
+    {
+      items: 0,
+      devolutionItems: 0,
+      itemsDevolutionJeans: 0,
+      itemsDevolutionRemeras: 0,
+      montoDevolucionJeans: 0,
+      montoDevolucionRemeras: 0,
+      subTotalDevolutionItems: 0,
+    }
+  );
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[9999] bg-black bg-opacity-60 flex items-center justify-center">
+      <div
+        className={`w-[95vh] h-[75vh] p-6 rounded-lg shadow-xl relative ${themeStyles[theme].tailwindcss.modal}`}
+        style={{ border: "1px solid #dc2626" }}
+      >
+        <button
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-200"
+          onClick={() => setIsOpen(false)}
+        >
+          <MdClose className="text-xl" />
+        </button>
+
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-2 h-6 bg-red-500 rounded-full"></div>
+          <h2 className="text-lg font-semibold text-gray-100">
+            Listado de Devoluciones - {date}
+          </h2>
+        </div>
+
+        {/* Filtros y acciones */}
+        <div className="flex items-center gap-4 mb-4">
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-gray-300">Vista:</label>
+            <Select
+              className={themeStyles[theme].classNameSelector}
+              dropdownStyle={themeStyles[theme].dropdownStylesCustom}
+              popupClassName={themeStyles[theme].classNameSelectorItem}
+              style={{ width: 180 }}
+              value={filterMode}
+              onChange={(value: any) => {
+                setFilterMode(value);
+                setSortConfig({ key: "", direction: null });
+              }}
+              getPopupContainer={(trigger) =>
+                trigger.parentElement || document.body
+              }
+            >
+              <Select.Option value="Consolidado">📊 Consolidado</Select.Option>
+              {vendedores.map((v: any) => (
+                <Select.Option key={v} value={v}>
+                  👤 {v}
+                </Select.Option>
+              ))}
+            </Select>
+          </div>
+
+          <PDFDownloadLink
+            document={
+              <PdfLocalDevolutions
+                date={dayjs(date).format("DD-MM-YYYY")}
+                store={mappingListStore[store]}
+                data={
+                  filterMode === "Consolidado"
+                    ? salesWithDevolutions
+                    : filteredData
+                }
+                isConsolidated={filterMode === "Consolidado"}
+                selectedEmployee={
+                  filterMode !== "Consolidado" ? filterMode : undefined
+                }
+              />
+            }
+            fileName={`listado-devoluciones-${dayjs(date).format(
+              "DD-MM-YYYY"
+            )}.pdf`}
+            className="bg-red-700 hover:bg-red-800 text-white px-4 py-1 rounded-md flex items-center justify-center select-none cursor-pointer"
+          >
+            {({ loading: pdfLoading }) =>
+              pdfLoading ? "Cargando..." : "Generar PDF"
+            }
+          </PDFDownloadLink>
+        </div>
+
+        {/* Tabla */}
+        <div className="h-[52vh] overflow-y-auto overflow-x-auto">
+          {loading ? (
+            <div className="flex items-center justify-center h-full">
+              <Spinner />
+            </div>
+          ) : filteredData.length === 0 ? (
+            <div className="flex items-center justify-center h-full text-gray-400">
+              No hay devoluciones para mostrar
+            </div>
+          ) : (
+            <table className="w-full text-sm">
+              <thead className="sticky top-0 bg-gray-800">
+                <tr>
+                  {filterMode !== "Consolidado" && (
+                    <th
+                      className="p-2 text-left cursor-pointer hover:bg-gray-700 text-blue-400"
+                      onClick={() => handleSort("order")}
+                    >
+                      <div className="flex items-center">
+                        N° {getSortIcon("order")}
+                      </div>
+                    </th>
+                  )}
+                  <th
+                    className="p-2 text-left cursor-pointer hover:bg-gray-700 text-blue-400"
+                    onClick={() => handleSort("employee")}
+                  >
+                    <div className="flex items-center">
+                      Vendedor {getSortIcon("employee")}
+                    </div>
+                  </th>
+                  <th
+                    className="p-2 text-center cursor-pointer hover:bg-gray-700 text-blue-400"
+                    onClick={() => handleSort("items")}
+                  >
+                    <div className="flex items-center justify-center">
+                      Prendas {getSortIcon("items")}
+                    </div>
+                  </th>
+                  <th
+                    className="p-2 text-center cursor-pointer hover:bg-gray-700 text-red-400"
+                    onClick={() => handleSort("devolutionItems")}
+                  >
+                    <div className="flex items-center justify-center">
+                      Devueltas {getSortIcon("devolutionItems")}
+                    </div>
+                  </th>
+                  <th
+                    className="p-2 text-center cursor-pointer hover:bg-gray-700 text-red-400"
+                    onClick={() => handleSort("itemsDevolutionJeans")}
+                  >
+                    <div className="flex items-center justify-center">
+                      Dev. J {getSortIcon("itemsDevolutionJeans")}
+                    </div>
+                  </th>
+                  <th
+                    className="p-2 text-center cursor-pointer hover:bg-gray-700 text-red-400"
+                    onClick={() => handleSort("itemsDevolutionRemeras")}
+                  >
+                    <div className="flex items-center justify-center">
+                      Dev. R {getSortIcon("itemsDevolutionRemeras")}
+                    </div>
+                  </th>
+                  <th
+                    className="p-2 text-center cursor-pointer hover:bg-gray-700 text-red-400"
+                    onClick={() => handleSort("montoDevolucionJeans")}
+                  >
+                    <div className="flex items-center justify-center">
+                      Monto J {getSortIcon("montoDevolucionJeans")}
+                    </div>
+                  </th>
+                  <th
+                    className="p-2 text-center cursor-pointer hover:bg-gray-700 text-red-400"
+                    onClick={() => handleSort("montoDevolucionRemeras")}
+                  >
+                    <div className="flex items-center justify-center">
+                      Monto R {getSortIcon("montoDevolucionRemeras")}
+                    </div>
+                  </th>
+                  <th
+                    className="p-2 text-center cursor-pointer hover:bg-gray-700 text-red-400"
+                    onClick={() => handleSort("subTotalDevolutionItems")}
+                  >
+                    <div className="flex items-center justify-center">
+                      Monto Total {getSortIcon("subTotalDevolutionItems")}
+                    </div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredData.map((item: any, index: number) => (
+                  <tr
+                    key={index}
+                    className="border-b border-gray-700 hover:bg-gray-700/50"
+                  >
+                    {filterMode !== "Consolidado" && (
+                      <td className="p-2 text-blue-400">{item.order || "-"}</td>
+                    )}
+                    <td className="p-2 text-blue-400">
+                      {item.employee || "-"}
+                    </td>
+                    <td className="p-2 text-center text-blue-400">
+                      {item.items || 0}
+                    </td>
+                    <td className="p-2 text-center text-red-400 font-bold">
+                      {item.devolutionItems || 0}
+                    </td>
+                    <td className="p-2 text-center text-red-400">
+                      {item.itemsDevolutionJeans || 0}
+                    </td>
+                    <td className="p-2 text-center text-red-400">
+                      {item.itemsDevolutionRemeras || 0}
+                    </td>
+                    <td className="p-2 text-center text-red-400">
+                      ${formatCurrency(item.montoDevolucionJeans || 0)}
+                    </td>
+                    <td className="p-2 text-center text-red-400">
+                      ${formatCurrency(item.montoDevolucionRemeras || 0)}
+                    </td>
+                    <td className="p-2 text-center text-red-400 font-bold">
+                      ${formatCurrency(item.subTotalDevolutionItems || 0)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+              {/* Footer con totales */}
+              <tfoot className="sticky bottom-0 bg-gray-800 font-bold border-t-2 border-red-500">
+                <tr>
+                  {filterMode !== "Consolidado" && <td className="p-2"></td>}
+                  <td className="p-2 text-blue-400">TOTALES</td>
+                  <td className="p-2 text-center text-blue-400">
+                    {totals.items}
+                  </td>
+                  <td className="p-2 text-center text-red-400">
+                    {totals.devolutionItems}
+                  </td>
+                  <td className="p-2 text-center text-red-400">
+                    {totals.itemsDevolutionJeans}
+                  </td>
+                  <td className="p-2 text-center text-red-400">
+                    {totals.itemsDevolutionRemeras}
+                  </td>
+                  <td className="p-2 text-center text-red-400">
+                    ${formatCurrency(totals.montoDevolucionJeans)}
+                  </td>
+                  <td className="p-2 text-center text-red-400">
+                    ${formatCurrency(totals.montoDevolucionRemeras)}
+                  </td>
+                  <td className="p-2 text-center text-red-400">
+                    ${formatCurrency(totals.subTotalDevolutionItems)}
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const ModalListOutgoing = ({
   isModalListOutgoingOpen,
   setIsModalListOutgoingOpen,
@@ -699,6 +1111,22 @@ const ModalListOutgoing = ({
   );
 };
 
+// Función para formatear hora (ajustada a timezone local Argentina UTC-3)
+const formatTime = (dateString: string) => {
+  if (!dateString) return "-";
+  const date = new Date(dateString);
+  // Ajustar a Argentina (UTC-3) - la fecha viene en UTC desde MongoDB
+  const argentinaOffset = -3 * 60; // -3 horas en minutos
+  const localOffset = date.getTimezoneOffset(); // offset local en minutos
+  const argentinaTime = new Date(date.getTime() + argentinaOffset * -1 * 60000);
+
+  return argentinaTime.toLocaleTimeString("es-AR", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+};
+
 const ModalListTranferSale = ({
   isModalListTransferSaleOpen,
   setIsModalListTransferSaleOpen,
@@ -726,16 +1154,96 @@ const ModalListTranferSale = ({
   });
 
   const [salesFiltered, setSalesFiltered] = useState(sales);
+  const [filterVendedor, setFilterVendedor] = useState("Todos");
+  const [filterCuenta, setFilterCuenta] = useState("Todos");
+  const [sortConfig, setSortConfig] = useState<{
+    key: string;
+    direction: "asc" | "desc" | null;
+  }>({ key: "", direction: null });
 
   const { dispatch: dispatchSale } = useSale();
 
+  // Obtener lista única de vendedores
+  const vendedores = [
+    ...new Set(sales.map((s: any) => s.employee).filter(Boolean)),
+  ];
+
   useEffect(() => {
-    setSalesFiltered(sales);
-  }, [sales]);
+    let filtered = [...sales];
+
+    // Filtrar por vendedor
+    if (filterVendedor !== "Todos") {
+      filtered = filtered.filter(
+        (sale: any) => sale.employee === filterVendedor
+      );
+    }
+
+    // Filtrar por cuenta
+    if (filterCuenta !== "Todos") {
+      filtered = filtered.filter(
+        (sale: any) => sale.accountForTransfer === filterCuenta
+      );
+    }
+
+    // Aplicar sorting
+    if (sortConfig.key && sortConfig.direction) {
+      filtered.sort((a: any, b: any) => {
+        let aValue = a[sortConfig.key];
+        let bValue = b[sortConfig.key];
+
+        // Manejar valores numéricos
+        if (typeof aValue === "number" && typeof bValue === "number") {
+          return sortConfig.direction === "asc"
+            ? aValue - bValue
+            : bValue - aValue;
+        }
+
+        // Manejar fechas
+        if (sortConfig.key === "createdAt") {
+          const dateA = new Date(aValue || 0).getTime();
+          const dateB = new Date(bValue || 0).getTime();
+          return sortConfig.direction === "asc" ? dateA - dateB : dateB - dateA;
+        }
+
+        // Manejar strings
+        aValue = String(aValue || "").toLowerCase();
+        bValue = String(bValue || "").toLowerCase();
+        if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
+        if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
+        return 0;
+      });
+    }
+
+    setSalesFiltered(filtered);
+  }, [sales, filterVendedor, filterCuenta, sortConfig]);
+
+  const handleSort = (key: string) => {
+    setSortConfig((prev) => {
+      if (prev.key === key) {
+        if (prev.direction === "asc") return { key, direction: "desc" };
+        if (prev.direction === "desc") return { key: "", direction: null };
+      }
+      return { key, direction: "asc" };
+    });
+  };
+
+  const getSortIcon = (key: string) => {
+    if (sortConfig.key !== key)
+      return <FaSort className="ml-1 text-gray-400 text-xs" />;
+    if (sortConfig.direction === "asc")
+      return <FaSortUp className="ml-1 text-cyan-400 text-xs" />;
+    return <FaSortDown className="ml-1 text-cyan-400 text-xs" />;
+  };
 
   const columns = [
-    { title: "N°", dataIndex: "order", size: "w-5" },
-    { title: "Vendedor", dataIndex: "employee" },
+    { title: "N°", dataIndex: "order", size: "w-5", sortable: true },
+    { title: "Vendedor", dataIndex: "employee", sortable: true },
+    {
+      title: "Hora",
+      dataIndex: "createdAt",
+      sortable: true,
+      format: formatTime,
+    },
     {
       title: "Efectivo",
       dataIndex: "cash",
@@ -744,6 +1252,7 @@ const ModalListTranferSale = ({
       format: (number: any) => `$${formatCurrency(number)}`,
       applyFormat: true,
       sumAcc: user.role === "ADMIN",
+      sortable: true,
     },
     {
       title: "Transferencia",
@@ -753,6 +1262,7 @@ const ModalListTranferSale = ({
       format: (number: any) => `$${formatCurrency(number)}`,
       applyFormat: true,
       sumAcc: user.role === "ADMIN",
+      sortable: true,
     },
     {
       title: "Prendas",
@@ -760,13 +1270,15 @@ const ModalListTranferSale = ({
       editableCell: true,
       type: "string",
       sumAcc: true,
+      sortable: true,
     },
     {
       title: "Cuenta para transferir",
       dataIndex: "accountForTransfer",
       editableCell: true,
       type: "select",
-      dataSelect: accountsForTransfer.map(({ name }) => name),
+      dataSelect: accountsForTransfer.map(({ name }: any) => name),
+      sortable: true,
     },
     {
       title: "Total",
@@ -776,6 +1288,7 @@ const ModalListTranferSale = ({
       type: "string",
       applyFormat: true,
       sumAcc: user.role === "ADMIN",
+      sortable: true,
     },
   ];
 
@@ -828,13 +1341,24 @@ const ModalListTranferSale = ({
     }
   };
 
+  // Calcular totales
+  const totals = salesFiltered.reduce(
+    (acc: any, sale: any) => ({
+      cash: acc.cash + (sale.cash || 0),
+      transfer: acc.transfer + (sale.transfer || 0),
+      items: acc.items + (sale.items || 0),
+      total: acc.total + (sale.total || 0),
+    }),
+    { cash: 0, transfer: 0, items: 0, total: 0 }
+  );
+
   return (
     <>
       {isModalListTransferSaleOpen && (
         <div className="fixed inset-0 z-[1050] bg-[#252525] bg-opacity-60 flex items-center justify-center">
           {/* Contenido del modal */}
           <div
-            className={`w-[80vh] h-[65vh] p-8 rounded-md shadow-md relative ${themeStyles[theme].tailwindcss.modal}`}
+            className={`w-[95vh] h-[75vh] p-8 rounded-md shadow-md relative ${themeStyles[theme].tailwindcss.modal}`}
           >
             {/* Icono de cerrar en la esquina superior derecha */}
             <button
@@ -848,26 +1372,34 @@ const ModalListTranferSale = ({
               Listado de Transferencias - {date}
             </h2>
 
-            <div className="mt-2 h-[4vh] mx-auto max-w flex items-center">
+            <div className="mt-2 h-[6vh] mx-auto max-w flex items-center flex-wrap gap-2">
+              {/* Filtro por Vendedor */}
               <div className="inline-block">
-                <label className="mr-2">
-                  Filtrar por Cuenta para transferir:
-                </label>
-
+                <label className="mr-2 text-sm">Vendedor:</label>
                 <Select
                   className={themeStyles[theme].classNameSelector}
                   dropdownStyle={themeStyles[theme].dropdownStylesCustom}
                   popupClassName={themeStyles[theme].classNameSelectorItem}
-                  style={{ width: 110 }}
-                  onSelect={(value: any) => {
-                    setSalesFiltered(() =>
-                      value === "Todos"
-                        ? sales
-                        : sales.filter(
-                            (sale: any) => sale.accountForTransfer === value
-                          )
-                    );
-                  }}
+                  style={{ width: 130 }}
+                  value={filterVendedor}
+                  onSelect={(value: any) => setFilterVendedor(value)}
+                  options={[
+                    { label: "Todos", value: "Todos" },
+                    ...vendedores.map((v: any) => ({ value: v, label: v })),
+                  ]}
+                />
+              </div>
+
+              {/* Filtro por Cuenta */}
+              <div className="inline-block">
+                <label className="mr-2 text-sm">Cuenta:</label>
+                <Select
+                  className={themeStyles[theme].classNameSelector}
+                  dropdownStyle={themeStyles[theme].dropdownStylesCustom}
+                  popupClassName={themeStyles[theme].classNameSelectorItem}
+                  style={{ width: 130 }}
+                  value={filterCuenta}
+                  onSelect={(value: any) => setFilterCuenta(value)}
                   options={[
                     { label: "Todos", value: "Todos" },
                     ...accountsForTransfer.map((data: any) => ({
@@ -889,11 +1421,11 @@ const ModalListTranferSale = ({
                 fileName={`listado-transferencias-${dayjs(date).format(
                   "DD-MM-YYYY"
                 )}.pdf`}
-                className="w-25 ml-2 bg-cyan-700 hover:bg-green-800 hover:cursor-pointer text-white px-4 py-1 rounded-md flex items-center justify-center select-none"
+                className="w-25 ml-2 bg-cyan-700 hover:bg-cyan-800 hover:cursor-pointer text-white px-4 py-1 rounded-md flex items-center justify-center select-none"
               >
-                {({ loading, url, error, blob }) =>
+                {({ loading }) =>
                   loading ? (
-                    <button>Cargando Documento ...</button>
+                    <button>Cargando...</button>
                   ) : (
                     <button>Generar PDF</button>
                   )
@@ -903,7 +1435,7 @@ const ModalListTranferSale = ({
               {(Boolean(itemsIdSelected.length) ||
                 Boolean(cashflowIdSelected.length)) && (
                 <div
-                  className=" ml-2 bg-red-700 hover:bg-red-800 hover:cursor-pointer text-white px-4 py-1 rounded-md flex items-center justify-center select-none"
+                  className="ml-2 bg-red-700 hover:bg-red-800 hover:cursor-pointer text-white px-4 py-1 rounded-md flex items-center justify-center select-none"
                   onClick={() => {
                     dispatchSale(
                       saleActions.removeSales({
@@ -920,21 +1452,115 @@ const ModalListTranferSale = ({
               )}
             </div>
 
-            <div className="mt-2 h-[50vh] mx-auto max-w overflow-hidden overflow-y-auto overflow-x-auto">
-              <EditableTable
-                data={salesFiltered}
-                columns={columns}
-                handleAction={handleAction}
-                editableRow={editableRow}
-                handleEditClick={(rowIndex: number) => {
-                  setEditableRow(rowIndex);
-                }}
-                itemsIdSelected={itemsIdSelected}
-                cashflowIdSelected={cashflowIdSelected}
-                setItemsIdSelected={setItemsIdSelected}
-                setCashflowIdSelected={setCashflowIdSelected}
-                enableSelectItem={true}
-              />
+            <div className="mt-2 h-[55vh] mx-auto max-w overflow-hidden overflow-y-auto overflow-x-auto">
+              {/* Tabla personalizada con sorting */}
+              <table className="w-full text-sm">
+                <thead className="sticky top-0 bg-gray-800">
+                  <tr>
+                    <th className="p-2 w-8">
+                      <input type="checkbox" className="opacity-50" disabled />
+                    </th>
+                    {columns.map((col: any, idx: number) => (
+                      <th
+                        key={idx}
+                        className={`p-2 text-left cursor-pointer hover:bg-gray-700 transition-colors ${
+                          col.sortable ? "select-none" : ""
+                        }`}
+                        onClick={() =>
+                          col.sortable && handleSort(col.dataIndex)
+                        }
+                      >
+                        <div className="flex items-center">
+                          {col.title}
+                          {col.sortable && getSortIcon(col.dataIndex)}
+                        </div>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {salesFiltered.map((sale: any, rowIndex: number) => (
+                    <tr
+                      key={rowIndex}
+                      className={`border-b border-gray-700 hover:bg-gray-700/50 ${
+                        sale.type === "ingreso"
+                          ? "bg-yellow-900/30"
+                          : rowIndex % 2 === 1
+                          ? "bg-gray-800/40"
+                          : ""
+                      }`}
+                    >
+                      <td className="p-2">
+                        <input
+                          type="checkbox"
+                          checked={
+                            sale.id
+                              ? itemsIdSelected.some(
+                                  (item: any) => item.id === sale.id
+                                ) ||
+                                cashflowIdSelected.some(
+                                  (item: any) => item.id === sale.id
+                                )
+                              : false
+                          }
+                          onChange={() => {
+                            if (sale.type === "ingreso") {
+                              setCashflowIdSelected((prev: any) =>
+                                prev.some((item: any) => item.id === sale.id)
+                                  ? prev.filter(
+                                      (item: any) => item.id !== sale.id
+                                    )
+                                  : [...prev, { id: sale.id }]
+                              );
+                            } else {
+                              setItemsIdSelected((prev: any) =>
+                                prev.some((item: any) => item.id === sale.id)
+                                  ? prev.filter(
+                                      (item: any) => item.id !== sale.id
+                                    )
+                                  : [...prev, { id: sale.id }]
+                              );
+                            }
+                          }}
+                        />
+                      </td>
+                      {columns.map((col: any, colIndex: number) => {
+                        let value = sale[col.dataIndex];
+                        // Para ingresos (cashflow), el campo cash no existe, mostrar "-"
+                        if (
+                          sale.type === "ingreso" &&
+                          col.dataIndex === "cash"
+                        ) {
+                          value = undefined;
+                        }
+                        return (
+                          <td key={colIndex} className="p-2">
+                            {col.format && value !== undefined && value !== null
+                              ? col.format(value)
+                              : value !== undefined && value !== null
+                              ? value
+                              : "-"}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+                {/* Footer con totales */}
+                <tfoot className="sticky bottom-0 bg-cyan-800 font-bold">
+                  <tr>
+                    <td className="p-2"></td>
+                    <td className="p-2">TOTALES</td>
+                    <td className="p-2"></td>
+                    <td className="p-2"></td>
+                    <td className="p-2">${formatCurrency(totals.cash)}</td>
+                    <td className="p-2">${formatCurrency(totals.transfer)}</td>
+                    <td className="p-2">{totals.items}</td>
+                    <td className="p-2"></td>
+                    <td className="p-2">${formatCurrency(totals.total)}</td>
+                  </tr>
+                </tfoot>
+              </table>
 
               <KeyboardNum
                 isModalKeyboardNumOpen={isModalKeyboardNumOpen}
@@ -1222,6 +1848,7 @@ const SalesByDayContainer = () => {
   const [isModalTransferBreakdown, setIsModalTransferBreakdown] =
     useState(false);
   const [isModalItemsBreakdown, setIsModalItemsBreakdown] = useState(false);
+  const [isModalDevolutions, setIsModalDevolutions] = useState(false);
 
   const [totals, setTotals] = useState({
     items: 0,
@@ -1478,6 +2105,27 @@ const SalesByDayContainer = () => {
           </div>
         </div>
 
+        <PDFDownloadLink
+          document={
+            <PdfLocalSale
+              salesByEmployees={salesByEmployees}
+              date={dayjs(date).format("DD-MM-YYYY")}
+              store={mappingListStore[store]}
+              totalItemsSold={totalItemsSold}
+            />
+          }
+          fileName={`local-${dayjs(date).format("DD-MM-YYYY")}.pdf`}
+          className="w-25 ml-2 bg-cyan-700 hover:bg-green-800 hover:cursor-pointer text-white px-4 py-1 rounded-md flex items-center justify-center select-none"
+        >
+          {({ loading, url, error, blob }) =>
+            loading ? (
+              <button>Cargando Documento ...</button>
+            ) : (
+              <button>Generar PDF</button>
+            )
+          }
+        </PDFDownloadLink>
+
         {(Boolean(itemsIdSelected.length) ||
           Boolean(cashflowIdSelected.length)) && (
           <div
@@ -1506,7 +2154,16 @@ const SalesByDayContainer = () => {
             setIsModalListTranferSaleOpen(true);
           }}
         >
-          Listado de Tranferencias
+          List. de Tranferencias
+        </div>
+
+        <div
+          className="w-25 ml-2 bg-red-700 hover:bg-red-800 hover:cursor-pointer text-white px-4 py-1 rounded-md flex items-center justify-center select-none"
+          onClick={() => {
+            setIsModalDevolutions(true);
+          }}
+        >
+          List. de Devoluciones
         </div>
 
         <div
@@ -1520,9 +2177,13 @@ const SalesByDayContainer = () => {
             setIsModalListOutgoingOpen(true);
           }}
         >
-          Egresos
+          List. de Egresos
         </div>
+      </div>
 
+      <div
+        className={`h-10 relative p-2 border ${themeStyles[theme].tailwindcss.border} flex items-center`}
+      >
         <div className="ml-4 inline-block">
           <label className="mr-2">Cajero:</label>
           <Select
@@ -1578,6 +2239,29 @@ const SalesByDayContainer = () => {
           </Select>
         </div>
 
+        {/* Leyenda de colores - solo visible cuando filtro es "all" */}
+        {cashierFilter === "all" && cashiers.length > 0 && (
+          <div className="inline-flex items-center gap-2 px-2 py-1 bg-gray-700/30 rounded">
+            {cashiers.map((c: any) => (
+              <div
+                key={c.id || c._id}
+                className="inline-flex items-center gap-1 text-xs text-gray-300"
+              >
+                <span
+                  style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: "50%",
+                    backgroundColor: c.color,
+                    display: "inline-block",
+                  }}
+                />
+                <span>{c.name}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* Botón Totales por Cajero */}
         <div
           className="w-25 ml-2 bg-purple-700 hover:bg-purple-800 hover:cursor-pointer text-white px-4 py-1 rounded-md flex items-center justify-center select-none"
@@ -1585,30 +2269,9 @@ const SalesByDayContainer = () => {
         >
           Totales Cajeros
         </div>
-
-        <PDFDownloadLink
-          document={
-            <PdfLocalSale
-              salesByEmployees={salesByEmployees}
-              date={dayjs(date).format("DD-MM-YYYY")}
-              store={mappingListStore[store]}
-              totalItemsSold={totalItemsSold}
-            />
-          }
-          fileName={`local-${dayjs(date).format("DD-MM-YYYY")}.pdf`}
-          className="w-25 ml-2 bg-cyan-700 hover:bg-green-800 hover:cursor-pointer text-white px-4 py-1 rounded-md flex items-center justify-center select-none"
-        >
-          {({ loading, url, error, blob }) =>
-            loading ? (
-              <button>Cargando Documento ...</button>
-            ) : (
-              <button>Generar PDF</button>
-            )
-          }
-        </PDFDownloadLink>
       </div>
 
-      <div className="mt-5 h-[70vh] mx-auto max-w overflow-hidden overflow-y-auto overflow-x-auto">
+      <div className="mt-5 h-[68vh] mx-auto max-w overflow-hidden overflow-y-auto overflow-x-auto">
         <div className="flex gap-2">
           {Boolean(Object.entries(salesByEmployees).length) &&
             Object.entries(salesByEmployees).map(
@@ -1901,6 +2564,12 @@ const SalesByDayContainer = () => {
         isOpen={isModalItemsBreakdown}
         setIsOpen={setIsModalItemsBreakdown}
         salesData={salesByEmployees}
+      />
+      <ModalListDevolutions
+        isOpen={isModalDevolutions}
+        setIsOpen={setIsModalDevolutions}
+        date={date}
+        store={store}
       />
     </>
   );
