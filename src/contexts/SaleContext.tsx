@@ -49,8 +49,8 @@ type SaleState = {
 
 // Crear el contexto de precios
 type SaleContextType = {
-  state: SaleState; // Asegúrate de que SaleState esté definido según tu estructura
-  dispatch: React.Dispatch<any>; // O ajusta el tipo según tu implementación
+  state: SaleState;
+  dispatch: React.Dispatch<any>;
 };
 
 const SaleContext = createContext<SaleContextType | undefined>(undefined);
@@ -695,6 +695,25 @@ export const saleActions = {
       accountForTransfer,
       cashierId,
       cashierName,
+      // Nuevos campos jeans/remeras
+      itemsJeans,
+      itemsRemeras,
+      itemsDevolutionJeans,
+      itemsDevolutionRemeras,
+      subTotalCashJeans,
+      subTotalCashRemeras,
+      subTotalTransferJeans,
+      subTotalTransferRemeras,
+      subTotalDevolutionCashJeans,
+      subTotalDevolutionCashRemeras,
+      subTotalDevolutionTransferJeans,
+      subTotalDevolutionTransferRemeras,
+      amountOfSurchargesCash,
+      amountOfDiscountCash,
+      amountOfSurchargesTransfer,
+      amountOfDiscountTransfer,
+      baseCash,
+      baseTransfer,
     }: any) =>
     async (dispatch: any) => {
       dispatch({
@@ -728,6 +747,25 @@ export const saleActions = {
           accountForTransfer,
           cashierId,
           cashierName,
+          // Nuevos campos
+          itemsJeans,
+          itemsRemeras,
+          itemsDevolutionJeans,
+          itemsDevolutionRemeras,
+          subTotalCashJeans,
+          subTotalCashRemeras,
+          subTotalTransferJeans,
+          subTotalTransferRemeras,
+          subTotalDevolutionCashJeans,
+          subTotalDevolutionCashRemeras,
+          subTotalDevolutionTransferJeans,
+          subTotalDevolutionTransferRemeras,
+          amountOfSurchargesCash,
+          amountOfDiscountCash,
+          amountOfSurchargesTransfer,
+          amountOfDiscountTransfer,
+      baseCash,
+      baseTransfer,
         });
 
         dispatch({

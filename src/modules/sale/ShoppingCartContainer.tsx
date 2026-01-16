@@ -43,63 +43,88 @@ const ShoppingPrices = ({
     }
   }, [enableDisplaced]);
 
+  // Función para obtener el indicador de tipo
+  const getTypeIndicator = (type: string) => {
+    if (type === "remera") {
+      return {
+        letter: "R",
+        colorClass: "text-green-400",
+      };
+    }
+    // Default: jeans
+    return {
+      letter: "J",
+      colorClass: "text-blue-400",
+    };
+  };
+
   return (
     <div ref={listRef}>
-      {prices.map((item: any, idx: any) => (
-        <div
-          key={idx}
-          className={` ${withBorder && "border"} ${
-            item.concept ? "border-yellow-600" : styles.border
-          }  text-center flex items-center justify-center mb-1 `}
-        >
+      {prices.map((item: any, idx: any) => {
+        const typeIndicator = getTypeIndicator(item.type);
+        
+        return (
           <div
-            className={`w-1/6 h-12 border-r ${
+            key={idx}
+            className={` ${withBorder && "border"} ${
               item.concept ? "border-yellow-600" : styles.border
-            } flex items-center justify-center hover:bg-red-500 hover:cursor-pointer hover:text-white`}
-            onClick={() => removeProductSelected(item.id, isDevolution)}
+            }  text-center flex items-center justify-center mb-1 `}
           >
-            <FaTimes />
-          </div>
-
-          <div className="w-3/5 h-12 pr-2 flex items-center justify-end select-none">
-            <input
-              type="text"
-              className={`w-[5vh] p-2 border border-[#484E55] rounded-md mr-2  ${themeStyles[theme].tailwindcss.inputText}`}
-              value={item.quantity}
-              onChange={(e) => handleQuantityByPrice(e, item.id, isDevolution)}
-              onFocus={() => handleOpenKeyboardNum(item.id)}
-            />
-            x {formatCurrency(item.price)}
-          </div>
-          <div
-            className={`w-2/5 h-12 pr-1 border-l ${
-              item.concept ? "border-yellow-600" : styles.border
-            } flex items-center justify-end select-none`}
-          >
-            {item.concept && mappingConceptWithIcon[item.concept].icon} $
-            {formatCurrency(`${item.quantity * item.price}`)}
-          </div>
-
-          <div className="w-1/6 h-12 flex flex-col">
             <div
-              className={`h-1/2 flex items-center justify-center ${
-                withBorder && "border"
-              } border-[#484E55] hover:bg-[#484E55] hover:cursor-pointer`}
-              onClick={() => increaseQuantity(item.id, isDevolution)}
+              className={`w-1/6 h-12 border-r ${
+                item.concept ? "border-yellow-600" : styles.border
+              } flex items-center justify-center hover:bg-red-500 hover:cursor-pointer hover:text-white`}
+              onClick={() => removeProductSelected(item.id, isDevolution)}
             >
-              <FaPlus />
+              <FaTimes />
+            </div>
+
+            <div className="w-3/5 h-12 pr-2 flex items-center justify-end select-none">
+              <input
+                type="text"
+                className={`w-[5vh] p-2 border border-[#484E55] rounded-md mr-2  ${themeStyles[theme].tailwindcss.inputText}`}
+                value={item.quantity}
+                onChange={(e) => handleQuantityByPrice(e, item.id, isDevolution)}
+                onFocus={() => handleOpenKeyboardNum(item.id)}
+              />
+              {/* Indicador J/R */}
+              {!item.concept && (
+                <span className={`text-xs font-bold mr-1 ${typeIndicator.colorClass}`}>
+                  {typeIndicator.letter}
+                </span>
+              )}
+              x {formatCurrency(item.price)}
             </div>
             <div
-              className={`h-1/2 flex items-center justify-center ${
-                withBorder && "border"
-              } border-[#484E55] hover:bg-[#484E55] hover:cursor-pointer`}
-              onClick={() => decrementQuantity(item.id, isDevolution)}
+              className={`w-2/5 h-12 pr-1 border-l ${
+                item.concept ? "border-yellow-600" : styles.border
+              } flex items-center justify-end select-none`}
             >
-              <FaMinus />
+              {item.concept && mappingConceptWithIcon[item.concept].icon} $
+              {formatCurrency(`${item.quantity * item.price}`)}
+            </div>
+
+            <div className="w-1/6 h-12 flex flex-col">
+              <div
+                className={`h-1/2 flex items-center justify-center ${
+                  withBorder && "border"
+                } border-[#484E55] hover:bg-[#484E55] hover:cursor-pointer`}
+                onClick={() => increaseQuantity(item.id, isDevolution)}
+              >
+                <FaPlus />
+              </div>
+              <div
+                className={`h-1/2 flex items-center justify-center ${
+                  withBorder && "border"
+                } border-[#484E55] hover:bg-[#484E55] hover:cursor-pointer`}
+                onClick={() => decrementQuantity(item.id, isDevolution)}
+              >
+                <FaMinus />
+              </div>
             </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 };

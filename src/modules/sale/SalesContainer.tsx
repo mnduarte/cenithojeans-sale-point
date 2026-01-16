@@ -123,6 +123,9 @@ const SalesContainer = () => {
     data.cashierId = selectedCashier?.id || null;
     data.cashierName = selectedCashier?.name || null;
 
+    // Los nuevos campos (itemsJeans, itemsRemeras, subtotals, amounts) 
+    // ya vienen calculados desde ConfirmSale.tsx en el objeto data
+
     dispatchSale(saleActions.addSale(data)(dispatchSale));
   };
 

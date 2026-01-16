@@ -49,8 +49,6 @@ const ConfirmSale = ({
     setPercentageToDisccountOrAddPayment,
   ] = useState({ cash: 0, transfer: 0 });
   const [isWithPrepaid, setIsWithPrepaid] = useState(false);
-  const [assignRechargeTranferToCash, setAssignRechargeTranferToCash] =
-    useState(false);
   const [isModalKeyboardNumOpen, setIsModalKeyboardNumOpen] = useState(false);
   const [isModalKeyboardCashOpen, setIsModalKeyboardCashOpen] = useState(false);
   const [isModalKeyboardTransferOpen, setIsModalKeyboardTransferOpen] =
@@ -76,7 +74,6 @@ const ConfirmSale = ({
     setPayment({ transfer: "", cash: "" });
     setIsWithPrepaid(false);
     setDevolutionModeActive(false);
-    setAssignRechargeTranferToCash(false);
     setIsModalSaleOpen(false);
   };
 
@@ -209,17 +206,140 @@ const ConfirmSale = ({
           )
     );
 
-  const totalCash =
-    Number(payment.cash) +
-    cashWithDisccount +
-    Number(assignRechargeTranferToCash ? transferWithRecharge : 0);
-
-  const totalTransfer =
-    Number(payment.transfer) +
-    transferWithRecharge -
-    Number(assignRechargeTranferToCash ? transferWithRecharge : 0);
-
+  const totalCash = Number(payment.cash) + cashWithDisccount;
+  const totalTransfer = Number(payment.transfer) + transferWithRecharge;
   const totalFinal = totalCash + totalTransfer;
+
+  // ========== CÁLCULOS JEANS/REMERAS ==========
+
+  // Filtrar items sin concepto (solo prendas)
+  const clothingItems = pricesSelected.filter((p: any) => !p.concept);
+  const clothingDevolutionItems = devolutionPricesSelected.filter(
+    (p: any) => !p.concept
+  );
+
+  // Calcular items por tipo
+  const itemsJeans = clothingItems
+    .filter((p: any) => p.type === "jeans" || !p.type)
+    .reduce((acc: number, p: any) => acc + Number(p.quantity), 0);
+
+  const itemsRemeras = clothingItems
+    .filter((p: any) => p.type === "remera")
+    .reduce((acc: number, p: any) => acc + Number(p.quantity), 0);
+
+  const itemsDevolutionJeans = clothingDevolutionItems
+    .filter((p: any) => p.type === "jeans" || !p.type)
+    .reduce((acc: number, p: any) => acc + Number(p.quantity), 0);
+
+  const itemsDevolutionRemeras = clothingDevolutionItems
+    .filter((p: any) => p.type === "remera")
+    .reduce((acc: number, p: any) => acc + Number(p.quantity), 0);
+
+  // Calcular totales BRUTOS por tipo (antes de descuentos/recargos)
+  const totalJeans = clothingItems
+    .filter((p: any) => p.type === "jeans" || !p.type)
+    .reduce(
+      (acc: number, p: any) => acc + Number(p.price) * Number(p.quantity),
+      0
+    );
+
+  const totalRemeras = clothingItems
+    .filter((p: any) => p.type === "remera")
+    .reduce(
+      (acc: number, p: any) => acc + Number(p.price) * Number(p.quantity),
+      0
+    );
+
+  const totalDevolutionJeans = clothingDevolutionItems
+    .filter((p: any) => p.type === "jeans" || !p.type)
+    .reduce(
+      (acc: number, p: any) => acc + Number(p.price) * Number(p.quantity),
+      0
+    );
+
+  const totalDevolutionRemeras = clothingDevolutionItems
+    .filter((p: any) => p.type === "remera")
+    .reduce(
+      (acc: number, p: any) => acc + Number(p.price) * Number(p.quantity),
+      0
+    );
+
+  // Detectar tipo de pago
+  const baseCash = Number(payment.cash) || 0;
+  const baseTransfer = Number(payment.transfer) || 0;
+  const isMixedPayment = baseCash > 0 && baseTransfer > 0;
+  const isOnlyCash = baseCash > 0 && baseTransfer === 0;
+  const isOnlyTransfer = baseTransfer > 0 && baseCash === 0;
+
+  // Subtotales por tipo y método de pago - GUARDAR MONTOS BRUTOS
+  let subTotalCashJeans = 0;
+  let subTotalCashRemeras = 0;
+  let subTotalTransferJeans = 0;
+  let subTotalTransferRemeras = 0;
+
+  if (isMixedPayment) {
+    // Pago mixto: TODO va a jeans (bruto total)
+    subTotalCashJeans = totalJeans + totalRemeras; // Bruto total para desglose
+    subTotalCashRemeras = 0;
+    subTotalTransferJeans = totalJeans + totalRemeras; // Bruto total para desglose
+    subTotalTransferRemeras = 0;
+  } else if (isOnlyCash) {
+    // Pago único en efectivo: Guardar montos BRUTOS por tipo
+    subTotalCashJeans = totalJeans;
+    subTotalCashRemeras = totalRemeras;
+    subTotalTransferJeans = 0;
+    subTotalTransferRemeras = 0;
+  } else if (isOnlyTransfer) {
+    // Pago único en transferencia: Guardar montos BRUTOS por tipo
+    subTotalCashJeans = 0;
+    subTotalCashRemeras = 0;
+    subTotalTransferJeans = totalJeans;
+    subTotalTransferRemeras = totalRemeras;
+  }
+
+  // Subtotales de devoluciones - Guardar montos BRUTOS
+  let subTotalDevolutionCashJeans = 0;
+  let subTotalDevolutionCashRemeras = 0;
+  let subTotalDevolutionTransferJeans = 0;
+  let subTotalDevolutionTransferRemeras = 0;
+
+  if (isMixedPayment) {
+    // Pago mixto: devoluciones van a AMBOS para el desglose
+    subTotalDevolutionCashJeans = totalDevolutionJeans;
+    subTotalDevolutionCashRemeras = totalDevolutionRemeras;
+    subTotalDevolutionTransferJeans = totalDevolutionJeans;
+    subTotalDevolutionTransferRemeras = totalDevolutionRemeras;
+  } else if (isOnlyCash) {
+    // Solo efectivo: devoluciones van a efectivo
+    subTotalDevolutionCashJeans = totalDevolutionJeans;
+    subTotalDevolutionCashRemeras = totalDevolutionRemeras;
+    subTotalDevolutionTransferJeans = 0;
+    subTotalDevolutionTransferRemeras = 0;
+  } else if (isOnlyTransfer) {
+    // Solo transferencia: devoluciones van a transferencia
+    subTotalDevolutionCashJeans = 0;
+    subTotalDevolutionCashRemeras = 0;
+    subTotalDevolutionTransferJeans = totalDevolutionJeans;
+    subTotalDevolutionTransferRemeras = totalDevolutionRemeras;
+  }
+
+  // Montos de recargos y descuentos
+  const amountOfSurchargesCash =
+    percentageToDisccountOrAddPayment.cash > 0
+      ? Math.abs(cashWithDisccount)
+      : 0;
+  const amountOfDiscountCash =
+    percentageToDisccountOrAddPayment.cash < 0
+      ? Math.abs(cashWithDisccount)
+      : 0;
+  const amountOfSurchargesTransfer =
+    percentageToDisccountOrAddPayment.transfer > 0
+      ? Math.abs(transferWithRecharge)
+      : 0;
+  const amountOfDiscountTransfer =
+    percentageToDisccountOrAddPayment.transfer < 0
+      ? Math.abs(transferWithRecharge)
+      : 0;
 
   const handleSale = () => {
     const [objEmployee] = employees.filter(
@@ -243,6 +363,25 @@ const ConfirmSale = ({
       totalFinal,
       isWithPrepaid,
       accountForTransfer: Boolean(payment.transfer) ? accountForTransfer : "",
+      // Nuevos campos jeans/remeras
+      itemsJeans,
+      itemsRemeras,
+      itemsDevolutionJeans,
+      itemsDevolutionRemeras,
+      subTotalCashJeans,
+      subTotalCashRemeras,
+      subTotalTransferJeans,
+      subTotalTransferRemeras,
+      subTotalDevolutionCashJeans,
+      subTotalDevolutionCashRemeras,
+      subTotalDevolutionTransferJeans,
+      subTotalDevolutionTransferRemeras,
+      amountOfSurchargesCash,
+      amountOfDiscountCash,
+      amountOfSurchargesTransfer,
+      amountOfDiscountTransfer,
+      baseCash: Number(payment.cash) || 0,
+      baseTransfer: Number(payment.transfer) || 0,
     };
     onSale(data);
   };
@@ -421,7 +560,27 @@ const ConfirmSale = ({
                 <div className="space-y-1 text-sm">
                   <div className="flex justify-between text-gray-300">
                     <span>Prendas:</span>
-                    <span>{totalItems}</span>
+                    <span className="flex items-center gap-2">
+                      {totalItems}
+                      {/* Desglose J/R */}
+                      {(itemsJeans > 0 || itemsRemeras > 0) && (
+                        <span className="text-xs text-gray-500">
+                          (
+                          <span className="text-blue-400 font-medium">
+                            J:{itemsJeans}
+                          </span>
+                          {itemsRemeras > 0 && (
+                            <>
+                              ,{" "}
+                              <span className="text-green-400 font-medium">
+                                R:{itemsRemeras}
+                              </span>
+                            </>
+                          )}
+                          )
+                        </span>
+                      )}
+                    </span>
                   </div>
 
                   {Boolean(pricesWithconcepts.length) &&
@@ -452,7 +611,28 @@ const ConfirmSale = ({
                       <div className="border-t border-gray-700 my-2"></div>
                       <div className="flex justify-between text-red-400">
                         <span>Devoluciones:</span>
-                        <span>{totalDevolutionItems}</span>
+                        <span className="flex items-center gap-2">
+                          {totalDevolutionItems}
+                          {/* Desglose J/R devoluciones */}
+                          {(itemsDevolutionJeans > 0 ||
+                            itemsDevolutionRemeras > 0) && (
+                            <span className="text-xs">
+                              (
+                              <span className="text-blue-400 font-medium">
+                                J:{itemsDevolutionJeans}
+                              </span>
+                              {itemsDevolutionRemeras > 0 && (
+                                <>
+                                  ,{" "}
+                                  <span className="text-green-400 font-medium">
+                                    R:{itemsDevolutionRemeras}
+                                  </span>
+                                </>
+                              )}
+                              )
+                            </span>
+                          )}
+                        </span>
                       </div>
                       <div className="flex justify-between text-red-400">
                         <span>Total devoluciones:</span>
@@ -665,6 +845,13 @@ const ConfirmSale = ({
                   </div>
                 </div>
 
+                {/* Indicador de pago mixto */}
+                {isMixedPayment && (
+                  <div className="mt-2 text-xs text-yellow-500">
+                    ⚠️ Pago mixto: Los subtotales se asignan a Jeans
+                  </div>
+                )}
+
                 {/* Cuenta de transferencia */}
                 {Boolean(payment.transfer) && (
                   <div className="mt-3 pt-3 border-t border-gray-700 flex items-center gap-3">
@@ -684,33 +871,6 @@ const ConfirmSale = ({
                         label: data.name,
                       }))}
                     />
-                  </div>
-                )}
-
-                {/* Gastos bancarios */}
-                {Boolean(transferWithRecharge) && (
-                  <div className="mt-3 pt-3 border-t border-gray-700">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-400">
-                        Gastos bancarios: $
-                        {formatCurrency(transferWithRecharge)}
-                      </span>
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={assignRechargeTranferToCash}
-                          className="accent-blue-500"
-                          onChange={() =>
-                            setAssignRechargeTranferToCash(
-                              (current) => !current
-                            )
-                          }
-                        />
-                        <span className="text-xs text-gray-400">
-                          Asignar a Efectivo
-                        </span>
-                      </label>
-                    </div>
                   </div>
                 )}
 

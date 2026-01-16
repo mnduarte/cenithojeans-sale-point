@@ -87,14 +87,19 @@ const ListOfPricesContainer = ({
 
     setEnabledDisplaced(true);
 
-    //if (lastItem && lastItem.id === item.id) {
-    if (lastItem && lastItem.price === item.price) {
+    // Normalizar tipos para comparación (undefined o "jeans" se tratan como "jeans")
+    const lastItemType = lastItem?.type || "jeans";
+    const itemType = item.type || "jeans";
+
+    // Buscar si ya existe un item con el mismo precio Y tipo
+    if (lastItem && lastItem.price === item.price && lastItemType === itemType) {
       let itemIncremented = false;
 
       const pricesReversed = [...pricesItems].reverse();
 
       const productsUpdated = pricesReversed.map((product: any) => {
-        if (!itemIncremented && product.price === item.price) {
+        const productType = product.type || "jeans";
+        if (!itemIncremented && product.price === item.price && productType === itemType) {
           itemIncremented = true;
           product.quantity = product.quantity + 1;
         }
@@ -116,9 +121,27 @@ const ListOfPricesContainer = ({
         price: item.price,
         quantity: 1,
         active: true,
+        type: item.type || "jeans", // Incluir el tipo del precio
       };
       return [...items, newItem];
     });
+  };
+
+  // Función para obtener el estilo del indicador de tipo
+  const getTypeIndicator = (type: string) => {
+    if (type === "remera") {
+      return {
+        letter: "R",
+        color: "text-green-400",
+        bgColor: "bg-green-600/30",
+      };
+    }
+    // Default: jeans
+    return {
+      letter: "J",
+      color: "text-blue-400",
+      bgColor: "bg-blue-600/30",
+    };
   };
 
   return (
@@ -252,21 +275,20 @@ const ListOfPricesContainer = ({
         ) : (
           <div className="h-auto flex flex-wrap gap-2">
             {prices.map((item: any) => {
-              const foundItem = pricesItems.find(
-                (itemSelected: any) => itemSelected.price === item.price
-              );
-              const boxBorderStyle = foundItem
-                ? devolutionModeActive
-                  ? "border-red-500"
-                  : "border-[#1BA1E2]"
-                : themeStyles[theme].tailwindcss.border;
+              const typeIndicator = getTypeIndicator(item.type);
 
               return (
                 <div
                   key={item.id}
-                  className={`w-[13vh] h-[10vh] p-2 border ${boxBorderStyle} text-center transition-all  ${themeStyles[theme].tailwindcss.priceBox} hover:cursor-pointer flex items-center justify-center text-lg font-bold select-none`}
+                  className={`relative w-[13vh] h-[10vh] p-2 border ${themeStyles[theme].tailwindcss.border} text-center transition-all ${themeStyles[theme].tailwindcss.priceBox} hover:cursor-pointer flex items-center justify-center text-lg font-bold select-none`}
                   onClick={() => onProductSelect(item)}
                 >
+                  {/* Indicador de tipo (J/R) en esquina superior derecha */}
+                  <div
+                    className={`absolute top-1 right-1 w-6 h-6 rounded flex items-center justify-center text-xs font-bold ${typeIndicator.bgColor} ${typeIndicator.color}`}
+                  >
+                    {typeIndicator.letter}
+                  </div>
                   {formatCurrency(item.price)}
                 </div>
               );

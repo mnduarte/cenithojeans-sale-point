@@ -35,6 +35,504 @@ const mappingConceptToUpdate: Record<string, string> = {
   total: "Total",
 };
 
+// ==================== MODAL DESGLOSE CASH ====================
+const ModalCashBreakdown = ({
+  isOpen,
+  setIsOpen,
+  salesData,
+  salesTransferData,
+}: any) => {
+  const {
+    state: { theme, themeStyles },
+  } = useTheme();
+
+  // Combinar ventas de cash y transfer para detectar pago mixto
+  const allCashSales = Object.values(salesData).flat() as any[];
+  const allTransferSales = salesTransferData as any[];
+
+  // Detectar si hay pagos mixtos (ventas que tienen tanto cash como transfer)
+  const hasMixedPayments = allCashSales.some((sale: any) => {
+    const matchingTransfer = allTransferSales.find(
+      (t: any) => t.id === sale.id
+    );
+    return sale.cash > 0 && matchingTransfer && matchingTransfer.transfer > 0;
+  });
+
+  // Calcular totales
+  let brutoJeans = 0;
+  let brutoRemeras = 0;
+  let devolutionJeans = 0;
+  let devolutionRemeras = 0;
+  let surcharges = 0;
+  let discounts = 0;
+  let totalTransferPaid = 0; // Para pago mixto
+
+  allCashSales.forEach((sale: any) => {
+    const matchingTransfer = allTransferSales.find(
+      (t: any) => t.id === sale.id
+    );
+    const isMixedPayment =
+      sale.cash > 0 && matchingTransfer && matchingTransfer.transfer > 0;
+
+    if (isMixedPayment) {
+      // Pago mixto: sumar bruto total (jeans contiene todo en mixto)
+      brutoJeans += sale.subTotalCashJeans || 0;
+      // Devoluciones
+      devolutionJeans += sale.subTotalDevolutionCashJeans || 0;
+      devolutionRemeras += sale.subTotalDevolutionCashRemeras || 0;
+      // Lo pagado en transfer se resta (usar monto BASE sin recargo)
+      totalTransferPaid +=
+        matchingTransfer.baseTransfer || matchingTransfer.transfer || 0;
+    } else if (sale.cash > 0) {
+      // Pago solo cash
+      brutoJeans += sale.subTotalCashJeans || 0;
+      brutoRemeras += sale.subTotalCashRemeras || 0;
+      devolutionJeans += sale.subTotalDevolutionCashJeans || 0;
+      devolutionRemeras += sale.subTotalDevolutionCashRemeras || 0;
+    }
+
+    surcharges += sale.amountOfSurchargesCash || 0;
+    discounts += sale.amountOfDiscountCash || 0;
+  });
+
+  const totalBruto = brutoJeans + brutoRemeras;
+  const totalDevolutions = devolutionJeans + devolutionRemeras;
+  const totalNeto =
+    totalBruto + surcharges - discounts - totalDevolutions - totalTransferPaid;
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[9999] bg-black bg-opacity-60 flex items-center justify-center">
+      <div
+        className={`w-[55vh] p-6 rounded-lg shadow-xl relative ${themeStyles[theme].tailwindcss.modal}`}
+        style={{ border: "1px solid #3f3f46" }}
+      >
+        <button
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-200"
+          onClick={() => setIsOpen(false)}
+        >
+          <MdClose className="text-xl" />
+        </button>
+
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-2 h-6 bg-blue-500 rounded-full"></div>
+          <h2 className="text-lg font-semibold text-gray-100">Desglose Cash</h2>
+        </div>
+
+        <div className="space-y-3">
+          {/* Ventas por tipo */}
+          <div className="p-3 rounded-lg bg-gray-800/40 border border-gray-700/50">
+            <label className="block text-xs text-gray-400 mb-2">Ventas</label>
+            <div className="space-y-2">
+              <>
+                <div className="flex justify-between">
+                  <span className="text-blue-400">Jeans (Bruto Total):</span>
+                  <span className="font-medium">
+                    ${formatCurrency(brutoJeans)}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-green-400">Remeras:</span>
+                  <span className="font-medium">
+                    ${formatCurrency(brutoRemeras)}
+                  </span>
+                </div>
+              </>
+              <div className="flex justify-between border-t border-gray-700 pt-2">
+                <span className="text-gray-300">Subtotal Bruto:</span>
+                <span className="font-bold">${formatCurrency(totalBruto)}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Recargos/Descuentos */}
+          <div className="p-3 rounded-lg bg-gray-800/40 border border-gray-700/50">
+            <label className="block text-xs text-gray-400 mb-2">Ajustes</label>
+            <div className="space-y-2">
+              {surcharges > 0 && (
+                <div className="flex justify-between">
+                  <span className="text-yellow-400">+ Recargos:</span>
+                  <span className="font-medium text-yellow-400">
+                    +${formatCurrency(surcharges)}
+                  </span>
+                </div>
+              )}
+              {discounts > 0 && (
+                <div className="flex justify-between">
+                  <span className="text-orange-400">- Descuentos:</span>
+                  <span className="font-medium text-orange-400">
+                    -${formatCurrency(discounts)}
+                  </span>
+                </div>
+              )}
+              {surcharges === 0 && discounts === 0 && (
+                <div className="text-gray-500 text-sm">Sin ajustes</div>
+              )}
+            </div>
+          </div>
+
+          {/* Devoluciones */}
+          <div className="p-3 rounded-lg bg-red-900/20 border border-red-800/30">
+            <label className="block text-xs text-red-400 mb-2">
+              Devoluciones
+            </label>
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <span className="text-blue-400">Jeans:</span>
+                <span className="font-medium text-red-400">
+                  -${formatCurrency(devolutionJeans)}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-green-400">Remeras:</span>
+                <span className="font-medium text-red-400">
+                  -${formatCurrency(devolutionRemeras)}
+                </span>
+              </div>
+              <div className="flex justify-between border-t border-red-800/30 pt-2">
+                <span className="text-red-300">Total Devoluciones:</span>
+                <span className="font-bold text-red-400">
+                  -${formatCurrency(totalDevolutions)}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Transferencia (solo en pago mixto) */}
+          {totalTransferPaid > 0 && (
+            <div className="p-3 rounded-lg bg-cyan-900/20 border border-cyan-800/30">
+              <label className="block text-xs text-cyan-400 mb-2">
+                Pago Mixto
+              </label>
+              <div className="flex justify-between">
+                <span className="text-cyan-400">Transferencia:</span>
+                <span className="font-medium text-cyan-400">
+                  -${formatCurrency(totalTransferPaid)}
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* Total Neto */}
+          <div className="p-3 rounded-lg bg-blue-900/30 border border-blue-700/50">
+            <div className="flex justify-between text-lg">
+              <span className="text-white font-bold">Total Neto Cash:</span>
+              <span className="text-blue-400 font-bold">
+                ${formatCurrency(totalNeto)}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ==================== MODAL DESGLOSE TRANSFER ====================
+const ModalTransferBreakdown = ({
+  isOpen,
+  setIsOpen,
+  salesData,
+  salesTransferData,
+}: any) => {
+  const {
+    state: { theme, themeStyles },
+  } = useTheme();
+
+  const allCashSales = Object.values(salesData).flat() as any[];
+  const allTransferSales = salesTransferData as any[];
+
+  // Calcular totales
+  let brutoJeans = 0;
+  let brutoRemeras = 0;
+  let devolutionJeans = 0;
+  let devolutionRemeras = 0;
+  let surcharges = 0;
+  let discounts = 0;
+  let totalCashPaid = 0; // Para pago mixto
+  let hasMixedPayments = false;
+
+  allTransferSales.forEach((sale: any) => {
+    const matchingCash = allCashSales.find((c: any) => c.id === sale.id);
+    const isMixedPayment =
+      sale.transfer > 0 && matchingCash && matchingCash.cash > 0;
+
+    if (isMixedPayment) {
+      hasMixedPayments = true;
+      // Pago mixto: sumar bruto total
+      brutoJeans += sale.subTotalTransferJeans || 0;
+      // Devoluciones
+      devolutionJeans += sale.subTotalDevolutionTransferJeans || 0;
+      devolutionRemeras += sale.subTotalDevolutionTransferRemeras || 0;
+      // Lo pagado en cash se resta (usar monto BASE sin descuento)
+      totalCashPaid += matchingCash.baseCash || matchingCash.cash || 0;
+    } else if (sale.transfer > 0) {
+      // Pago solo transfer
+      brutoJeans += sale.subTotalTransferJeans || 0;
+      brutoRemeras += sale.subTotalTransferRemeras || 0;
+      devolutionJeans += sale.subTotalDevolutionTransferJeans || 0;
+      devolutionRemeras += sale.subTotalDevolutionTransferRemeras || 0;
+    }
+
+    surcharges += sale.amountOfSurchargesTransfer || 0;
+    discounts += sale.amountOfDiscountTransfer || 0;
+  });
+
+  const totalBruto = brutoJeans + brutoRemeras;
+  const totalDevolutions = devolutionJeans + devolutionRemeras;
+  const totalNeto =
+    totalBruto + surcharges - discounts - totalDevolutions - totalCashPaid;
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[9999] bg-black bg-opacity-60 flex items-center justify-center">
+      <div
+        className={`w-[55vh] p-6 rounded-lg shadow-xl relative ${themeStyles[theme].tailwindcss.modal}`}
+        style={{ border: "1px solid #3f3f46" }}
+      >
+        <button
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-200"
+          onClick={() => setIsOpen(false)}
+        >
+          <MdClose className="text-xl" />
+        </button>
+
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-2 h-6 bg-cyan-500 rounded-full"></div>
+          <h2 className="text-lg font-semibold text-gray-100">
+            Desglose Transferencia
+          </h2>
+        </div>
+
+        <div className="space-y-3">
+          {/* Ventas por tipo */}
+          <div className="p-3 rounded-lg bg-gray-800/40 border border-gray-700/50">
+            <label className="block text-xs text-gray-400 mb-2">Ventas</label>
+            <div className="space-y-2">
+              <>
+                <div className="flex justify-between">
+                  <span className="text-blue-400">Jeans:</span>
+                  <span className="font-medium">
+                    ${formatCurrency(brutoJeans)}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-green-400">Remeras:</span>
+                  <span className="font-medium">
+                    ${formatCurrency(brutoRemeras)}
+                  </span>
+                </div>
+              </>
+              <div className="flex justify-between border-t border-gray-700 pt-2">
+                <span className="text-gray-300">Subtotal Bruto:</span>
+                <span className="font-bold">${formatCurrency(totalBruto)}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Recargos/Descuentos */}
+          <div className="p-3 rounded-lg bg-gray-800/40 border border-gray-700/50">
+            <label className="block text-xs text-gray-400 mb-2">Ajustes</label>
+            <div className="space-y-2">
+              {surcharges > 0 && (
+                <div className="flex justify-between">
+                  <span className="text-yellow-400">+ Recargos:</span>
+                  <span className="font-medium text-yellow-400">
+                    +${formatCurrency(surcharges)}
+                  </span>
+                </div>
+              )}
+              {discounts > 0 && (
+                <div className="flex justify-between">
+                  <span className="text-orange-400">- Descuentos:</span>
+                  <span className="font-medium text-orange-400">
+                    -${formatCurrency(discounts)}
+                  </span>
+                </div>
+              )}
+              {surcharges === 0 && discounts === 0 && (
+                <div className="text-gray-500 text-sm">Sin ajustes</div>
+              )}
+            </div>
+          </div>
+
+          {/* Devoluciones */}
+          <div className="p-3 rounded-lg bg-red-900/20 border border-red-800/30">
+            <label className="block text-xs text-red-400 mb-2">
+              Devoluciones
+            </label>
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <span className="text-blue-400">Jeans:</span>
+                <span className="font-medium text-red-400">
+                  -${formatCurrency(devolutionJeans)}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-green-400">Remeras:</span>
+                <span className="font-medium text-red-400">
+                  -${formatCurrency(devolutionRemeras)}
+                </span>
+              </div>
+              <div className="flex justify-between border-t border-red-800/30 pt-2">
+                <span className="text-red-300">Total Devoluciones:</span>
+                <span className="font-bold text-red-400">
+                  -${formatCurrency(totalDevolutions)}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Cash (solo en pago mixto) */}
+          {totalCashPaid > 0 && (
+            <div className="p-3 rounded-lg bg-green-900/20 border border-green-800/30">
+              <label className="block text-xs text-green-400 mb-2">
+                Pago Mixto
+              </label>
+              <div className="flex justify-between">
+                <span className="text-green-400">Efectivo:</span>
+                <span className="font-medium text-green-400">
+                  -${formatCurrency(totalCashPaid)}
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* Total Neto */}
+          <div className="p-3 rounded-lg bg-cyan-900/30 border border-cyan-700/50">
+            <div className="flex justify-between text-lg">
+              <span className="text-white font-bold">Total Neto Transfer:</span>
+              <span className="text-cyan-400 font-bold">
+                ${formatCurrency(totalNeto)}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ==================== MODAL DESGLOSE PRENDAS ====================
+const ModalItemsBreakdown = ({ isOpen, setIsOpen, salesData }: any) => {
+  const {
+    state: { theme, themeStyles },
+  } = useTheme();
+
+  const allSales = Object.values(salesData).flat() as any[];
+
+  const totals = allSales.reduce(
+    (acc: any, sale: any) => {
+      return {
+        itemsJeans: acc.itemsJeans + (sale.itemsJeans || 0),
+        itemsRemeras: acc.itemsRemeras + (sale.itemsRemeras || 0),
+        devolutionJeans: acc.devolutionJeans + (sale.itemsDevolutionJeans || 0),
+        devolutionRemeras:
+          acc.devolutionRemeras + (sale.itemsDevolutionRemeras || 0),
+      };
+    },
+    {
+      itemsJeans: 0,
+      itemsRemeras: 0,
+      devolutionJeans: 0,
+      devolutionRemeras: 0,
+    }
+  );
+
+  const totalVentas = totals.itemsJeans + totals.itemsRemeras;
+  const totalDevoluciones = totals.devolutionJeans + totals.devolutionRemeras;
+  const totalNeto = totalVentas - totalDevoluciones;
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[9999] bg-black bg-opacity-60 flex items-center justify-center">
+      <div
+        className={`w-[55vh] p-6 rounded-lg shadow-xl relative ${themeStyles[theme].tailwindcss.modal}`}
+        style={{ border: "1px solid #3f3f46" }}
+      >
+        <button
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-200"
+          onClick={() => setIsOpen(false)}
+        >
+          <MdClose className="text-xl" />
+        </button>
+
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-2 h-6 bg-lime-500 rounded-full"></div>
+          <h2 className="text-lg font-semibold text-gray-100">
+            Desglose Prendas
+          </h2>
+        </div>
+
+        <div className="space-y-3">
+          {/* Ventas por tipo */}
+          <div className="p-3 rounded-lg bg-gray-800/40 border border-gray-700/50">
+            <label className="block text-xs text-gray-400 mb-2">
+              Prendas Vendidas
+            </label>
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <span className="text-blue-400">Jeans:</span>
+                <span className="font-medium text-lg">{totals.itemsJeans}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-green-400">Remeras:</span>
+                <span className="font-medium text-lg">
+                  {totals.itemsRemeras}
+                </span>
+              </div>
+              <div className="flex justify-between border-t border-gray-700 pt-2">
+                <span className="text-gray-300">Total Vendidas:</span>
+                <span className="font-bold text-lg">{totalVentas}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Devoluciones */}
+          <div className="p-3 rounded-lg bg-red-900/20 border border-red-800/30">
+            <label className="block text-xs text-red-400 mb-2">
+              Devoluciones
+            </label>
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <span className="text-blue-400">Jeans:</span>
+                <span className="font-medium text-red-400 text-lg">
+                  -{totals.devolutionJeans}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-green-400">Remeras:</span>
+                <span className="font-medium text-red-400 text-lg">
+                  -{totals.devolutionRemeras}
+                </span>
+              </div>
+              <div className="flex justify-between border-t border-red-800/30 pt-2">
+                <span className="text-red-300">Total Devoluciones:</span>
+                <span className="font-bold text-red-400 text-lg">
+                  -{totalDevoluciones}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Total Neto */}
+          <div className="p-3 rounded-lg bg-lime-900/30 border border-lime-700/50">
+            <div className="flex justify-between text-lg">
+              <span className="text-white font-bold">Total Neto Prendas:</span>
+              <span className="text-lime-400 font-bold text-xl">
+                {totalNeto}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const ModalListOutgoing = ({
   isModalListOutgoingOpen,
   setIsModalListOutgoingOpen,
@@ -719,6 +1217,12 @@ const SalesByDayContainer = () => {
   const [cashierFilter, setCashierFilter] = useState<string>("none");
   const [isModalCashierTotals, setIsModalCashierTotals] = useState(false);
 
+  // Estados para modales de desglose
+  const [isModalCashBreakdown, setIsModalCashBreakdown] = useState(false);
+  const [isModalTransferBreakdown, setIsModalTransferBreakdown] =
+    useState(false);
+  const [isModalItemsBreakdown, setIsModalItemsBreakdown] = useState(false);
+
   const [totals, setTotals] = useState({
     items: 0,
     cash: 0,
@@ -1235,19 +1739,33 @@ const SalesByDayContainer = () => {
           outgoings={outgoings}
         />
       </div>
+
+      {/* Tags clickeables con modales de desglose */}
       <div className="h-[10vh] mt-[7vh] mx-auto max-w overflow-hidden overflow-y-auto overflow-x-auto">
         {user.role === "ADMIN" && (
-          <Tag color="blue" className="p-2 text-base font-bold">
+          <Tag
+            color="blue"
+            className="p-2 text-base font-bold cursor-pointer hover:opacity-80"
+            onClick={() => setIsModalCashBreakdown(true)}
+          >
             Total Cash: ${formatCurrency(totals.cash)}
           </Tag>
         )}
-        <Tag color="cyan" className="p-2 text-base font-bold">
+        <Tag
+          color="cyan"
+          className="p-2 text-base font-bold cursor-pointer hover:opacity-80"
+          onClick={() => setIsModalTransferBreakdown(true)}
+        >
           Total Transferencia: ${formatCurrency(totals.transfer)}
         </Tag>
         <Tag color="red" className="p-2 text-base font-bold">
           Total Egreso: ${formatCurrency(totals.outgoing)}
         </Tag>
-        <Tag color="lime" className="p-2 text-base font-bold">
+        <Tag
+          color="lime"
+          className="p-2 text-base font-bold cursor-pointer hover:opacity-80"
+          onClick={() => setIsModalItemsBreakdown(true)}
+        >
           Total Prendas: {totals.items}
         </Tag>
       </div>
@@ -1365,6 +1883,25 @@ const SalesByDayContainer = () => {
           </div>
         </div>
       )}
+
+      {/* Modales de desglose J/R */}
+      <ModalCashBreakdown
+        isOpen={isModalCashBreakdown}
+        setIsOpen={setIsModalCashBreakdown}
+        salesData={salesByEmployees}
+        salesTransferData={salesTransferByEmployees}
+      />
+      <ModalTransferBreakdown
+        isOpen={isModalTransferBreakdown}
+        setIsOpen={setIsModalTransferBreakdown}
+        salesData={salesByEmployees}
+        salesTransferData={salesTransferByEmployees}
+      />
+      <ModalItemsBreakdown
+        isOpen={isModalItemsBreakdown}
+        setIsOpen={setIsModalItemsBreakdown}
+        salesData={salesByEmployees}
+      />
     </>
   );
 };

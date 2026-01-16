@@ -9,11 +9,11 @@ const login = ({ username, password }: any) =>
 const getStores = () => instance.get("/store/stores/");
 
 const getPrices = () => instance.get("/price/prices");
-const addPrice = ({ price, active }: any) =>
-  instance.post("/price/add-price", { price, active });
+const addPrice = ({ price, active, type }: any) =>
+  instance.post("/price/add-price", { price, active, type });
 
-const updatePrice = ({ id, price, active }: any) =>
-  instance.put("/price/update-price", { id, price, active });
+const updatePrice = ({ id, price, active, type }: any) =>
+  instance.put("/price/update-price", { id, price, active, type });
 
 const removePrice = ({ id }: any) =>
   instance.delete(`/price/remove-price/${id}`);
@@ -251,6 +251,25 @@ const addSale = ({
   accountForTransfer,
   cashierId,
   cashierName,
+  // Nuevos campos jeans/remeras
+  itemsJeans,
+  itemsRemeras,
+  itemsDevolutionJeans,
+  itemsDevolutionRemeras,
+  subTotalCashJeans,
+  subTotalCashRemeras,
+  subTotalTransferJeans,
+  subTotalTransferRemeras,
+  subTotalDevolutionCashJeans,
+  subTotalDevolutionCashRemeras,
+  subTotalDevolutionTransferJeans,
+  subTotalDevolutionTransferRemeras,
+  amountOfSurchargesCash,
+  amountOfDiscountCash,
+  amountOfSurchargesTransfer,
+  amountOfDiscountTransfer,
+  baseCash,
+  baseTransfer,
 }: any) =>
   instance.post("/sale/add-sale", {
     store,
@@ -277,6 +296,25 @@ const addSale = ({
     accountForTransfer,
     cashierId,
     cashierName,
+    // Nuevos campos
+    itemsJeans,
+    itemsRemeras,
+    itemsDevolutionJeans,
+    itemsDevolutionRemeras,
+    subTotalCashJeans,
+    subTotalCashRemeras,
+    subTotalTransferJeans,
+    subTotalTransferRemeras,
+    subTotalDevolutionCashJeans,
+    subTotalDevolutionCashRemeras,
+    subTotalDevolutionTransferJeans,
+    subTotalDevolutionTransferRemeras,
+    amountOfSurchargesCash,
+    amountOfDiscountCash,
+    amountOfSurchargesTransfer,
+    amountOfDiscountTransfer,
+    baseCash,
+    baseTransfer,
   });
 
 const addNewNumOrder = ({ employeeId, newNumOrder }: any) =>

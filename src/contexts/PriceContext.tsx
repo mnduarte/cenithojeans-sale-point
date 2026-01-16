@@ -123,7 +123,7 @@ export const priceActions = {
     }
   },
   addPrice:
-    ({ price, active }: any) =>
+    ({ price, active, type }: any) =>
     async (dispatch: any) => {
       dispatch({
         type: actionTypes.LOADING,
@@ -131,7 +131,7 @@ export const priceActions = {
       });
 
       try {
-        const { data } = await Api.addPrice({ price, active });
+        const { data } = await Api.addPrice({ price, active, type });
 
         dispatch({
           type: actionTypes.LIST_PRICES,
@@ -147,7 +147,7 @@ export const priceActions = {
       }
     },
   updatePrice:
-    ({ id, price, active }: any) =>
+    ({ id, price, active, type }: any) =>
     async (dispatch: any) => {
       dispatch({
         type: actionTypes.LOADING,
@@ -155,7 +155,7 @@ export const priceActions = {
       });
 
       try {
-        const { data } = await Api.updatePrice({ id, price, active });
+        const { data } = await Api.updatePrice({ id, price, active, type });
 
         dispatch({
           type: actionTypes.LIST_PRICES,
@@ -171,7 +171,7 @@ export const priceActions = {
       }
     },
   deleteSelectedPrices:
-    ({ itemsIdSelected, deleteAll }: any) =>
+    ({ itemsIdSelected, deleteAll, type }: any) =>
     async (dispatch: any) => {
       dispatch({
         type: actionTypes.LOADING,
@@ -182,6 +182,7 @@ export const priceActions = {
         const { data } = await Api.deleteSelectedPrices({
           itemsIdSelected,
           deleteAll,
+          type,
         });
 
         dispatch({
