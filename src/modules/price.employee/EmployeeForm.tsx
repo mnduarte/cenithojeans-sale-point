@@ -4,6 +4,12 @@ import Spinner from "../../components/Spinner";
 import { Select } from "antd";
 import { useTheme } from "../../contexts/ThemeContext";
 
+const SALE_TYPE_OPTIONS = [
+  { value: "ambos", label: "Ambos" },
+  { value: "local", label: "Local" },
+  { value: "pedido", label: "Pedido" },
+];
+
 const EmployeeForm = ({
   itemSelected,
   setItemSelected,
@@ -24,6 +30,7 @@ const EmployeeForm = ({
     position: null,
     active: true,
     activeForCost: false,
+    saleType: "ambos",
   };
   const [isNewEmployee, setIsNewEmployee] = useState(true);
   const [employeeValues, setEmployeeValues] = useState(initialValues);
@@ -38,7 +45,10 @@ const EmployeeForm = ({
 
   useEffect(() => {
     if (itemSelected.id) {
-      setEmployeeValues(itemSelected);
+      setEmployeeValues({
+        ...itemSelected,
+        saleType: itemSelected.saleType || "ambos",
+      });
       setIsNewEmployee(false);
     }
   }, [itemSelected]);
@@ -109,6 +119,21 @@ const EmployeeForm = ({
             value: data,
             label: data,
           }))}
+        />
+      </div>
+
+      <div className="mb-4">
+        <label className="block mb-2">Tipo de Venta:</label>
+
+        <Select
+          value={employeeValues.saleType}
+          className={`${themeStyles[theme].classNameSelector} w-full`}
+          dropdownStyle={themeStyles[theme].dropdownStylesCustom}
+          popupClassName={themeStyles[theme].classNameSelectorItem}
+          onSelect={(value: any) =>
+            setEmployeeValues({ ...employeeValues, saleType: value })
+          }
+          options={SALE_TYPE_OPTIONS}
         />
       </div>
 

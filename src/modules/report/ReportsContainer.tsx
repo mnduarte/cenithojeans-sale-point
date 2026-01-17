@@ -52,12 +52,38 @@ const ReportByEmployee = () => {
     employees: [],
   });
 
+  // Columna para "Prendas por semana" - nombre de empleado como header
+  // Formato: "items / devolutionItems" donde devolutionItems está en rojo
   const columnsByItemWeek = (employee: string) => {
-    return [{ title: employee, dataIndex: "items", sumAcc: true }];
+    return [
+      {
+        title: employee,
+        dataIndex: "itemsDisplay",
+        sumAcc: false,
+      },
+    ];
   };
 
+  // Columna para "Prendas" por concepto - nombre de empleado como header
   const columnsByItemConceptEmployee = (employee: string, sumAcc = true) => {
-    return [{ title: employee, dataIndex: "items", sumAcc }];
+    return [
+      {
+        title: employee,
+        dataIndex: "itemsDisplay",
+        sumAcc: false,
+      },
+    ];
+  };
+
+  // Helper para procesar datos y agregar campo itemsDisplay
+  const processDataWithDevolutions = (data: any[]) => {
+    return data.map((item) => ({
+      ...item,
+      itemsDisplay:
+        item.devolutionItems > 0
+          ? `${item.items || 0} / ${item.devolutionItems}`
+          : `${item.items || 0}`,
+    }));
   };
 
   return (
@@ -306,7 +332,7 @@ const ReportByEmployee = () => {
               (saleByItemWeek: any, idx: number) => (
                 <div className={`mr-0.5 text-xs`} key={idx + "byItemWeek"}>
                   <EditableTable
-                    data={saleByItemWeek.data}
+                    data={processDataWithDevolutions(saleByItemWeek.data)}
                     columns={
                       idx === 0
                         ? [
@@ -327,6 +353,12 @@ const ReportByEmployee = () => {
           </div>
           <div className="my-2 text-[0.9rem] border-b border-gray-600 pb-1">
             Total: {dataBogota.byItemWeek.totalItems}
+            {dataBogota.byItemWeek.totalDevolutionItems > 0 && (
+              <span style={{ color: "#dc2626" }}>
+                {" "}
+                / {dataBogota.byItemWeek.totalDevolutionItems}
+              </span>
+            )}
           </div>
 
           <div className="my-2 text-[0.75rem] text-gray-400 ">
@@ -375,7 +407,7 @@ const ReportByEmployee = () => {
                   key={idx + "byItemConceptEmployee"}
                 >
                   <EditableTable
-                    data={saleByItemConceptEmployee.data}
+                    data={processDataWithDevolutions(saleByItemConceptEmployee.data)}
                     columns={
                       idx === 0
                         ? [
@@ -396,6 +428,12 @@ const ReportByEmployee = () => {
           </div>
           <div className="my-2 text-[0.9rem] border-b border-gray-700 pb-1">
             Total: {dataBogota.byItemConceptEmployee.totalItems}
+            {dataBogota.byItemConceptEmployee.totalDevolutionItems > 0 && (
+              <span style={{ color: "#dc2626" }}>
+                {" "}
+                / {dataBogota.byItemConceptEmployee.totalDevolutionItems}
+              </span>
+            )}
           </div>
           <div className="my-2 text-[0.8rem] text-gray-300 ">
             Total por concepto:
@@ -414,6 +452,12 @@ const ReportByEmployee = () => {
                     dataIndex: "items",
                     sumAcc: true,
                   },
+                  {
+                    title: "Dev",
+                    dataIndex: "devolutionItems",
+                    sumAcc: true,
+                    color: "#e23535",
+                  },
                 ]}
                 table={`0-byItemConcept`}
               />
@@ -431,7 +475,7 @@ const ReportByEmployee = () => {
               (saleByItemWeek: any, idx: number) => (
                 <div className={`mr-0.5 text-xs`} key={idx + "byItemWeek"}>
                   <EditableTable
-                    data={saleByItemWeek.data}
+                    data={processDataWithDevolutions(saleByItemWeek.data)}
                     columns={
                       idx === 0
                         ? [
@@ -452,6 +496,12 @@ const ReportByEmployee = () => {
           </div>
           <div className="my-2 text-[0.9rem] border-b border-gray-600 pb-1">
             Total: {dataHelguera.byItemWeek.totalItems}
+            {dataHelguera.byItemWeek.totalDevolutionItems > 0 && (
+              <span style={{ color: "#dc2626" }}>
+                {" "}
+                / {dataHelguera.byItemWeek.totalDevolutionItems}
+              </span>
+            )}
           </div>
 
           <div className="my-2 text-[0.75rem] text-gray-400 ">
@@ -500,7 +550,7 @@ const ReportByEmployee = () => {
                   key={idx + "byItemConceptEmployee"}
                 >
                   <EditableTable
-                    data={saleByItemConceptEmployee.data}
+                    data={processDataWithDevolutions(saleByItemConceptEmployee.data)}
                     columns={
                       idx === 0
                         ? [
@@ -523,6 +573,12 @@ const ReportByEmployee = () => {
           </div>
           <div className="my-2 text-[0.9rem] border-b border-gray-700 pb-1">
             Total: {dataHelguera.byItemConceptEmployee.totalItems}
+            {dataHelguera.byItemConceptEmployee.totalDevolutionItems > 0 && (
+              <span style={{ color: "#dc2626" }}>
+                {" "}
+                / {dataHelguera.byItemConceptEmployee.totalDevolutionItems}
+              </span>
+            )}
           </div>
           <div className="my-2 text-[0.8rem] text-gray-300 ">
             Total por concepto:
@@ -541,6 +597,12 @@ const ReportByEmployee = () => {
                     dataIndex: "items",
                     sumAcc: true,
                   },
+                  {
+                    title: "Dev",
+                    dataIndex: "devolutionItems",
+                    sumAcc: true,
+                    color: "#dc2626",
+                  },
                 ]}
                 table={`0-byItemConcept`}
               />
@@ -550,6 +612,16 @@ const ReportByEmployee = () => {
             Total de Prendas (Bogota y Helguera):{" "}
             {dataBogota.byItemConcept.totalItems +
               dataHelguera.byItemConcept.totalItems}
+            {(dataBogota.byItemConcept.totalDevolutionItems || 0) +
+              (dataHelguera.byItemConcept.totalDevolutionItems || 0) >
+              0 && (
+              <span style={{ color: "#dc2626" }}>
+                {" "}
+                /{" "}
+                {(dataBogota.byItemConcept.totalDevolutionItems || 0) +
+                  (dataHelguera.byItemConcept.totalDevolutionItems || 0)}
+              </span>
+            )}
           </div>
         </div>
       </div>
@@ -567,8 +639,16 @@ const ModalDetailByEmployee = ({
   const {
     state: { theme, themeStyles },
   } = useTheme();
+
+  // Columnas para venta local - con devoluciones
   const columnsLocalSalesByEmployee = [
     { title: "Prendas", dataIndex: "items", sumAcc: true },
+    {
+      title: "Dev",
+      dataIndex: "devolutionItems",
+      sumAcc: true,
+      color: "#dc2626",
+    },
     {
       title: "Venta",
       dataIndex: "cash",
@@ -578,8 +658,15 @@ const ModalDetailByEmployee = ({
     },
   ];
 
+  // Columnas para pedidos - con devoluciones
   const columnsLocalPedidosByEmployee = [
     { title: "Prendas", dataIndex: "items", sumAcc: true },
+    {
+      title: "Dev",
+      dataIndex: "devolutionItems",
+      sumAcc: true,
+      color: "#dc2626",
+    },
     {
       title: "Efectivo",
       dataIndex: "cash",
@@ -701,9 +788,16 @@ const ReportGeneral = () => {
     typeSale: "local",
   });
 
+  // Columnas para venta local - con devoluciones
   const columnsLocalSalesByDay = [
     { title: "Fecha", dataIndex: "date" },
     { title: "Prendas", dataIndex: "items", sumAcc: true },
+    {
+      title: "Dev",
+      dataIndex: "devolutionItems",
+      sumAcc: true,
+      color: "#dc2626",
+    },
     {
       title: "Gastos",
       dataIndex: "outgoings",
@@ -904,7 +998,7 @@ const ReportGeneral = () => {
             reports.salesGeneral.map((report: any, idx: number) => {
               return (
                 <div className="flex mb-5" key={idx + "byDay"}>
-                  <div className="w-[50vh] mr-10" key={idx + "byDay"}>
+                  <div className="w-[55vh] mr-10" key={idx + "byDay"}>
                     <div className="mb-2 flex ">
                       <label className="text-2xl text-base font-bold">
                         SEMANA {report.week}

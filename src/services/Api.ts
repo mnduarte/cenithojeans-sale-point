@@ -23,13 +23,21 @@ const deleteSelectedPrices = ({ itemsIdSelected, deleteAll }: any) =>
 
 const getEmployees = ({ store }: any) =>
   instance.post("/employee/employees/", { store });
-const addEmployee = ({ name, store, position, active, activeForCost }: any) =>
+const addEmployee = ({
+  name,
+  store,
+  position,
+  active,
+  activeForCost,
+  saleType,
+}: any) =>
   instance.post("/employee/add-employee", {
     name,
     store,
     position,
     active,
     activeForCost,
+    saleType,
   });
 
 const updateEmployee = ({
@@ -39,6 +47,7 @@ const updateEmployee = ({
   position,
   active,
   activeForCost,
+  saleType,
 }: any) =>
   instance.put("/employee/update-employee", {
     id,
@@ -47,6 +56,7 @@ const updateEmployee = ({
     position,
     active,
     activeForCost,
+    saleType,
   });
 
 const removeEmployee = ({ id }: any) =>

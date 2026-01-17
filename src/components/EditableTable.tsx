@@ -9,6 +9,21 @@ import dayjs from "dayjs";
 import { DatePicker, Select } from "antd";
 import { useTheme } from "../contexts/ThemeContext";
 
+// Componente para renderizar valores con "/" donde la parte después de la barra está en rojo
+const ValueWithDevolution = ({ value }: { value: string }) => {
+  if (typeof value !== "string" || !value.includes("/")) {
+    return <>{value}</>;
+  }
+
+  const parts = value.split("/");
+  return (
+    <>
+      <span>{parts[0]}</span>
+      <span style={{ color: "#dc2626" }}>/ {parts[1].trim()}</span>
+    </>
+  );
+};
+
 const EditableTable = ({
   data,
   columns,
@@ -74,6 +89,41 @@ const EditableTable = ({
     ),
   };
 
+  // Función para renderizar el valor de una celda
+  const renderCellValue = (row: any, column: any) => {
+    const rawValue = row[column.dataIndex];
+
+    // Si el valor es un string que contiene "/", renderizar con colores
+    if (
+      column.dataIndex === "itemsDisplay" &&
+      typeof rawValue === "string" &&
+      rawValue.includes("/")
+    ) {
+      return <ValueWithDevolution value={rawValue} />;
+    }
+
+    // Si la columna tiene color definido, aplicarlo
+    if (column.color && rawValue !== undefined && rawValue !== null) {
+      return (
+        <span style={{ color: column.color }}>
+          {column.format ? column.format(rawValue) : rawValue}
+        </span>
+      );
+    }
+
+    // Valor por defecto
+    if (column.render) {
+      return column.render(row);
+    }
+    if (column.defaultValue) {
+      return column.defaultValue(rawValue);
+    }
+    if (Boolean(rawValue)) {
+      return column.format ? column.format(rawValue) : rawValue;
+    }
+    return "-";
+  };
+
   return (
     <table className={`w-full ${themeStyles[theme].tailwindcss.table.main}`}>
       <thead>
@@ -87,6 +137,7 @@ const EditableTable = ({
             <th
               key={columnIndex}
               className={`text-center font-normal  ${themeStyles[theme].tailwindcss.table.thead.th}`}
+              style={column.color ? { color: column.color } : {}}
             >
               {column.title}
             </th>
@@ -192,15 +243,7 @@ const EditableTable = ({
                                 inputValue,
                               }),
                           })
-                        : column.render
-                        ? column.render(row)
-                        : column.defaultValue
-                        ? column.defaultValue(row[column.dataIndex])
-                        : Boolean(row[column.dataIndex])
-                        ? column.format
-                          ? column.format(row[column.dataIndex])
-                          : row[column.dataIndex]
-                        : "-"}
+                        : renderCellValue(row, column)}
                     </td>
                   );
                 })}
@@ -230,6 +273,7 @@ const EditableTable = ({
                 <td
                   className={`text-center font-bold ${themeStyles[theme].tailwindcss.table.thead.th}`}
                   key={idx}
+                  style={column.color ? { color: column.color } : {}}
                 >
                   {idx === 0 && !Boolean(reduceValue) && <MdAssignmentAdd />}
                   {column.sumAcc &&

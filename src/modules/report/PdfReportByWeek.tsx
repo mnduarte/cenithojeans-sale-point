@@ -11,43 +11,43 @@ const styles = StyleSheet.create({
   },
   table: {
     display: "flex",
-    width: 300,
-    flexDirection: "row", // Cambiado para disposición horizontal
-    flexWrap: "wrap", // Para que se envuelvan los elementos si no caben en una sola fila
-    marginLeft: 2, // Margen inferior para separar las tablas
+    width: 360, // Aumentado para incluir columna de devoluciones
+    flexDirection: "row",
+    flexWrap: "wrap",
+    marginLeft: 2,
   },
   tableDetail: {
     display: "flex",
-    width: 86,
-    flexDirection: "row", // Cambiado para disposición horizontal
-    flexWrap: "wrap", // Para que se envuelvan los elementos si no caben en una sola fila
-    marginLeft: 2, // Margen inferior para separar las tablas
-    marginTop: 10, // Margen inferior para separar las tablas
+    width: 110, // Aumentado para devoluciones
+    flexDirection: "row",
+    flexWrap: "wrap",
+    marginLeft: 2,
+    marginTop: 10,
   },
   tableDetailWithDate: {
     display: "flex",
-    width: 136,
-    flexDirection: "row", // Cambiado para disposición horizontal
-    flexWrap: "wrap", // Para que se envuelvan los elementos si no caben en una sola fila
-    marginLeft: 2, // Margen inferior para separar las tablas
-    marginTop: 10, // Margen inferior para separar las tablas
+    width: 160, // Aumentado para devoluciones
+    flexDirection: "row",
+    flexWrap: "wrap",
+    marginLeft: 2,
+    marginTop: 10,
   },
 
   tableDetailPedido: {
     display: "flex",
-    width: 172,
-    flexDirection: "row", // Cambiado para disposición horizontal
-    flexWrap: "wrap", // Para que se envuelvan los elementos si no caben en una sola fila
-    marginLeft: 2, // Margen inferior para separar las tablas
-    marginTop: 10, // Margen inferior para separar las tablas
+    width: 196, // Aumentado para devoluciones
+    flexDirection: "row",
+    flexWrap: "wrap",
+    marginLeft: 2,
+    marginTop: 10,
   },
   tableDetailWithDatePedido: {
     display: "flex",
-    width: 222,
-    flexDirection: "row", // Cambiado para disposición horizontal
-    flexWrap: "wrap", // Para que se envuelvan los elementos si no caben en una sola fila
-    marginLeft: 2, // Margen inferior para separar las tablas
-    marginTop: 10, // Margen inferior para separar las tablas
+    width: 246, // Aumentado para devoluciones
+    flexDirection: "row",
+    flexWrap: "wrap",
+    marginLeft: 2,
+    marginTop: 10,
   },
 
   tableRow: {
@@ -59,15 +59,20 @@ const styles = StyleSheet.create({
     borderStyle: "solid",
     border: 0.5,
   },
+  tableColDev: {
+    width: 30,
+    borderStyle: "solid",
+    border: 0.5,
+  },
   tableColHeader: {
-    width: 86,
+    width: 110, // Aumentado para devoluciones
     borderStyle: "solid",
     borderWidth: 0.5,
     borderLeftWidth: 0.5,
     borderTopWidth: 0.5,
   },
   tableColHeaderPedido: {
-    width: 172,
+    width: 196, // Aumentado para devoluciones
     borderStyle: "solid",
     borderWidth: 0.5,
     borderLeftWidth: 0.5,
@@ -95,6 +100,13 @@ const styles = StyleSheet.create({
     borderLeftWidth: 0,
     borderTopWidth: 0,
   },
+  tableColDevSmall: {
+    width: 24,
+    borderStyle: "solid",
+    borderWidth: 0.5,
+    borderLeftWidth: 0,
+    borderTopWidth: 0,
+  },
   tableColTotal: {
     width: 48,
     borderStyle: "solid",
@@ -105,6 +117,11 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 8,
     textAlign: "center",
+  },
+  textDev: {
+    fontSize: 8,
+    textAlign: "center",
+    color: "#dc2626",
   },
   textResume: {
     fontSize: 8,
@@ -146,6 +163,9 @@ const TableByEmployeeByType: any = {
         <View style={styles.tableColItem}>
           <Text style={styles.text}>Prendas</Text>
         </View>
+        <View style={styles.tableColDevSmall}>
+          <Text style={styles.textDev}>Dev</Text>
+        </View>
         <View style={styles.tableColTotal}>
           <Text style={styles.text}>Venta</Text>
         </View>
@@ -162,6 +182,9 @@ const TableByEmployeeByType: any = {
           <View style={styles.tableColItem}>
             <Text style={styles.text}>{row.items}</Text>
           </View>
+          <View style={styles.tableColDevSmall}>
+            <Text style={styles.textDev}>{row.devolutionItems || 0}</Text>
+          </View>
           <View style={styles.tableColTotal}>
             <Text style={styles.text}>${formatCurrency(row.total)}</Text>
           </View>
@@ -176,6 +199,14 @@ const TableByEmployeeByType: any = {
         <View style={styles.tableColItem}>
           <Text style={styles.textResume}>
             {data.reduce((acc: any, current: any) => acc + current.items, 0)}
+          </Text>
+        </View>
+        <View style={styles.tableColDevSmall}>
+          <Text style={styles.textResume}>
+            {data.reduce(
+              (acc: any, current: any) => acc + (current.devolutionItems || 0),
+              0
+            )}
           </Text>
         </View>
         <View style={styles.tableColTotal}>
@@ -216,6 +247,9 @@ const TableByEmployeeByType: any = {
         <View style={styles.tableColItem}>
           <Text style={styles.text}>Prendas</Text>
         </View>
+        <View style={styles.tableColDevSmall}>
+          <Text style={styles.textDev}>Dev</Text>
+        </View>
         <View style={styles.tableColTotal}>
           <Text style={styles.text}>Efecti.</Text>
         </View>
@@ -238,6 +272,9 @@ const TableByEmployeeByType: any = {
           <View style={styles.tableColItem}>
             <Text style={styles.text}>{row.items}</Text>
           </View>
+          <View style={styles.tableColDevSmall}>
+            <Text style={styles.textDev}>{row.devolutionItems || 0}</Text>
+          </View>
           <View style={styles.tableColTotal}>
             <Text style={styles.text}>${formatCurrency(row.cash)}</Text>
           </View>
@@ -258,6 +295,14 @@ const TableByEmployeeByType: any = {
         <View style={styles.tableColItem}>
           <Text style={styles.textResume}>
             {data.reduce((acc: any, current: any) => acc + current.items, 0)}
+          </Text>
+        </View>
+        <View style={styles.tableColDevSmall}>
+          <Text style={styles.textResume}>
+            {data.reduce(
+              (acc: any, current: any) => acc + (current.devolutionItems || 0),
+              0
+            )}
           </Text>
         </View>
         <View style={styles.tableColTotal}>
@@ -299,6 +344,9 @@ const TableByType: any = {
         <View style={styles.tableCol}>
           <Text style={styles.text}>Prendas</Text>
         </View>
+        <View style={styles.tableColDev}>
+          <Text style={styles.textDev}>Dev</Text>
+        </View>
         <View style={styles.tableCol}>
           <Text style={styles.text}>Gastos</Text>
         </View>
@@ -309,13 +357,16 @@ const TableByType: any = {
           <Text style={styles.text}>TotalCaja</Text>
         </View>
       </View>
-      {data.map((resume: any) => (
-        <View style={[styles.tableRow]}>
+      {data.map((resume: any, index: number) => (
+        <View key={index} style={[styles.tableRow]}>
           <View style={styles.tableCol}>
             <Text style={styles.text}>{resume.date}</Text>
           </View>
           <View style={styles.tableCol}>
             <Text style={styles.text}>{resume.items}</Text>
+          </View>
+          <View style={styles.tableColDev}>
+            <Text style={styles.textDev}>{resume.devolutionItems || 0}</Text>
           </View>
           <View style={styles.tableCol}>
             <Text style={styles.text}>
@@ -340,6 +391,14 @@ const TableByType: any = {
           <Text style={styles.textResume}>
             {data.reduce(
               (acc: any, current: any) => acc + current.items || 0,
+              0
+            )}
+          </Text>
+        </View>
+        <View style={styles.tableColDev}>
+          <Text style={styles.textResume}>
+            {data.reduce(
+              (acc: any, current: any) => acc + (current.devolutionItems || 0),
               0
             )}
           </Text>
@@ -399,8 +458,8 @@ const TableByType: any = {
           <Text style={styles.text}>Total</Text>
         </View>
       </View>
-      {data.map((resume: any) => (
-        <View style={[styles.tableRow]}>
+      {data.map((resume: any, index: number) => (
+        <View key={index} style={[styles.tableRow]}>
           <View style={styles.tableCol}>
             <Text style={styles.text}>{resume.date}</Text>
           </View>
@@ -499,6 +558,7 @@ const PdfReportByWeek = ({
               const [_, sale] = saleByEmployee;
               return (
                 <GeneralTableByEmployee
+                  key={idx}
                   headerTitle={sale.employee}
                   data={sale.sales}
                   showDate={idx === 0}

@@ -54,6 +54,14 @@ const ConfirmSale = ({
   const [isModalKeyboardTransferOpen, setIsModalKeyboardTransferOpen] =
     useState(false);
 
+  // Filtrar empleados por tipo de venta
+  const employeesForLocal = employees.filter(
+    (emp: any) => emp.saleType === "ambos" || emp.saleType === "local" || !emp.saleType
+  );
+  const employeesForPedido = employees.filter(
+    (emp: any) => emp.saleType === "ambos" || emp.saleType === "pedido" || !emp.saleType
+  );
+
   const availableAction =
     Boolean(sellerSelected.length) &&
     ((typeSale === "pedido" && Boolean(typeShipment.length)) ||
@@ -454,7 +462,7 @@ const ConfirmSale = ({
                         setPayment({ transfer: "", cash: String(totalToPay) });
                         setTypeSale("local");
                       }}
-                      options={employees.map((data: any) => ({
+                      options={employeesForLocal.map((data: any) => ({
                         value: data.name,
                         label: data.name,
                       }))}
@@ -481,7 +489,7 @@ const ConfirmSale = ({
                         setTypeSale("pedido");
                         setTypeShipment("retiraLocal");
                       }}
-                      options={employees.map((data: any) => ({
+                      options={employeesForPedido.map((data: any) => ({
                         value: data.name,
                         label: data.name,
                       }))}

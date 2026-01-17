@@ -140,7 +140,7 @@ export const employeeActions = {
       }
     },
   addEmployee:
-    ({ name, store, position, active, activeForCost }: any) =>
+    ({ name, store, position, active, activeForCost, saleType }: any) =>
     async (dispatch: any) => {
       dispatch({
         type: actionTypes.LOADING,
@@ -154,6 +154,7 @@ export const employeeActions = {
           position,
           active,
           activeForCost,
+          saleType,
         });
 
         dispatch({
@@ -170,7 +171,7 @@ export const employeeActions = {
       }
     },
   updateEmployee:
-    ({ id, name, store, position, active, activeForCost }: any) =>
+    ({ id, name, store, position, active, activeForCost, saleType }: any) =>
     async (dispatch: any) => {
       dispatch({
         type: actionTypes.LOADING,
@@ -185,6 +186,7 @@ export const employeeActions = {
           position,
           active,
           activeForCost,
+          saleType,
         });
 
         dispatch({

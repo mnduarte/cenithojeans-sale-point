@@ -25,6 +25,13 @@ import {
 
 type PriceSubTab = "jeans" | "remeras";
 
+// Mapeo para mostrar el tipo de venta en español
+const SALE_TYPE_LABELS: Record<string, string> = {
+  ambos: "Ambos",
+  local: "Local",
+  pedido: "Pedido",
+};
+
 const PricesContainer = () => {
   const {
     state: { prices, loading },
@@ -225,6 +232,11 @@ const EmployeesContainer = () => {
     },
     { title: "Posicion", dataIndex: "position" },
     { title: "Sucursal", dataIndex: "store" },
+    {
+      title: "Tipo Venta",
+      dataIndex: "saleType",
+      format: (value: string) => SALE_TYPE_LABELS[value] || "Ambos",
+    },
     { title: "Activo", dataIndex: "active" },
     { title: "Activo para Pagos", dataIndex: "activeForCost" },
   ];

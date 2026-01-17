@@ -43,6 +43,15 @@ const styles = StyleSheet.create({
     textAlign: "center",
     width: 50,
   },
+  tableCellDev: {
+    padding: 2,
+    borderRightWidth: 0.5,
+    borderBottomWidth: 0.5,
+    borderColor: "#999",
+    textAlign: "center",
+    width: 50,
+    color: "#dc2626",
+  },
   tableHeader: {
     fontWeight: "bold",
     backgroundColor: "#eee",
@@ -52,6 +61,7 @@ const styles = StyleSheet.create({
 type Column = {
   title: string;
   dataIndex: string;
+  isDevolution?: boolean;
 };
 
 type TableProps = {
@@ -67,13 +77,21 @@ const Table = ({ columns, data, firstColumnWidth }: TableProps) => (
         <Text
           key={idx}
           style={[
-            {
-              ...styles.tableCell,
-              width:
-                firstColumnWidth && idx === 0
-                  ? firstColumnWidth
-                  : styles.tableCell.width,
-            },
+            col.isDevolution
+              ? {
+                  ...styles.tableCellDev,
+                  width:
+                    firstColumnWidth && idx === 0
+                      ? firstColumnWidth
+                      : styles.tableCell.width,
+                }
+              : {
+                  ...styles.tableCell,
+                  width:
+                    firstColumnWidth && idx === 0
+                      ? firstColumnWidth
+                      : styles.tableCell.width,
+                },
             styles.tableHeader,
           ]}
         >
@@ -86,14 +104,25 @@ const Table = ({ columns, data, firstColumnWidth }: TableProps) => (
         {columns.map((col, idx) => (
           <Text
             key={idx}
-            style={{
-              ...styles.tableCell,
-              width:
-                firstColumnWidth && idx === 0
-                  ? firstColumnWidth
-                  : styles.tableCell.width,
-              textAlign: firstColumnWidth && idx === 0 ? "left" : "center",
-            }}
+            style={
+              col.isDevolution
+                ? {
+                    ...styles.tableCellDev,
+                    width:
+                      firstColumnWidth && idx === 0
+                        ? firstColumnWidth
+                        : styles.tableCell.width,
+                    textAlign: firstColumnWidth && idx === 0 ? "left" : "center",
+                  }
+                : {
+                    ...styles.tableCell,
+                    width:
+                      firstColumnWidth && idx === 0
+                        ? firstColumnWidth
+                        : styles.tableCell.width,
+                    textAlign: firstColumnWidth && idx === 0 ? "left" : "center",
+                  }
+            }
           >
             {row[col.dataIndex] ?? "-"}
           </Text>
@@ -102,6 +131,14 @@ const Table = ({ columns, data, firstColumnWidth }: TableProps) => (
     ))}
   </View>
 );
+
+// Helper para formatear items con devoluciones: "items / dev" (dev en rojo)
+const formatItemsWithDev = (items: number, devItems: number): string => {
+  if (devItems > 0) {
+    return `${items} / ${devItems}`;
+  }
+  return `${items}`;
+};
 
 const PdfSectionByBranch = ({ title, data, includeOrderQuantity }: any) => {
   const totalColumn = (rows: any[], keys: string[]) => {
@@ -118,12 +155,13 @@ const PdfSectionByBranch = ({ title, data, includeOrderQuantity }: any) => {
 
       <Text style={styles.subtitle}>Prendas por semana (Venta local):</Text>
       {(() => {
-        const columns = data.byItemWeek.employees.map((e: any) => ({
+        // Crear columnas con items/dev combinados
+        const columns: Column[] = data.byItemWeek.employees.map((e: any) => ({
           title: e.employee,
           dataIndex: e.employee,
         }));
+
         const dataRows = (() => {
-          // Obtener todas las semanas únicas de TODOS los empleados
           const allWeeks = [
             ...new Set(
               data.byItemWeek.employees.flatMap((e: any) =>
@@ -133,7 +171,6 @@ const PdfSectionByBranch = ({ title, data, includeOrderQuantity }: any) => {
           ].sort((a: any, b: any) => a - b);
 
           return allWeeks.map((week: any) => {
-            // Buscar el primer weekdays disponible para mostrar como label
             const weekdaysLabel =
               data.byItemWeek.employees
                 .flatMap((e: any) => e.data)
@@ -143,15 +180,34 @@ const PdfSectionByBranch = ({ title, data, includeOrderQuantity }: any) => {
             const row: Record<string, any> = { label: weekdaysLabel };
 
             for (const emp of data.byItemWeek.employees) {
-              // Buscar por número de semana, no por string
               const match = emp.data.find((d: any) => d.week === week);
-              row[emp.employee] = match?.items ?? "-";
+              if (match) {
+                row[emp.employee] = formatItemsWithDev(
+                  match.items ?? 0,
+                  match.devolutionItems ?? 0
+                );
+              } else {
+                row[emp.employee] = "-";
+              }
             }
             return row;
           });
         })();
-        const keys = data.byItemWeek.employees.map((e: any) => e.employee);
-        const totalRow = totalColumn(dataRows, keys);
+
+        // Calcular totales
+        const totalRow: Record<string, any> = { label: "Total:" };
+        for (const emp of data.byItemWeek.employees) {
+          const totalItems = emp.data.reduce(
+            (sum: number, d: any) => sum + (d.items ?? 0),
+            0
+          );
+          const totalDev = emp.data.reduce(
+            (sum: number, d: any) => sum + (d.devolutionItems ?? 0),
+            0
+          );
+          totalRow[emp.employee] = formatItemsWithDev(totalItems, totalDev);
+        }
+
         return (
           <Table
             columns={[{ title: "Semana", dataIndex: "label" }, ...columns]}
@@ -161,7 +217,11 @@ const PdfSectionByBranch = ({ title, data, includeOrderQuantity }: any) => {
         );
       })()}
 
-      <Text style={styles.subtitle}>Total: {data.byItemWeek.totalItems}</Text>
+      <Text style={styles.subtitle}>
+        Total: {data.byItemWeek.totalItems}
+        {data.byItemWeek.totalDevolutionItems > 0 &&
+          ` / ${data.byItemWeek.totalDevolutionItems}`}
+      </Text>
       <Text style={styles.divider}></Text>
 
       {includeOrderQuantity && (
@@ -192,30 +252,49 @@ const PdfSectionByBranch = ({ title, data, includeOrderQuantity }: any) => {
 
       <Text style={styles.subtitle}>Prendas:</Text>
       {(() => {
-        const columns = data.byItemConceptEmployee.employees.map((e: any) => ({
-          title: e.employee,
-          dataIndex: e.employee,
-        }));
+        const columns: Column[] = data.byItemConceptEmployee.employees.map(
+          (e: any) => ({
+            title: e.employee,
+            dataIndex: e.employee,
+          })
+        );
+
         const concepts = [
           "Venta local",
           "Pedido (Retira local)",
           "Pedido (Envio)",
         ];
+
         const rows = concepts.map((concept) => {
           const row: Record<string, any> = { label: concept };
           for (const emp of data.byItemConceptEmployee.employees) {
             const match = emp.data.find((d: any) => d.concept === concept);
-            row[emp.employee] = match?.items ?? "-";
+            if (match) {
+              row[emp.employee] = formatItemsWithDev(
+                match.items ?? 0,
+                match.devolutionItems ?? 0
+              );
+            } else {
+              row[emp.employee] = "-";
+            }
           }
           return row;
         });
+
+        // Calcular totales por empleado
         const totalRow: Record<string, any> = { label: "Total:" };
         for (const emp of data.byItemConceptEmployee.employees) {
-          totalRow[emp.employee] = rows.reduce(
-            (acc, r) => acc + (parseInt(r[emp.employee]) || 0),
+          const totalItems = emp.data.reduce(
+            (sum: number, d: any) => sum + (d.items ?? 0),
             0
           );
+          const totalDev = emp.data.reduce(
+            (sum: number, d: any) => sum + (d.devolutionItems ?? 0),
+            0
+          );
+          totalRow[emp.employee] = formatItemsWithDev(totalItems, totalDev);
         }
+
         return (
           <>
             <Table
@@ -226,6 +305,8 @@ const PdfSectionByBranch = ({ title, data, includeOrderQuantity }: any) => {
 
             <Text style={styles.subtitle}>
               Total: {data.byItemConceptEmployee.totalItems}
+              {data.byItemConceptEmployee.totalDevolutionItems > 0 &&
+                ` / ${data.byItemConceptEmployee.totalDevolutionItems}`}
             </Text>
             <Text style={styles.divider}></Text>
           </>
@@ -237,10 +318,19 @@ const PdfSectionByBranch = ({ title, data, includeOrderQuantity }: any) => {
         columns={[
           { title: "Concepto", dataIndex: "concept" },
           { title: "Prendas", dataIndex: "items" },
+          { title: "Dev", dataIndex: "devolutionItems", isDevolution: true },
         ]}
         data={[
-          ...data.byItemConcept.concepts,
-          { concept: "Total:", items: data.byItemConcept.totalItems },
+          ...data.byItemConcept.concepts.map((c: any) => ({
+            concept: c.concept,
+            items: c.items,
+            devolutionItems: c.devolutionItems || 0,
+          })),
+          {
+            concept: "Total:",
+            items: data.byItemConcept.totalItems,
+            devolutionItems: data.byItemConcept.totalDevolutionItems || 0,
+          },
         ]}
         firstColumnWidth={90}
       />
@@ -271,6 +361,13 @@ const PdfReportByEmployee = ({
         Total de Prendas (Bogota y Helguera):{" "}
         {dataBogota.byItemConcept.totalItems +
           dataHelguera.byItemConcept.totalItems}
+        {(dataBogota.byItemConcept.totalDevolutionItems || 0) +
+          (dataHelguera.byItemConcept.totalDevolutionItems || 0) >
+          0 &&
+          ` / ${
+            (dataBogota.byItemConcept.totalDevolutionItems || 0) +
+            (dataHelguera.byItemConcept.totalDevolutionItems || 0)
+          }`}
       </Text>
       <Text style={{ height: 80 }}> </Text>
       <Text style={styles.sectionTitle}>{timePeriod}</Text>
@@ -283,6 +380,13 @@ const PdfReportByEmployee = ({
         Total de Prendas (Bogota y Helguera):{" "}
         {dataBogota.byItemConcept.totalItems +
           dataHelguera.byItemConcept.totalItems}
+        {(dataBogota.byItemConcept.totalDevolutionItems || 0) +
+          (dataHelguera.byItemConcept.totalDevolutionItems || 0) >
+          0 &&
+          ` / ${
+            (dataBogota.byItemConcept.totalDevolutionItems || 0) +
+            (dataHelguera.byItemConcept.totalDevolutionItems || 0)
+          }`}
       </Text>
     </Page>
   </Document>
