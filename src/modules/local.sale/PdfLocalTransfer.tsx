@@ -3,135 +3,124 @@ import { formatCurrency } from "../../utils/formatUtils";
 
 const styles = StyleSheet.create({
   page: {
-    padding: 30,
-    fontSize: 9,
+    padding: 15,
+    fontSize: 7,
     fontFamily: "Helvetica",
   },
   header: {
-    marginBottom: 20,
+    marginBottom: 10,
     borderBottomWidth: 2,
     borderBottomColor: "#0891b2",
-    paddingBottom: 10,
+    paddingBottom: 6,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-end",
+  },
+  headerLeft: {
+    flex: 1,
+  },
+  headerRight: {
+    textAlign: "right",
   },
   title: {
-    fontSize: 16,
+    fontSize: 12,
     fontWeight: "bold",
     color: "#0891b2",
-    marginBottom: 5,
+    marginBottom: 3,
   },
   subtitle: {
-    fontSize: 10,
+    fontSize: 8,
     color: "#666666",
+  },
+  registrosText: {
+    fontSize: 10,
+    fontWeight: "bold",
+    color: "#0891b2",
   },
   table: {
     display: "flex",
     width: "100%",
-    marginTop: 10,
+    marginTop: 6,
   },
   tableHeader: {
     flexDirection: "row",
     backgroundColor: "#0891b2",
-    borderTopLeftRadius: 4,
-    borderTopRightRadius: 4,
+    borderTopLeftRadius: 3,
+    borderTopRightRadius: 3,
   },
   tableHeaderCell: {
     color: "#ffffff",
     fontWeight: "bold",
-    padding: 8,
-    fontSize: 8,
+    paddingVertical: 4,
+    paddingHorizontal: 2,
+    fontSize: 6,
     textAlign: "center",
   },
   tableRow: {
     flexDirection: "row",
-    borderBottomWidth: 1,
+    borderBottomWidth: 0.5,
     borderBottomColor: "#e5e7eb",
   },
   tableRowAlternate: {
     flexDirection: "row",
-    borderBottomWidth: 1,
+    borderBottomWidth: 0.5,
     borderBottomColor: "#e5e7eb",
     backgroundColor: "#f9fafb",
   },
   tableRowIngreso: {
     flexDirection: "row",
-    borderBottomWidth: 1,
+    borderBottomWidth: 0.5,
     borderBottomColor: "#e5e7eb",
     backgroundColor: "#fef3c7",
   },
   tableCell: {
-    padding: 8,
-    fontSize: 8,
+    paddingVertical: 3,
+    paddingHorizontal: 2,
+    fontSize: 6,
     textAlign: "center",
   },
   tableCellLeft: {
-    padding: 8,
-    fontSize: 8,
+    paddingVertical: 3,
+    paddingHorizontal: 2,
+    fontSize: 6,
     textAlign: "left",
   },
-  // Column widths
+  // Column widths optimizados para A5
   colOrder: { width: "6%" },
-  colVendedor: { width: "14%" },
+  colVendedor: { width: "13%" },
   colHora: { width: "8%" },
-  colEfectivo: { width: "12%" },
-  colTransfer: { width: "12%" },
-  colPrendas: { width: "10%" },
-  colCuenta: { width: "20%" },
-  colTotal: { width: "12%" },
+  colEfectivo: { width: "13%" },
+  colTransfer: { width: "13%" },
+  colPrendas: { width: "8%" },
+  colCuenta: { width: "22%" },
+  colTotal: { width: "13%" },
   // Footer
   tableFooter: {
     flexDirection: "row",
     backgroundColor: "#0891b2",
-    borderBottomLeftRadius: 4,
-    borderBottomRightRadius: 4,
+    borderBottomLeftRadius: 3,
+    borderBottomRightRadius: 3,
   },
   tableFooterCell: {
     color: "#ffffff",
     fontWeight: "bold",
-    padding: 8,
-    fontSize: 8,
+    paddingVertical: 4,
+    paddingHorizontal: 2,
+    fontSize: 6,
     textAlign: "center",
-  },
-  // Summary section
-  summaryContainer: {
-    marginTop: 20,
-    padding: 15,
-    backgroundColor: "#f0fdfa",
-    borderRadius: 4,
-    borderWidth: 1,
-    borderColor: "#0891b2",
-  },
-  summaryTitle: {
-    fontSize: 11,
-    fontWeight: "bold",
-    color: "#0891b2",
-    marginBottom: 10,
-  },
-  summaryRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 5,
-  },
-  summaryLabel: {
-    fontSize: 9,
-    color: "#374151",
-  },
-  summaryValue: {
-    fontSize: 9,
-    fontWeight: "bold",
-    color: "#0891b2",
   },
   // Footer info
   footerInfo: {
     position: "absolute",
-    bottom: 20,
-    left: 30,
-    right: 30,
+    bottom: 10,
+    left: 15,
+    right: 15,
     textAlign: "center",
     color: "#9ca3af",
-    fontSize: 8,
-    borderTopWidth: 1,
+    fontSize: 6,
+    borderTopWidth: 0.5,
     borderTopColor: "#e5e7eb",
-    paddingTop: 10,
+    paddingTop: 5,
   },
 });
 
@@ -272,24 +261,21 @@ const TableListTransfer = ({ data }: any) => {
 
 const PdfLocalTransfer = ({ date, store, data }: any) => {
   const totalRegistros = data.length;
-  const totalTransferencias = data.reduce(
-    (acc: any, curr: any) => acc + (curr.transfer || 0),
-    0
-  );
-  const totalEfectivo = data.reduce(
-    (acc: any, curr: any) => acc + (curr.cash || 0),
-    0
-  );
 
   return (
     <Document>
-      <Page size="A4" style={styles.page}>
-        {/* Header */}
+      <Page size="A5" orientation="landscape" style={styles.page}>
+        {/* Header con registros a la derecha */}
         <View style={styles.header}>
-          <Text style={styles.title}>Listado de Transferencias</Text>
-          <Text style={styles.subtitle}>
-            Fecha: {date} | Sucursal: {store} | Registros: {totalRegistros}
-          </Text>
+          <View style={styles.headerLeft}>
+            <Text style={styles.title}>Listado de Transferencias</Text>
+            <Text style={styles.subtitle}>
+              Fecha: {date} | Sucursal: {store}
+            </Text>
+          </View>
+          <View style={styles.headerRight}>
+            <Text style={styles.registrosText}>Registros: {totalRegistros}</Text>
+          </View>
         </View>
 
         {/* Table */}

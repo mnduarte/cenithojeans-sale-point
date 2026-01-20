@@ -1,536 +1,331 @@
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
 import { formatCurrency } from "../../utils/formatUtils";
 
+const colors = {
+  primary: "#1a365d",
+  secondary: "#2d3748",
+  accent: "#3182ce",
+  headerBg: "#edf2f7",
+  border: "#cbd5e0",
+  text: "#1a202c",
+  textLight: "#718096",
+  devolution: "#c53030",
+  totalBg: "#f7fafc",
+  white: "#ffffff",
+};
+
 const styles = StyleSheet.create({
   page: {
-    padding: 10,
+    padding: 20,
+    fontFamily: "Helvetica",
+    backgroundColor: colors.white,
   },
-  row: {
-    flexDirection: "row",
-    flexWrap: "wrap",
+  header: {
+    marginBottom: 15,
+    borderBottomWidth: 2,
+    borderBottomColor: colors.primary,
+    paddingBottom: 10,
+  },
+  headerTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: colors.primary,
+    marginBottom: 2,
+  },
+  headerSubtitle: {
+    fontSize: 9,
+    color: colors.textLight,
+  },
+  section: {
+    marginBottom: 12,
+  },
+  sectionTitle: {
+    fontSize: 10,
+    fontWeight: "bold",
+    color: colors.secondary,
+    marginBottom: 6,
+    paddingBottom: 3,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
   table: {
-    display: "flex",
-    width: 360, // Aumentado para incluir columna de devoluciones
-    flexDirection: "row",
-    flexWrap: "wrap",
-    marginLeft: 2,
+    width: "auto",
+    marginBottom: 10,
   },
-  tableDetail: {
-    display: "flex",
-    width: 110, // Aumentado para devoluciones
-    flexDirection: "row",
-    flexWrap: "wrap",
-    marginLeft: 2,
-    marginTop: 10,
-  },
-  tableDetailWithDate: {
-    display: "flex",
-    width: 160, // Aumentado para devoluciones
-    flexDirection: "row",
-    flexWrap: "wrap",
-    marginLeft: 2,
-    marginTop: 10,
-  },
-
-  tableDetailPedido: {
-    display: "flex",
-    width: 196, // Aumentado para devoluciones
-    flexDirection: "row",
-    flexWrap: "wrap",
-    marginLeft: 2,
-    marginTop: 10,
-  },
-  tableDetailWithDatePedido: {
-    display: "flex",
-    width: 246, // Aumentado para devoluciones
-    flexDirection: "row",
-    flexWrap: "wrap",
-    marginLeft: 2,
-    marginTop: 10,
-  },
-
   tableRow: {
-    margin: "auto",
     flexDirection: "row",
   },
-  tableCol: {
-    width: 60,
-    borderStyle: "solid",
-    border: 0.5,
-  },
-  tableColDev: {
-    width: 30,
-    borderStyle: "solid",
-    border: 0.5,
-  },
-  tableColHeader: {
-    width: 110, // Aumentado para devoluciones
-    borderStyle: "solid",
-    borderWidth: 0.5,
-    borderLeftWidth: 0.5,
-    borderTopWidth: 0.5,
-  },
-  tableColHeaderPedido: {
-    width: 196, // Aumentado para devoluciones
-    borderStyle: "solid",
-    borderWidth: 0.5,
-    borderLeftWidth: 0.5,
-    borderTopWidth: 0.5,
-  },
-  tableColOrder: {
-    color: "#FF0000",
-    width: 16,
-    borderStyle: "solid",
-    borderWidth: 0.5,
-    borderLeftWidth: 0.5,
-    borderTopWidth: 0,
-  },
-  tableColDate: {
-    width: 50,
-    borderStyle: "solid",
-    borderWidth: 0.5,
-    borderLeftWidth: 0,
-    borderTopWidth: 0,
-  },
-  tableColItem: {
-    width: 38,
-    borderStyle: "solid",
-    borderWidth: 0.5,
-    borderLeftWidth: 0,
-    borderTopWidth: 0,
-  },
-  tableColDevSmall: {
-    width: 24,
-    borderStyle: "solid",
-    borderWidth: 0.5,
-    borderLeftWidth: 0,
-    borderTopWidth: 0,
-  },
-  tableColTotal: {
-    width: 48,
-    borderStyle: "solid",
-    borderWidth: 0.5,
-    borderLeftWidth: 0,
-    borderTopWidth: 0,
-  },
-  text: {
+  tableCell: {
     fontSize: 8,
+    paddingVertical: 4,
+    paddingHorizontal: 2,
+    borderWidth: 0.5,
+    borderColor: colors.border,
     textAlign: "center",
+    color: colors.text,
   },
-  textDev: {
+  tableCellDev: {
     fontSize: 8,
+    paddingVertical: 4,
+    paddingHorizontal: 2,
+    borderWidth: 0.5,
+    borderColor: colors.border,
     textAlign: "center",
-    color: "#dc2626",
+    color: colors.devolution,
   },
-  textResume: {
+  tableHeaderCell: {
     fontSize: 8,
-    color: "#FF0000",
-    textAlign: "center",
     fontWeight: "bold",
+    paddingVertical: 4,
+    paddingHorizontal: 2,
+    borderWidth: 0.5,
+    borderColor: colors.border,
+    textAlign: "center",
+    backgroundColor: colors.headerBg,
+    color: colors.primary,
   },
-  title: {
-    fontSize: 10,
-    marginBottom: 5,
-    marginTop: 8,
+  tableHeaderCellDev: {
+    fontSize: 8,
+    fontWeight: "bold",
+    paddingVertical: 4,
+    paddingHorizontal: 2,
+    borderWidth: 0.5,
+    borderColor: colors.border,
+    textAlign: "center",
+    backgroundColor: colors.headerBg,
+    color: colors.devolution,
   },
-  ingresoCell: {
-    backgroundColor: "#F2CDCB",
+  tableTotalCell: {
+    fontSize: 8,
+    fontWeight: "bold",
+    paddingVertical: 4,
+    paddingHorizontal: 2,
+    borderWidth: 0.5,
+    borderColor: colors.border,
+    textAlign: "center",
+    backgroundColor: colors.totalBg,
+    color: colors.primary,
   },
+  tableTotalCellDev: {
+    fontSize: 8,
+    fontWeight: "bold",
+    paddingVertical: 4,
+    paddingHorizontal: 2,
+    borderWidth: 0.5,
+    borderColor: colors.border,
+    textAlign: "center",
+    backgroundColor: colors.totalBg,
+    color: colors.devolution,
+  },
+  employeesContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+  },
+  employeeTable: {
+    marginRight: 4,
+    marginBottom: 6,
+  },
+  employeeHeader: {
+    fontSize: 8,
+    fontWeight: "bold",
+    color: colors.white,
+    backgroundColor: colors.accent,
+    paddingVertical: 3,
+    paddingHorizontal: 2,
+    textAlign: "center",
+    borderTopLeftRadius: 2,
+    borderTopRightRadius: 2,
+  },
+  // Anchos de columnas - tabla general (más anchos para una línea)
+  colDate: { width: 58 },
+  colItems: { width: 48 },
+  colDev: { width: 28 },
+  colMoney: { width: 75 },
+  colTotal: { width: 80 },
 });
 
-const TableByEmployeeByType: any = {
-  local: ({ headerTitle, data, showDate }: any) => (
-    <View style={showDate ? styles.tableDetailWithDate : styles.tableDetail}>
-      {/* Table Header */}
+// Tabla para venta LOCAL
+const TableLocalGeneral = ({ data }: any) => {
+  const totals = data.reduce(
+    (acc: any, row: any) => ({
+      items: acc.items + (row.items || 0),
+      devolutionItems: acc.devolutionItems + (row.devolutionItems || 0),
+      outgoings: acc.outgoings + (row.outgoings || 0),
+      cash: acc.cash + (row.cash || 0),
+      totalBox: acc.totalBox + (row.totalBox || 0),
+    }),
+    { items: 0, devolutionItems: 0, outgoings: 0, cash: 0, totalBox: 0 }
+  );
+
+  return (
+    <View style={styles.table} wrap={false}>
       <View style={styles.tableRow}>
-        {showDate && (
-          <View style={styles.tableColDate}>
-            <Text style={styles.text}></Text>
-          </View>
-        )}
-        <View style={styles.tableColHeader}>
-          <Text style={styles.text}>{headerTitle}</Text>
-        </View>
+        <Text style={[styles.tableHeaderCell, styles.colDate]}>Fecha</Text>
+        <Text style={[styles.tableHeaderCell, styles.colItems]}>Prendas</Text>
+        <Text style={[styles.tableHeaderCellDev, styles.colDev]}>Dev</Text>
+        <Text style={[styles.tableHeaderCell, styles.colMoney]}>Gastos</Text>
+        <Text style={[styles.tableHeaderCell, styles.colMoney]}>Venta</Text>
+        <Text style={[styles.tableHeaderCell, styles.colTotal]}>Total Caja</Text>
       </View>
-
-      <View style={[styles.tableRow]}>
-        {showDate && (
-          <View style={styles.tableColDate}>
-            <Text style={styles.text}>Fecha</Text>
-          </View>
-        )}
-        <View style={styles.tableColItem}>
-          <Text style={styles.text}>Prendas</Text>
-        </View>
-        <View style={styles.tableColDevSmall}>
-          <Text style={styles.textDev}>Dev</Text>
-        </View>
-        <View style={styles.tableColTotal}>
-          <Text style={styles.text}>Venta</Text>
-        </View>
-      </View>
-
-      {/* Table Body */}
-      {data.map((row: any, index: any) => (
-        <View key={index} style={[styles.tableRow]}>
-          {showDate && (
-            <View style={styles.tableColDate}>
-              <Text style={styles.text}>{row.date}</Text>
-            </View>
-          )}
-          <View style={styles.tableColItem}>
-            <Text style={styles.text}>{row.items}</Text>
-          </View>
-          <View style={styles.tableColDevSmall}>
-            <Text style={styles.textDev}>{row.devolutionItems || 0}</Text>
-          </View>
-          <View style={styles.tableColTotal}>
-            <Text style={styles.text}>${formatCurrency(row.total)}</Text>
-          </View>
+      {data.map((row: any, index: number) => (
+        <View key={index} style={styles.tableRow}>
+          <Text style={[styles.tableCell, styles.colDate]}>{row.date}</Text>
+          <Text style={[styles.tableCell, styles.colItems]}>{row.items || 0}</Text>
+          <Text style={[styles.tableCellDev, styles.colDev]}>{row.devolutionItems || 0}</Text>
+          <Text style={[styles.tableCell, styles.colMoney]}>${formatCurrency(row.outgoings || 0)}</Text>
+          <Text style={[styles.tableCell, styles.colMoney]}>${formatCurrency(row.cash || 0)}</Text>
+          <Text style={[styles.tableCell, styles.colTotal]}>${formatCurrency(row.totalBox || 0)}</Text>
         </View>
       ))}
-      <View style={[styles.tableRow]}>
-        {showDate && (
-          <View style={styles.tableColDate}>
-            <Text style={styles.text}></Text>
-          </View>
-        )}
-        <View style={styles.tableColItem}>
-          <Text style={styles.textResume}>
-            {data.reduce((acc: any, current: any) => acc + current.items, 0)}
-          </Text>
-        </View>
-        <View style={styles.tableColDevSmall}>
-          <Text style={styles.textResume}>
-            {data.reduce(
-              (acc: any, current: any) => acc + (current.devolutionItems || 0),
-              0
-            )}
-          </Text>
-        </View>
-        <View style={styles.tableColTotal}>
-          <Text style={styles.textResume}>
-            $
-            {formatCurrency(
-              data.reduce((acc: any, current: any) => acc + current.total, 0)
-            )}
-          </Text>
-        </View>
+      <View style={styles.tableRow}>
+        <Text style={[styles.tableTotalCell, styles.colDate]}>Total</Text>
+        <Text style={[styles.tableTotalCell, styles.colItems]}>{totals.items}</Text>
+        <Text style={[styles.tableTotalCellDev, styles.colDev]}>{totals.devolutionItems}</Text>
+        <Text style={[styles.tableTotalCell, styles.colMoney]}>${formatCurrency(totals.outgoings)}</Text>
+        <Text style={[styles.tableTotalCell, styles.colMoney]}>${formatCurrency(totals.cash)}</Text>
+        <Text style={[styles.tableTotalCell, styles.colTotal]}>${formatCurrency(totals.totalBox)}</Text>
       </View>
     </View>
-  ),
-  pedido: ({ headerTitle, data, showDate }: any) => (
-    <View
-      style={
-        showDate ? styles.tableDetailWithDatePedido : styles.tableDetailPedido
-      }
-    >
-      {/* Table Header */}
+  );
+};
+
+// Tabla para PEDIDOS
+const TablePedidoGeneral = ({ data }: any) => {
+  const totals = data.reduce(
+    (acc: any, row: any) => ({
+      items: acc.items + (row.items || 0),
+      devolutionItems: acc.devolutionItems + (row.devolutionItems || 0),
+      cash: acc.cash + (row.cash || 0),
+      transfer: acc.transfer + (row.transfer || 0),
+      total: acc.total + (row.total || 0),
+    }),
+    { items: 0, devolutionItems: 0, cash: 0, transfer: 0, total: 0 }
+  );
+
+  return (
+    <View style={styles.table} wrap={false}>
       <View style={styles.tableRow}>
-        {showDate && (
-          <View style={styles.tableColDate}>
-            <Text style={styles.text}></Text>
-          </View>
-        )}
-        <View style={styles.tableColHeaderPedido}>
-          <Text style={styles.text}>{headerTitle}</Text>
-        </View>
+        <Text style={[styles.tableHeaderCell, styles.colDate]}>Fecha</Text>
+        <Text style={[styles.tableHeaderCell, styles.colItems]}>Prendas</Text>
+        <Text style={[styles.tableHeaderCellDev, styles.colDev]}>Dev</Text>
+        <Text style={[styles.tableHeaderCell, styles.colMoney]}>Efectivo</Text>
+        <Text style={[styles.tableHeaderCell, styles.colMoney]}>Transfer</Text>
+        <Text style={[styles.tableHeaderCell, styles.colTotal]}>Total</Text>
       </View>
-
-      <View style={[styles.tableRow]}>
-        {showDate && (
-          <View style={styles.tableColDate}>
-            <Text style={styles.text}>Fecha</Text>
-          </View>
-        )}
-        <View style={styles.tableColItem}>
-          <Text style={styles.text}>Prendas</Text>
-        </View>
-        <View style={styles.tableColDevSmall}>
-          <Text style={styles.textDev}>Dev</Text>
-        </View>
-        <View style={styles.tableColTotal}>
-          <Text style={styles.text}>Efecti.</Text>
-        </View>
-        <View style={styles.tableColTotal}>
-          <Text style={styles.text}>Transf</Text>
-        </View>
-        <View style={styles.tableColTotal}>
-          <Text style={styles.text}>Venta</Text>
-        </View>
-      </View>
-
-      {/* Table Body */}
-      {data.map((row: any, index: any) => (
-        <View key={index} style={[styles.tableRow]}>
-          {showDate && (
-            <View style={styles.tableColDate}>
-              <Text style={styles.text}>{row.date}</Text>
-            </View>
-          )}
-          <View style={styles.tableColItem}>
-            <Text style={styles.text}>{row.items}</Text>
-          </View>
-          <View style={styles.tableColDevSmall}>
-            <Text style={styles.textDev}>{row.devolutionItems || 0}</Text>
-          </View>
-          <View style={styles.tableColTotal}>
-            <Text style={styles.text}>${formatCurrency(row.cash)}</Text>
-          </View>
-          <View style={styles.tableColTotal}>
-            <Text style={styles.text}>${formatCurrency(row.transfer)}</Text>
-          </View>
-          <View style={styles.tableColTotal}>
-            <Text style={styles.text}>${formatCurrency(row.total)}</Text>
-          </View>
+      {data.map((row: any, index: number) => (
+        <View key={index} style={styles.tableRow}>
+          <Text style={[styles.tableCell, styles.colDate]}>{row.date}</Text>
+          <Text style={[styles.tableCell, styles.colItems]}>{row.items || 0}</Text>
+          <Text style={[styles.tableCellDev, styles.colDev]}>{row.devolutionItems || 0}</Text>
+          <Text style={[styles.tableCell, styles.colMoney]}>${formatCurrency(row.cash || 0)}</Text>
+          <Text style={[styles.tableCell, styles.colMoney]}>${formatCurrency(row.transfer || 0)}</Text>
+          <Text style={[styles.tableCell, styles.colTotal]}>${formatCurrency(row.total || 0)}</Text>
         </View>
       ))}
-      <View style={[styles.tableRow]}>
-        {showDate && (
-          <View style={styles.tableColDate}>
-            <Text style={styles.text}></Text>
-          </View>
-        )}
-        <View style={styles.tableColItem}>
-          <Text style={styles.textResume}>
-            {data.reduce((acc: any, current: any) => acc + current.items, 0)}
-          </Text>
-        </View>
-        <View style={styles.tableColDevSmall}>
-          <Text style={styles.textResume}>
-            {data.reduce(
-              (acc: any, current: any) => acc + (current.devolutionItems || 0),
-              0
-            )}
-          </Text>
-        </View>
-        <View style={styles.tableColTotal}>
-          <Text style={styles.textResume}>
-            $
-            {formatCurrency(
-              data.reduce((acc: any, current: any) => acc + current.cash, 0)
-            )}
-          </Text>
-        </View>
-        <View style={styles.tableColTotal}>
-          <Text style={styles.textResume}>
-            $
-            {formatCurrency(
-              data.reduce((acc: any, current: any) => acc + current.transfer, 0)
-            )}
-          </Text>
-        </View>
-        <View style={styles.tableColTotal}>
-          <Text style={styles.textResume}>
-            $
-            {formatCurrency(
-              data.reduce((acc: any, current: any) => acc + current.total, 0)
-            )}
-          </Text>
-        </View>
+      <View style={styles.tableRow}>
+        <Text style={[styles.tableTotalCell, styles.colDate]}>Total</Text>
+        <Text style={[styles.tableTotalCell, styles.colItems]}>{totals.items}</Text>
+        <Text style={[styles.tableTotalCellDev, styles.colDev]}>{totals.devolutionItems}</Text>
+        <Text style={[styles.tableTotalCell, styles.colMoney]}>${formatCurrency(totals.cash)}</Text>
+        <Text style={[styles.tableTotalCell, styles.colMoney]}>${formatCurrency(totals.transfer)}</Text>
+        <Text style={[styles.tableTotalCell, styles.colTotal]}>${formatCurrency(totals.total)}</Text>
       </View>
     </View>
-  ),
+  );
+};
+
+// Tabla por empleado LOCAL
+const TableLocalByEmployee = ({ headerTitle, data, showDate }: any) => {
+  const totals = data.reduce(
+    (acc: any, row: any) => ({
+      items: acc.items + (row.items || 0),
+      devolutionItems: acc.devolutionItems + (row.devolutionItems || 0),
+      total: acc.total + (row.total || row.cash || 0),
+    }),
+    { items: 0, devolutionItems: 0, total: 0 }
+  );
+
+  return (
+    <View style={styles.employeeTable} wrap={false}>
+      <Text style={styles.employeeHeader}>{headerTitle}</Text>
+      <View style={styles.tableRow}>
+        {showDate && <Text style={[styles.tableHeaderCell, { width: 52 }]}>Fecha</Text>}
+        <Text style={[styles.tableHeaderCell, { width: 42 }]}>Prendas</Text>
+        <Text style={[styles.tableHeaderCellDev, { width: 26 }]}>Dev</Text>
+        <Text style={[styles.tableHeaderCell, { width: 65 }]}>Venta</Text>
+      </View>
+      {data.map((row: any, index: number) => (
+        <View key={index} style={styles.tableRow}>
+          {showDate && <Text style={[styles.tableCell, { width: 52 }]}>{row.date}</Text>}
+          <Text style={[styles.tableCell, { width: 42 }]}>{row.items || 0}</Text>
+          <Text style={[styles.tableCellDev, { width: 26 }]}>{row.devolutionItems || 0}</Text>
+          <Text style={[styles.tableCell, { width: 65 }]}>${formatCurrency(row.total || row.cash || 0)}</Text>
+        </View>
+      ))}
+      <View style={styles.tableRow}>
+        {showDate && <Text style={[styles.tableTotalCell, { width: 52 }]}></Text>}
+        <Text style={[styles.tableTotalCell, { width: 42 }]}>{totals.items}</Text>
+        <Text style={[styles.tableTotalCellDev, { width: 26 }]}>{totals.devolutionItems}</Text>
+        <Text style={[styles.tableTotalCell, { width: 65 }]}>${formatCurrency(totals.total)}</Text>
+      </View>
+    </View>
+  );
+};
+
+// Tabla por empleado PEDIDO
+const TablePedidoByEmployee = ({ headerTitle, data, showDate }: any) => {
+  const totals = data.reduce(
+    (acc: any, row: any) => ({
+      items: acc.items + (row.items || 0),
+      devolutionItems: acc.devolutionItems + (row.devolutionItems || 0),
+      cash: acc.cash + (row.cash || 0),
+      transfer: acc.transfer + (row.transfer || 0),
+      total: acc.total + (row.total || 0),
+    }),
+    { items: 0, devolutionItems: 0, cash: 0, transfer: 0, total: 0 }
+  );
+
+  return (
+    <View style={styles.employeeTable} wrap={false}>
+      <Text style={styles.employeeHeader}>{headerTitle}</Text>
+      <View style={styles.tableRow}>
+        {showDate && <Text style={[styles.tableHeaderCell, { width: 52 }]}>Fecha</Text>}
+        <Text style={[styles.tableHeaderCell, { width: 40 }]}>Prendas</Text>
+        <Text style={[styles.tableHeaderCellDev, { width: 24 }]}>Dev</Text>
+        <Text style={[styles.tableHeaderCell, { width: 58 }]}>Efect.</Text>
+        <Text style={[styles.tableHeaderCell, { width: 58 }]}>Transf.</Text>
+        <Text style={[styles.tableHeaderCell, { width: 62 }]}>Total</Text>
+      </View>
+      {data.map((row: any, index: number) => (
+        <View key={index} style={styles.tableRow}>
+          {showDate && <Text style={[styles.tableCell, { width: 52 }]}>{row.date}</Text>}
+          <Text style={[styles.tableCell, { width: 40 }]}>{row.items || 0}</Text>
+          <Text style={[styles.tableCellDev, { width: 24 }]}>{row.devolutionItems || 0}</Text>
+          <Text style={[styles.tableCell, { width: 58 }]}>${formatCurrency(row.cash || 0)}</Text>
+          <Text style={[styles.tableCell, { width: 58 }]}>${formatCurrency(row.transfer || 0)}</Text>
+          <Text style={[styles.tableCell, { width: 62 }]}>${formatCurrency(row.total || 0)}</Text>
+        </View>
+      ))}
+      <View style={styles.tableRow}>
+        {showDate && <Text style={[styles.tableTotalCell, { width: 52 }]}></Text>}
+        <Text style={[styles.tableTotalCell, { width: 40 }]}>{totals.items}</Text>
+        <Text style={[styles.tableTotalCellDev, { width: 24 }]}>{totals.devolutionItems}</Text>
+        <Text style={[styles.tableTotalCell, { width: 58 }]}>${formatCurrency(totals.cash)}</Text>
+        <Text style={[styles.tableTotalCell, { width: 58 }]}>${formatCurrency(totals.transfer)}</Text>
+        <Text style={[styles.tableTotalCell, { width: 62 }]}>${formatCurrency(totals.total)}</Text>
+      </View>
+    </View>
+  );
 };
 
 const TableByType: any = {
-  local: ({ data }: any) => (
-    <View style={styles.table}>
-      <View style={[styles.tableRow]}>
-        <View style={styles.tableCol}>
-          <Text style={styles.text}>Fecha</Text>
-        </View>
-        <View style={styles.tableCol}>
-          <Text style={styles.text}>Prendas</Text>
-        </View>
-        <View style={styles.tableColDev}>
-          <Text style={styles.textDev}>Dev</Text>
-        </View>
-        <View style={styles.tableCol}>
-          <Text style={styles.text}>Gastos</Text>
-        </View>
-        <View style={styles.tableCol}>
-          <Text style={styles.text}>Venta</Text>
-        </View>
-        <View style={styles.tableCol}>
-          <Text style={styles.text}>TotalCaja</Text>
-        </View>
-      </View>
-      {data.map((resume: any, index: number) => (
-        <View key={index} style={[styles.tableRow]}>
-          <View style={styles.tableCol}>
-            <Text style={styles.text}>{resume.date}</Text>
-          </View>
-          <View style={styles.tableCol}>
-            <Text style={styles.text}>{resume.items}</Text>
-          </View>
-          <View style={styles.tableColDev}>
-            <Text style={styles.textDev}>{resume.devolutionItems || 0}</Text>
-          </View>
-          <View style={styles.tableCol}>
-            <Text style={styles.text}>
-              ${formatCurrency(resume.outgoings || 0)}
-            </Text>
-          </View>
-          <View style={styles.tableCol}>
-            <Text style={styles.text}>${formatCurrency(resume.cash || 0)}</Text>
-          </View>
-          <View style={styles.tableCol}>
-            <Text style={styles.text}>
-              ${formatCurrency(resume.totalBox || 0)}
-            </Text>
-          </View>
-        </View>
-      ))}
-      <View style={[styles.tableRow]}>
-        <View style={styles.tableCol}>
-          <Text style={styles.textResume}></Text>
-        </View>
-        <View style={styles.tableCol}>
-          <Text style={styles.textResume}>
-            {data.reduce(
-              (acc: any, current: any) => acc + current.items || 0,
-              0
-            )}
-          </Text>
-        </View>
-        <View style={styles.tableColDev}>
-          <Text style={styles.textResume}>
-            {data.reduce(
-              (acc: any, current: any) => acc + (current.devolutionItems || 0),
-              0
-            )}
-          </Text>
-        </View>
-        <View style={styles.tableCol}>
-          <Text style={styles.textResume}>
-            $
-            {formatCurrency(
-              data.reduce(
-                (acc: any, current: any) => acc + current.outgoings || 0,
-                0
-              )
-            )}
-          </Text>
-        </View>
-        <View style={styles.tableCol}>
-          <Text style={styles.textResume}>
-            $
-            {formatCurrency(
-              data.reduce(
-                (acc: any, current: any) => acc + current.cash || 0,
-                0
-              )
-            )}
-          </Text>
-        </View>
-        <View style={styles.tableCol}>
-          <Text style={styles.textResume}>
-            $
-            {formatCurrency(
-              data.reduce(
-                (acc: any, current: any) => acc + current.totalBox || 0,
-                0
-              )
-            )}
-          </Text>
-        </View>
-      </View>
-    </View>
-  ),
-  pedido: ({ data }: any) => (
-    <View style={styles.table}>
-      <View style={[styles.tableRow]}>
-        <View style={styles.tableCol}>
-          <Text style={styles.text}>Fecha</Text>
-        </View>
-        <View style={styles.tableCol}>
-          <Text style={styles.text}>Prendas</Text>
-        </View>
-        <View style={styles.tableCol}>
-          <Text style={styles.text}>Efectivo</Text>
-        </View>
-        <View style={styles.tableCol}>
-          <Text style={styles.text}>Transfer</Text>
-        </View>
-        <View style={styles.tableCol}>
-          <Text style={styles.text}>Total</Text>
-        </View>
-      </View>
-      {data.map((resume: any, index: number) => (
-        <View key={index} style={[styles.tableRow]}>
-          <View style={styles.tableCol}>
-            <Text style={styles.text}>{resume.date}</Text>
-          </View>
-          <View style={styles.tableCol}>
-            <Text style={styles.text}>{resume.items}</Text>
-          </View>
-          <View style={styles.tableCol}>
-            <Text style={styles.text}>${formatCurrency(resume.cash || 0)}</Text>
-          </View>
-          <View style={styles.tableCol}>
-            <Text style={styles.text}>
-              ${formatCurrency(resume.transfer || 0)}
-            </Text>
-          </View>
-          <View style={styles.tableCol}>
-            <Text style={styles.text}>
-              ${formatCurrency(resume.total || 0)}
-            </Text>
-          </View>
-        </View>
-      ))}
+  local: TableLocalGeneral,
+  pedido: TablePedidoGeneral,
+};
 
-      <View style={[styles.tableRow]}>
-        <View style={styles.tableCol}>
-          <Text style={styles.textResume}></Text>
-        </View>
-        <View style={styles.tableCol}>
-          <Text style={styles.textResume}>
-            {" "}
-            {data.reduce(
-              (acc: any, current: any) => acc + current.items || 0,
-              0
-            )}
-          </Text>
-        </View>
-        <View style={styles.tableCol}>
-          <Text style={styles.textResume}>
-            $
-            {formatCurrency(
-              data.reduce(
-                (acc: any, current: any) => acc + current.cash || 0,
-                0
-              )
-            )}
-          </Text>
-        </View>
-        <View style={styles.tableCol}>
-          <Text style={styles.textResume}>
-            $
-            {formatCurrency(
-              data.reduce(
-                (acc: any, current: any) => acc + current.transfer || 0,
-                0
-              )
-            )}
-          </Text>
-        </View>
-        <View style={styles.tableCol}>
-          <Text style={styles.textResume}>
-            $
-            {formatCurrency(
-              data.reduce(
-                (acc: any, current: any) => acc + current.total || 0,
-                0
-              )
-            )}
-          </Text>
-        </View>
-      </View>
-    </View>
-  ),
+const TableByEmployeeByType: any = {
+  local: TableLocalByEmployee,
+  pedido: TablePedidoByEmployee,
 };
 
 const PdfReportByWeek = ({
@@ -541,31 +336,39 @@ const PdfReportByWeek = ({
   salesByEmployees,
 }: any) => {
   const GeneralTable = TableByType[type];
+  const EmployeeTable = TableByEmployeeByType[type];
+  const typeLabel = type === "local" ? "Venta Local" : "Pedidos";
 
   return (
     <Document>
       <Page size="A4" orientation="landscape" style={styles.page}>
-        <View style={styles.title}>
-          <Text>
-            Semana: {week} Sucursal: {store} - {type}
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>
+            Reporte Semana {week} - {store}
+          </Text>
+          <Text style={styles.headerSubtitle}>
+            Tipo: {typeLabel}
           </Text>
         </View>
-        <GeneralTable data={dataWeek} />
-        <View style={styles.row}>
-          {Object.entries(salesByEmployees).map(
-            (saleByEmployee: any, idx: number) => {
-              const GeneralTableByEmployee = TableByEmployeeByType[type];
-              const [_, sale] = saleByEmployee;
-              return (
-                <GeneralTableByEmployee
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Resumen General</Text>
+          <GeneralTable data={dataWeek} />
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Detalle por Empleado</Text>
+          <View style={styles.employeesContainer}>
+            {salesByEmployees &&
+              salesByEmployees.map((saleByEmployee: any, idx: number) => (
+                <EmployeeTable
                   key={idx}
-                  headerTitle={sale.employee}
-                  data={sale.sales}
+                  headerTitle={saleByEmployee.employee}
+                  data={saleByEmployee.sales}
                   showDate={idx === 0}
                 />
-              );
-            }
-          )}
+              ))}
+          </View>
         </View>
       </Page>
     </Document>

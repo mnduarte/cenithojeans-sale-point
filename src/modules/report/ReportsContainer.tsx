@@ -821,9 +821,16 @@ const ReportGeneral = () => {
     },
   ];
 
+  // Columnas para pedidos - AHORA CON DEVOLUCIONES
   const columnsPedidoSalesByDay = [
     { title: "Fecha", dataIndex: "date" },
     { title: "Prendas", dataIndex: "items", sumAcc: true },
+    {
+      title: "Dev",
+      dataIndex: "devolutionItems",
+      sumAcc: true,
+      color: "#dc2626",
+    },
     {
       title: "Efectivo",
       dataIndex: "cash",

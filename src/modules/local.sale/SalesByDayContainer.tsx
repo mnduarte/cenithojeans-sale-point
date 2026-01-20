@@ -74,7 +74,10 @@ const ModalCashBreakdown = ({
       (t: any) => t.id === sale.id
     );
     const isMixedPayment =
-      sale.cash > 0 && matchingTransfer && matchingTransfer.transfer > 0;
+      sale.cash > 0 &&
+      matchingTransfer &&
+      matchingTransfer.transfer > 0 &&
+      (sale.baseCash > 0 || matchingTransfer.baseTransfer > 0);
 
     if (isMixedPayment) {
       // Pago mixto: sumar bruto total (jeans contiene todo en mixto)
@@ -258,7 +261,10 @@ const ModalTransferBreakdown = ({
   allTransferSales.forEach((sale: any) => {
     const matchingCash = allCashSales.find((c: any) => c.id === sale.id);
     const isMixedPayment =
-      sale.transfer > 0 && matchingCash && matchingCash.cash > 0;
+      sale.transfer > 0 &&
+      matchingCash &&
+      matchingCash.cash > 0 &&
+      (sale.baseTransfer > 0 || matchingCash.baseCash > 0);
 
     if (isMixedPayment) {
       hasMixedPayments = true;
@@ -427,12 +433,26 @@ const ModalItemsBreakdown = ({ isOpen, setIsOpen, salesData }: any) => {
 
   const totals = allSales.reduce(
     (acc: any, sale: any) => {
+      // Normalizar: si no hay desglose J/R, asignar items a jeans
+      const hasBreakdown =
+        (sale.itemsJeans || 0) + (sale.itemsRemeras || 0) > 0;
+      const jeans = hasBreakdown ? sale.itemsJeans || 0 : sale.items || 0;
+      const remeras = hasBreakdown ? sale.itemsRemeras || 0 : 0;
+
+      // Lo mismo para devoluciones
+      const hasDevBreakdown =
+        (sale.itemsDevolutionJeans || 0) + (sale.itemsDevolutionRemeras || 0) >
+        0;
+      const devJeans = hasDevBreakdown
+        ? sale.itemsDevolutionJeans || 0
+        : sale.devolutionItems || 0;
+      const devRemeras = hasDevBreakdown ? sale.itemsDevolutionRemeras || 0 : 0;
+
       return {
-        itemsJeans: acc.itemsJeans + (sale.itemsJeans || 0),
-        itemsRemeras: acc.itemsRemeras + (sale.itemsRemeras || 0),
-        devolutionJeans: acc.devolutionJeans + (sale.itemsDevolutionJeans || 0),
-        devolutionRemeras:
-          acc.devolutionRemeras + (sale.itemsDevolutionRemeras || 0),
+        itemsJeans: acc.itemsJeans + jeans,
+        itemsRemeras: acc.itemsRemeras + remeras,
+        devolutionJeans: acc.devolutionJeans + devJeans,
+        devolutionRemeras: acc.devolutionRemeras + devRemeras,
       };
     },
     {
@@ -1450,6 +1470,8 @@ const ModalListTranferSale = ({
                   Eliminar Items Seleccionados
                 </div>
               )}
+
+              Registros: {salesFiltered.length}
             </div>
 
             <div className="mt-2 h-[55vh] mx-auto max-w overflow-hidden overflow-y-auto overflow-x-auto">
