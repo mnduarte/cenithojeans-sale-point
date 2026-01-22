@@ -144,6 +144,20 @@ const ListOfPricesContainer = ({
     };
   };
 
+  // Ordenar precios: primero Jeans, luego Remeras (ambos de menor a mayor)
+const sortedPrices = [...prices].sort((a: any, b: any) => {
+  const typeA = a.type || "jeans";
+  const typeB = b.type || "jeans";
+  
+  // Primero ordenar por tipo (jeans antes que remera)
+  if (typeA !== typeB) {
+    return typeA === "jeans" ? -1 : 1;
+  }
+  
+  // Dentro del mismo tipo, ordenar por precio de menor a mayor
+  return a.price - b.price;
+});
+
   return (
     <>
       <div className={`p-2 border ${themeStyles[theme].tailwindcss.border}`}>
@@ -256,7 +270,7 @@ const ListOfPricesContainer = ({
                   <span>{cashier.name}</span>
                   {isAdmin && cashier.store && (
                     <span style={{ opacity: 0.6, fontSize: 11, marginLeft: 4 }}>
-                      ({cashier.store})
+                      ({cashier.isAdmin ? "Admin" : cashier.store})
                     </span>
                   )}
                 </div>
@@ -274,7 +288,7 @@ const ListOfPricesContainer = ({
           </div>
         ) : (
           <div className="h-auto flex flex-wrap gap-2">
-            {prices.map((item: any) => {
+            {sortedPrices.map((item: any) => {
               const typeIndicator = getTypeIndicator(item.type);
 
               return (

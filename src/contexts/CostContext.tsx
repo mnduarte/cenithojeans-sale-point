@@ -372,6 +372,7 @@ export const costActions = {
       lastEditCashierName,
       checkoutCashierId,
       checkoutCashierName,
+      editedField,
     }: any) =>
     async (dispatch: any) => {
       dispatch({
@@ -396,6 +397,7 @@ export const costActions = {
           lastEditCashierName,
           checkoutCashierId,
           checkoutCashierName,
+          editedField,
         });
 
         const formattedPayload = {

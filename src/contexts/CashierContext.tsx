@@ -48,6 +48,7 @@ interface CashierContextType extends CashierState {
   removeCashier: (id: string) => Promise<void>;
   getCashierById: (id: string) => any | undefined;
   getCashiersForStore: (store: string) => any;
+  getCashiersForRole: (store: string, isAdmin: boolean) => any[];
 }
 
 // Initial state
@@ -218,7 +219,7 @@ export const CashierProvider: React.FC<CashierProviderProps> = ({
   // Obtener cajero por ID
   const getCashierById = useCallback(
     (id: string) => {
-      return state.cashiers.find((c:any) => c.id === id);
+      return state.cashiers.find((c: any) => c.id === id);
     },
     [state.cashiers]
   );
@@ -227,7 +228,26 @@ export const CashierProvider: React.FC<CashierProviderProps> = ({
   const getCashiersForStore = useCallback(
     (store: string) => {
       if (store === "ALL") return state.cashiers;
-      return state.cashiers.filter((c:any) => c.store === store);
+      return state.cashiers.filter((c: any) => c.store === store && !c.isAdmin);
+    },
+    [state.cashiers]
+  );
+
+  const getCashiersForRole = useCallback(
+    (store: string, isAdmin: boolean) => {
+      let filtered = state.cashiers;
+
+      // Filtrar por store
+      if (store !== "ALL") {
+        filtered = filtered.filter((c: any) => c.store === store);
+      }
+
+      // Si NO es admin, excluir cajeros marcados como isAdmin
+      if (!isAdmin) {
+        filtered = filtered.filter((c: any) => !c.isAdmin);
+      }
+
+      return filtered;
     },
     [state.cashiers]
   );
@@ -242,6 +262,7 @@ export const CashierProvider: React.FC<CashierProviderProps> = ({
     removeCashier,
     getCashierById,
     getCashiersForStore,
+    getCashiersForRole,
   };
 
   return (

@@ -586,6 +586,7 @@ const updateCost = ({
   lastEditCashierName,
   checkoutCashierId,
   checkoutCashierName,
+  editedField,
 }: any) =>
   instance.put("/cost/update-cost", {
     id,
@@ -603,7 +604,9 @@ const updateCost = ({
     lastEditCashierName,
     checkoutCashierId,
     checkoutCashierName,
+    editedField,
   });
+
 
 const updateColorCost = ({
   costsIds,
@@ -651,6 +654,7 @@ export interface Cashier {
   color: string;
   position: number;
   active?: boolean;
+  isAdmin?: boolean;
 }
 
 export interface CashierResponse {
@@ -677,6 +681,7 @@ const createCashier = async (cashier: {
   store: string;
   color: string;
   position: number;
+  isAdmin?: boolean;
 }): Promise<Cashier[]> => {
   const response = await instance.post<CashierResponse>(
     `/cashier/add`,
@@ -693,6 +698,7 @@ const updateCashier = async (cashier: {
   color: string;
   position: number;
   active?: boolean;
+  isAdmin?: boolean;
 }): Promise<Cashier[]> => {
   const response = await instance.put<CashierResponse>(
     `/cashier/update`,

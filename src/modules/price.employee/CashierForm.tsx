@@ -39,6 +39,7 @@ const CashierForm = ({
     store: "",
     color: "",
     position: totalPositions,
+    isAdmin: false,  // <-- AGREGAR
   };
 
   const [isNewCashier, setIsNewCashier] = useState(true);
@@ -55,7 +56,10 @@ const CashierForm = ({
 
   useEffect(() => {
     if (itemSelected?.id) {
-      setCashierValues(itemSelected);
+      setCashierValues({
+        ...itemSelected,
+        isAdmin: itemSelected.isAdmin || false,  // <-- Asegurar que tenga valor
+      });
       setIsNewCashier(false);
     }
   }, [itemSelected]);
@@ -172,6 +176,27 @@ const CashierForm = ({
           className={`p-1 rounded-md w-full ${themeStyles[theme].tailwindcss.inputText}`}
         />
       </div>
+
+      {/* ==================== CHECKBOX ADMIN ==================== */}
+      <div className="mb-4">
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={cashierValues.isAdmin}
+            onChange={(e) =>
+              setCashierValues({ ...cashierValues, isAdmin: e.target.checked })
+            }
+            className="w-5 h-5 rounded"
+          />
+          <span>Solo visible para Admin</span>
+        </label>
+        {cashierValues.isAdmin && (
+          <p className="text-xs text-yellow-400 mt-1">
+            ⚠️ Este cajero solo aparecerá en selectores para usuarios con rol Admin
+          </p>
+        )}
+      </div>
+      {/* ==================== FIN CHECKBOX ADMIN ==================== */}
 
       <div className="flex justify-between items-center mt-4">
         {isNewCashier ? (

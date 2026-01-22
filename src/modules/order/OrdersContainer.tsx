@@ -180,7 +180,7 @@ const OrdersContainer = () => {
   const {
     state: { user },
   } = useUser();
-  const { cashiers, fetchAllCashiers } = useCashier();
+  const { cashiers, fetchAllCashiers, getCashiersForStore } = useCashier();
   const [cashierFilter, setCashierFilter] = useState<string>("none");
 
   const getStoredCashier = () => {
@@ -245,8 +245,8 @@ const OrdersContainer = () => {
       title: "Fecha",
       dataIndex: "date",
       render: (row: any) => {
-        const displayCashierId = row.lastEditCashierId || row.cashierId;
-        const displayCashierName = row.lastEditCashierName || row.cashierName;
+        const displayCashierId = row.cashierId;
+        const displayCashierName = row.cashierName;
         const cashier = displayCashierId
           ? cashiers.find((c: any) => (c.id || c._id) === displayCashierId)
           : null;
@@ -471,9 +471,14 @@ const OrdersContainer = () => {
     );
   };
 
+  const isAdmin = user?.role === "ADMIN";
+  const userStore = user?.store || "ALL";
+
   useEffect(() => {
     fetchAllCashiers();
   }, []);
+
+  const filteredCashiers = isAdmin ? cashiers : getCashiersForStore(userStore);
 
   useEffect(() => {
     setOrdersFiltered(orders);
@@ -673,8 +678,7 @@ const OrdersContainer = () => {
 
         <div
           className={`px-4 py-1 rounded-md border text-white select-none ${
-            Boolean(filters.startDate.length) &&
-            Boolean(filters.endDate.length)
+            Boolean(filters.startDate.length) && Boolean(filters.endDate.length)
               ? "bg-[#1b78e2] border-[#1b78e2] hover:cursor-pointer hover:opacity-80 transition-opacity"
               : ""
           } flex items-center`}
@@ -860,7 +864,7 @@ const OrdersContainer = () => {
             className={themeStyles[theme].classNameSelector}
             dropdownStyle={themeStyles[theme].dropdownStylesCustom}
             popupClassName={themeStyles[theme].classNameSelectorItem}
-            style={{ width: 120 }}
+            style={{ width: 200 }}
             onChange={(value: string) => setCashierFilter(value)}
             optionLabelProp="label"
           >
@@ -870,7 +874,7 @@ const OrdersContainer = () => {
             <Select.Option value="all" label="Todos">
               Todos
             </Select.Option>
-            {cashiers.map((c: any) => (
+            {filteredCashiers.map((c: any) => (
               <Select.Option
                 key={c.id || c._id}
                 value={String(c.id || c._id)}
@@ -880,8 +884,8 @@ const OrdersContainer = () => {
                   >
                     <span
                       style={{
-                        width: 10,
-                        height: 10,
+                        width: 12,
+                        height: 12,
                         borderRadius: "50%",
                         backgroundColor: c.color,
                         display: "inline-block",
@@ -894,14 +898,19 @@ const OrdersContainer = () => {
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <span
                     style={{
-                      width: 12,
-                      height: 12,
+                      width: 14,
+                      height: 14,
                       borderRadius: "50%",
                       backgroundColor: c.color,
                       display: "inline-block",
                     }}
                   />
                   {c.name}
+                  {isAdmin && c.store && (
+                    <span style={{ opacity: 0.6, fontSize: 11, marginLeft: 4 }}>
+                      ({c.isAdmin ? "Admin" : c.store})
+                    </span>
+                  )}
                 </div>
               </Select.Option>
             ))}
@@ -1035,11 +1044,25 @@ const OrdersContainer = () => {
           getCellStyle={(row: any, column: any) => {
             if (cashierFilter === "none") return {};
 
-            // Determinar qué cajero usar según la columna
-            const isCheckoutColumn = column.dataIndex === "checkoutDate";
-            const cellCashierId = isCheckoutColumn
-              ? row.checkoutCashierId
-              : (row.lastEditCashierId || row.cashierId);
+            // Mapeo de dataIndex a campo de cajero específico
+            const cashierFieldMap: Record<string, string> = {
+              employee: "employeeCashierId",
+              order: "orderCashierId",
+              typeShipment: "typeShipmentCashierId",
+              transfer: "transferCashierId",
+              cash: "cashFieldCashierId",
+              items: "itemsCashierId",
+              total: "totalCashierId",
+              checkoutDate: "checkoutCashierId",
+            };
+
+            // Obtener el campo de cajero según la columna
+            const cashierField = cashierFieldMap[column.dataIndex];
+            
+            // Usar cajero específico si existe, sino usar el cajero original
+            const cellCashierId = cashierField && row[cashierField] 
+              ? row[cashierField] 
+              : row.cashierId;
 
             if (!cellCashierId) return {};
 
@@ -1070,6 +1093,7 @@ const OrdersContainer = () => {
             }
             return {};
           }}
+
         />
         {Boolean(showToastDetail) && Boolean(selectedOrderCancelled) && (
           <div

@@ -398,6 +398,15 @@ const CashiersContainer = () => {
         </div>
       ),
     },
+    {
+      title: "Admin",
+      dataIndex: "isAdmin",
+      format: (value: boolean) => (
+        <span className={value ? "text-yellow-400 font-bold" : "text-gray-500"}>
+          {value ? "Sí" : "No"}
+        </span>
+      ),
+    },
   ];
 
   return (

@@ -34,76 +34,57 @@ const mappingConceptToUpdate: Record<string, string> = {
   cash: "Efectivo",
   transfer: "Transferencia",
   items: "Prendas",
+  itemsJeans: "Prendas Jeans",
+  itemsRemeras: "Prendas Remeras",
   total: "Total",
 };
 
 // ==================== MODAL DESGLOSE CASH ====================
-const ModalCashBreakdown = ({
-  isOpen,
-  setIsOpen,
-  salesData,
-  salesTransferData,
-}: any) => {
+const ModalCashBreakdown = ({ isOpen, setIsOpen, salesData }: any) => {
   const {
     state: { theme, themeStyles },
   } = useTheme();
 
-  // Combinar ventas de cash y transfer para detectar pago mixto
   const allCashSales = Object.values(salesData).flat() as any[];
-  const allTransferSales = salesTransferData as any[];
 
-  // Detectar si hay pagos mixtos (ventas que tienen tanto cash como transfer)
-  const hasMixedPayments = allCashSales.some((sale: any) => {
-    const matchingTransfer = allTransferSales.find(
-      (t: any) => t.id === sale.id
-    );
-    return sale.cash > 0 && matchingTransfer && matchingTransfer.transfer > 0;
-  });
+  // Calcular Total Neto IGUAL que el tag
+  const totalNeto = allCashSales.reduce(
+    (acc: number, sale: any) => acc + (sale.cash > 0 ? sale.cash : 0),
+    0
+  );
 
-  // Calcular totales
+  // Calcular desglose (informativo)
   let brutoJeans = 0;
   let brutoRemeras = 0;
   let devolutionJeans = 0;
   let devolutionRemeras = 0;
   let surcharges = 0;
   let discounts = 0;
-  let totalTransferPaid = 0; // Para pago mixto
 
   allCashSales.forEach((sale: any) => {
-    const matchingTransfer = allTransferSales.find(
-      (t: any) => t.id === sale.id
-    );
-    const isMixedPayment =
-      sale.cash > 0 &&
-      matchingTransfer &&
-      matchingTransfer.transfer > 0 &&
-      (sale.baseCash > 0 || matchingTransfer.baseTransfer > 0);
+    if ((sale.cash || 0) > 0) {
+      // Ventas brutas
+      const hasBreakdown =
+        (sale.subTotalCashJeans || 0) + (sale.subTotalCashRemeras || 0) > 0;
+      if (hasBreakdown) {
+        brutoJeans += sale.subTotalCashJeans || 0;
+        brutoRemeras += sale.subTotalCashRemeras || 0;
+      } else {
+        brutoJeans += sale.cash || 0;
+      }
 
-    if (isMixedPayment) {
-      // Pago mixto: sumar bruto total (jeans contiene todo en mixto)
-      brutoJeans += sale.subTotalCashJeans || 0;
       // Devoluciones
       devolutionJeans += sale.subTotalDevolutionCashJeans || 0;
       devolutionRemeras += sale.subTotalDevolutionCashRemeras || 0;
-      // Lo pagado en transfer se resta (usar monto BASE sin recargo)
-      totalTransferPaid +=
-        matchingTransfer.baseTransfer || matchingTransfer.transfer || 0;
-    } else if (sale.cash > 0) {
-      // Pago solo cash
-      brutoJeans += sale.subTotalCashJeans || 0;
-      brutoRemeras += sale.subTotalCashRemeras || 0;
-      devolutionJeans += sale.subTotalDevolutionCashJeans || 0;
-      devolutionRemeras += sale.subTotalDevolutionCashRemeras || 0;
-    }
 
-    surcharges += sale.amountOfSurchargesCash || 0;
-    discounts += sale.amountOfDiscountCash || 0;
+      // Ajustes
+      surcharges += sale.amountOfSurchargesCash || 0;
+      discounts += sale.amountOfDiscountCash || 0;
+    }
   });
 
   const totalBruto = brutoJeans + brutoRemeras;
   const totalDevolutions = devolutionJeans + devolutionRemeras;
-  const totalNeto =
-    totalBruto + surcharges - discounts - totalDevolutions - totalTransferPaid;
 
   if (!isOpen) return null;
 
@@ -128,22 +109,22 @@ const ModalCashBreakdown = ({
         <div className="space-y-3">
           {/* Ventas por tipo */}
           <div className="p-3 rounded-lg bg-gray-800/40 border border-gray-700/50">
-            <label className="block text-xs text-gray-400 mb-2">Ventas</label>
+            <label className="block text-xs text-gray-400 mb-2">
+              Ventas (Bruto)
+            </label>
             <div className="space-y-2">
-              <>
-                <div className="flex justify-between">
-                  <span className="text-blue-400">Jeans (Bruto Total):</span>
-                  <span className="font-medium">
-                    ${formatCurrency(brutoJeans)}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-green-400">Remeras:</span>
-                  <span className="font-medium">
-                    ${formatCurrency(brutoRemeras)}
-                  </span>
-                </div>
-              </>
+              <div className="flex justify-between">
+                <span className="text-blue-400">Jeans:</span>
+                <span className="font-medium">
+                  ${formatCurrency(brutoJeans)}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-green-400">Remeras:</span>
+                <span className="font-medium">
+                  ${formatCurrency(brutoRemeras)}
+                </span>
+              </div>
               <div className="flex justify-between border-t border-gray-700 pt-2">
                 <span className="text-gray-300">Subtotal Bruto:</span>
                 <span className="font-bold">${formatCurrency(totalBruto)}</span>
@@ -152,72 +133,66 @@ const ModalCashBreakdown = ({
           </div>
 
           {/* Recargos/Descuentos */}
-          <div className="p-3 rounded-lg bg-gray-800/40 border border-gray-700/50">
-            <label className="block text-xs text-gray-400 mb-2">Ajustes</label>
-            <div className="space-y-2">
-              {surcharges > 0 && (
-                <div className="flex justify-between">
-                  <span className="text-yellow-400">+ Recargos:</span>
-                  <span className="font-medium text-yellow-400">
-                    +${formatCurrency(surcharges)}
-                  </span>
-                </div>
-              )}
-              {discounts > 0 && (
-                <div className="flex justify-between">
-                  <span className="text-orange-400">- Descuentos:</span>
-                  <span className="font-medium text-orange-400">
-                    -${formatCurrency(discounts)}
-                  </span>
-                </div>
-              )}
-              {surcharges === 0 && discounts === 0 && (
-                <div className="text-gray-500 text-sm">Sin ajustes</div>
-              )}
-            </div>
-          </div>
-
-          {/* Devoluciones */}
-          <div className="p-3 rounded-lg bg-red-900/20 border border-red-800/30">
-            <label className="block text-xs text-red-400 mb-2">
-              Devoluciones
-            </label>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-blue-400">Jeans:</span>
-                <span className="font-medium text-red-400">
-                  -${formatCurrency(devolutionJeans)}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-green-400">Remeras:</span>
-                <span className="font-medium text-red-400">
-                  -${formatCurrency(devolutionRemeras)}
-                </span>
-              </div>
-              <div className="flex justify-between border-t border-red-800/30 pt-2">
-                <span className="text-red-300">Total Devoluciones:</span>
-                <span className="font-bold text-red-400">
-                  -${formatCurrency(totalDevolutions)}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Transferencia (solo en pago mixto) */}
-          {totalTransferPaid > 0 && (
-            <div className="p-3 rounded-lg bg-cyan-900/20 border border-cyan-800/30">
-              <label className="block text-xs text-cyan-400 mb-2">
-                Pago Mixto
+          {(surcharges > 0 || discounts > 0) && (
+            <div className="p-3 rounded-lg bg-gray-800/40 border border-gray-700/50">
+              <label className="block text-xs text-gray-400 mb-2">
+                Ajustes
               </label>
-              <div className="flex justify-between">
-                <span className="text-cyan-400">Transferencia:</span>
-                <span className="font-medium text-cyan-400">
-                  -${formatCurrency(totalTransferPaid)}
-                </span>
+              <div className="space-y-2">
+                {surcharges > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-yellow-400">+ Recargos:</span>
+                    <span className="font-medium text-yellow-400">
+                      +${formatCurrency(surcharges)}
+                    </span>
+                  </div>
+                )}
+                {discounts > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-orange-400">- Descuentos:</span>
+                    <span className="font-medium text-orange-400">
+                      -${formatCurrency(discounts)}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           )}
+
+          {/* Devoluciones */}
+          {totalDevolutions > 0 && (
+            <div className="p-3 rounded-lg bg-red-900/20 border border-red-800/30">
+              <label className="block text-xs text-red-400 mb-2">
+                Devoluciones
+              </label>
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-blue-400">Jeans:</span>
+                  <span className="font-medium text-red-400">
+                    -${formatCurrency(devolutionJeans)}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-green-400">Remeras:</span>
+                  <span className="font-medium text-red-400">
+                    -${formatCurrency(devolutionRemeras)}
+                  </span>
+                </div>
+                <div className="flex justify-between border-t border-red-800/30 pt-2">
+                  <span className="text-red-300">Total Devoluciones:</span>
+                  <span className="font-bold text-red-400">
+                    -${formatCurrency(totalDevolutions)}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Nota aclaratoria */}
+          <div className="text-xs text-gray-500 italic px-1">
+            * Los subtotales brutos pueden diferir del neto por descuentos,
+            recargos y pagos mixtos.
+          </div>
 
           {/* Total Neto */}
           <div className="p-3 rounded-lg bg-blue-900/30 border border-blue-700/50">
@@ -238,59 +213,54 @@ const ModalCashBreakdown = ({
 const ModalTransferBreakdown = ({
   isOpen,
   setIsOpen,
-  salesData,
   salesTransferData,
 }: any) => {
   const {
     state: { theme, themeStyles },
   } = useTheme();
 
-  const allCashSales = Object.values(salesData).flat() as any[];
   const allTransferSales = salesTransferData as any[];
 
-  // Calcular totales
+  // Calcular Total Neto IGUAL que el tag
+  const totalNeto = allTransferSales.reduce(
+    (acc: number, sale: any) => acc + (sale.transfer || 0),
+    0
+  );
+
+  // Calcular desglose (informativo)
   let brutoJeans = 0;
   let brutoRemeras = 0;
   let devolutionJeans = 0;
   let devolutionRemeras = 0;
   let surcharges = 0;
   let discounts = 0;
-  let totalCashPaid = 0; // Para pago mixto
-  let hasMixedPayments = false;
 
   allTransferSales.forEach((sale: any) => {
-    const matchingCash = allCashSales.find((c: any) => c.id === sale.id);
-    const isMixedPayment =
-      sale.transfer > 0 &&
-      matchingCash &&
-      matchingCash.cash > 0 &&
-      (sale.baseTransfer > 0 || matchingCash.baseCash > 0);
+    if ((sale.transfer || 0) > 0) {
+      // Ventas brutas
+      const hasBreakdown =
+        (sale.subTotalTransferJeans || 0) +
+          (sale.subTotalTransferRemeras || 0) >
+        0;
+      if (hasBreakdown) {
+        brutoJeans += sale.subTotalTransferJeans || 0;
+        brutoRemeras += sale.subTotalTransferRemeras || 0;
+      } else {
+        brutoJeans += sale.transfer || 0;
+      }
 
-    if (isMixedPayment) {
-      hasMixedPayments = true;
-      // Pago mixto: sumar bruto total
-      brutoJeans += sale.subTotalTransferJeans || 0;
       // Devoluciones
       devolutionJeans += sale.subTotalDevolutionTransferJeans || 0;
       devolutionRemeras += sale.subTotalDevolutionTransferRemeras || 0;
-      // Lo pagado en cash se resta (usar monto BASE sin descuento)
-      totalCashPaid += matchingCash.baseCash || matchingCash.cash || 0;
-    } else if (sale.transfer > 0) {
-      // Pago solo transfer
-      brutoJeans += sale.subTotalTransferJeans || 0;
-      brutoRemeras += sale.subTotalTransferRemeras || 0;
-      devolutionJeans += sale.subTotalDevolutionTransferJeans || 0;
-      devolutionRemeras += sale.subTotalDevolutionTransferRemeras || 0;
-    }
 
-    surcharges += sale.amountOfSurchargesTransfer || 0;
-    discounts += sale.amountOfDiscountTransfer || 0;
+      // Ajustes
+      surcharges += sale.amountOfSurchargesTransfer || 0;
+      discounts += sale.amountOfDiscountTransfer || 0;
+    }
   });
 
   const totalBruto = brutoJeans + brutoRemeras;
   const totalDevolutions = devolutionJeans + devolutionRemeras;
-  const totalNeto =
-    totalBruto + surcharges - discounts - totalDevolutions - totalCashPaid;
 
   if (!isOpen) return null;
 
@@ -317,22 +287,22 @@ const ModalTransferBreakdown = ({
         <div className="space-y-3">
           {/* Ventas por tipo */}
           <div className="p-3 rounded-lg bg-gray-800/40 border border-gray-700/50">
-            <label className="block text-xs text-gray-400 mb-2">Ventas</label>
+            <label className="block text-xs text-gray-400 mb-2">
+              Ventas (Bruto)
+            </label>
             <div className="space-y-2">
-              <>
-                <div className="flex justify-between">
-                  <span className="text-blue-400">Jeans:</span>
-                  <span className="font-medium">
-                    ${formatCurrency(brutoJeans)}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-green-400">Remeras:</span>
-                  <span className="font-medium">
-                    ${formatCurrency(brutoRemeras)}
-                  </span>
-                </div>
-              </>
+              <div className="flex justify-between">
+                <span className="text-blue-400">Jeans:</span>
+                <span className="font-medium">
+                  ${formatCurrency(brutoJeans)}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-green-400">Remeras:</span>
+                <span className="font-medium">
+                  ${formatCurrency(brutoRemeras)}
+                </span>
+              </div>
               <div className="flex justify-between border-t border-gray-700 pt-2">
                 <span className="text-gray-300">Subtotal Bruto:</span>
                 <span className="font-bold">${formatCurrency(totalBruto)}</span>
@@ -341,72 +311,66 @@ const ModalTransferBreakdown = ({
           </div>
 
           {/* Recargos/Descuentos */}
-          <div className="p-3 rounded-lg bg-gray-800/40 border border-gray-700/50">
-            <label className="block text-xs text-gray-400 mb-2">Ajustes</label>
-            <div className="space-y-2">
-              {surcharges > 0 && (
-                <div className="flex justify-between">
-                  <span className="text-yellow-400">+ Recargos:</span>
-                  <span className="font-medium text-yellow-400">
-                    +${formatCurrency(surcharges)}
-                  </span>
-                </div>
-              )}
-              {discounts > 0 && (
-                <div className="flex justify-between">
-                  <span className="text-orange-400">- Descuentos:</span>
-                  <span className="font-medium text-orange-400">
-                    -${formatCurrency(discounts)}
-                  </span>
-                </div>
-              )}
-              {surcharges === 0 && discounts === 0 && (
-                <div className="text-gray-500 text-sm">Sin ajustes</div>
-              )}
-            </div>
-          </div>
-
-          {/* Devoluciones */}
-          <div className="p-3 rounded-lg bg-red-900/20 border border-red-800/30">
-            <label className="block text-xs text-red-400 mb-2">
-              Devoluciones
-            </label>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-blue-400">Jeans:</span>
-                <span className="font-medium text-red-400">
-                  -${formatCurrency(devolutionJeans)}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-green-400">Remeras:</span>
-                <span className="font-medium text-red-400">
-                  -${formatCurrency(devolutionRemeras)}
-                </span>
-              </div>
-              <div className="flex justify-between border-t border-red-800/30 pt-2">
-                <span className="text-red-300">Total Devoluciones:</span>
-                <span className="font-bold text-red-400">
-                  -${formatCurrency(totalDevolutions)}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Cash (solo en pago mixto) */}
-          {totalCashPaid > 0 && (
-            <div className="p-3 rounded-lg bg-green-900/20 border border-green-800/30">
-              <label className="block text-xs text-green-400 mb-2">
-                Pago Mixto
+          {(surcharges > 0 || discounts > 0) && (
+            <div className="p-3 rounded-lg bg-gray-800/40 border border-gray-700/50">
+              <label className="block text-xs text-gray-400 mb-2">
+                Ajustes
               </label>
-              <div className="flex justify-between">
-                <span className="text-green-400">Efectivo:</span>
-                <span className="font-medium text-green-400">
-                  -${formatCurrency(totalCashPaid)}
-                </span>
+              <div className="space-y-2">
+                {surcharges > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-yellow-400">+ Recargos:</span>
+                    <span className="font-medium text-yellow-400">
+                      +${formatCurrency(surcharges)}
+                    </span>
+                  </div>
+                )}
+                {discounts > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-orange-400">- Descuentos:</span>
+                    <span className="font-medium text-orange-400">
+                      -${formatCurrency(discounts)}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           )}
+
+          {/* Devoluciones */}
+          {totalDevolutions > 0 && (
+            <div className="p-3 rounded-lg bg-red-900/20 border border-red-800/30">
+              <label className="block text-xs text-red-400 mb-2">
+                Devoluciones
+              </label>
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-blue-400">Jeans:</span>
+                  <span className="font-medium text-red-400">
+                    -${formatCurrency(devolutionJeans)}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-green-400">Remeras:</span>
+                  <span className="font-medium text-red-400">
+                    -${formatCurrency(devolutionRemeras)}
+                  </span>
+                </div>
+                <div className="flex justify-between border-t border-red-800/30 pt-2">
+                  <span className="text-red-300">Total Devoluciones:</span>
+                  <span className="font-bold text-red-400">
+                    -${formatCurrency(totalDevolutions)}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Nota aclaratoria */}
+          <div className="text-xs text-gray-500 italic px-1">
+            * Los subtotales brutos pueden diferir del neto por descuentos,
+            recargos y pagos mixtos.
+          </div>
 
           {/* Total Neto */}
           <div className="p-3 rounded-lg bg-cyan-900/30 border border-cyan-700/50">
@@ -1409,7 +1373,6 @@ const ModalListTranferSale = ({
                   ]}
                 />
               </div>
-
               {/* Filtro por Cuenta */}
               <div className="inline-block">
                 <label className="mr-2 text-sm">Cuenta:</label>
@@ -1429,7 +1392,6 @@ const ModalListTranferSale = ({
                   ]}
                 />
               </div>
-
               <PDFDownloadLink
                 document={
                   <PdfLocalTransfer
@@ -1451,7 +1413,6 @@ const ModalListTranferSale = ({
                   )
                 }
               </PDFDownloadLink>
-
               {(Boolean(itemsIdSelected.length) ||
                 Boolean(cashflowIdSelected.length)) && (
                 <div
@@ -1470,7 +1431,6 @@ const ModalListTranferSale = ({
                   Eliminar Items Seleccionados
                 </div>
               )}
-
               Registros: {salesFiltered.length}
             </div>
 
@@ -1608,6 +1568,19 @@ const ModalSaleDetail = ({
   setIsModalSaleDetailOpen,
   sale,
 }: any) => {
+  const normalizedSale = sale
+    ? {
+        ...sale,
+        itemsJeans:
+          (sale.itemsJeans || 0) + (sale.itemsRemeras || 0) > 0
+            ? sale.itemsJeans || 0
+            : sale.items || 0,
+        itemsRemeras:
+          (sale.itemsJeans || 0) + (sale.itemsRemeras || 0) > 0
+            ? sale.itemsRemeras || 0
+            : 0,
+      }
+    : null;
   const {
     state: { theme, themeStyles },
   } = useTheme();
@@ -1647,8 +1620,14 @@ const ModalSaleDetail = ({
       applyFormat: true,
     },
     {
-      title: "Prendas",
-      dataIndex: "items",
+      title: "Prendas J",
+      dataIndex: "itemsJeans",
+      editableCell: true,
+      type: "string",
+    },
+    {
+      title: "Prendas R",
+      dataIndex: "itemsRemeras",
       editableCell: true,
       type: "string",
     },
@@ -1716,7 +1695,7 @@ const ModalSaleDetail = ({
             <h2 className="text-lg font-bold mb-4">{sale.employee}</h2>
             <div className="mt-5 h-[74vh] mx-auto max-w overflow-hidden overflow-y-auto overflow-x-auto">
               <EditableTable
-                data={[sale]}
+                data={[normalizedSale]}
                 columns={columns}
                 handleAction={handleAction}
                 editableRow={editableRow}
@@ -1833,7 +1812,7 @@ const SalesByDayContainer = () => {
   const {
     state: { user },
   } = useUser();
-  const { cashiers, fetchAllCashiers } = useCashier();
+  const { cashiers, fetchAllCashiers, getCashiersForStore } = useCashier();
 
   let timeoutId: ReturnType<typeof setTimeout>;
 
@@ -1974,9 +1953,14 @@ const SalesByDayContainer = () => {
     });
   };
 
+  const isAdmin = user?.role === "ADMIN";
+  const userStore = user?.store || "ALL";
+
   useEffect(() => {
     fetchAllCashiers();
   }, []);
+
+  const filteredCashiers = isAdmin ? cashiers : getCashiersForStore(userStore);
 
   useEffect(() => {
     setTotals({
@@ -2023,20 +2007,37 @@ const SalesByDayContainer = () => {
             color: cashier?.color || "#666",
             items: 0,
             cash: 0,
+            transfer: 0,
           };
         }
         acc[sale.cashierId].items += sale.items || 0;
         acc[sale.cashierId].cash += sale.cash || 0;
+        acc[sale.cashierId].transfer += sale.transfer || 0;
       }
       return acc;
-    }, {} as Record<string, { name: string; color: string; items: number; cash: number }>);
+    }, {} as Record<string, { name: string; color: string; items: number; cash: number; transfer: number }>);
 
   const totalsByCashierArray = Object.values(totalsByCashier) as {
     name: string;
     color: string;
     items: number;
     cash: number;
+    transfer: number;
   }[];
+
+  const totalItemsAllCashiers = totalsByCashierArray.reduce(
+    (acc, c) => acc + c.items,
+    0
+  );
+  const totalCashAllCashiers = totalsByCashierArray.reduce(
+    (acc, c) => acc + c.cash,
+    0
+  );
+  const totalTransferAllCashiers = totalsByCashierArray.reduce(
+    (acc, c) => acc + c.transfer,
+    0
+  );
+  const totalMoneyAllCashiers = totalCashAllCashiers + totalTransferAllCashiers;
 
   const totalItemsSold = Object.entries(salesByEmployees).reduce(
     (acc: any, current: any) => {
@@ -2213,7 +2214,7 @@ const SalesByDayContainer = () => {
             className={themeStyles[theme].classNameSelector}
             dropdownStyle={themeStyles[theme].dropdownStylesCustom}
             popupClassName={themeStyles[theme].classNameSelectorItem}
-            style={{ width: 140 }}
+            style={{ width: 200 }}
             onChange={(value: string) => setCashierFilter(value)}
             optionLabelProp="label"
           >
@@ -2223,7 +2224,7 @@ const SalesByDayContainer = () => {
             <Select.Option value="all" label="Todos">
               Todos
             </Select.Option>
-            {cashiers.map((c: any) => (
+            {filteredCashiers.map((c: any) => (
               <Select.Option
                 key={c.id || c._id}
                 value={c.id || c._id}
@@ -2233,8 +2234,8 @@ const SalesByDayContainer = () => {
                   >
                     <span
                       style={{
-                        width: 10,
-                        height: 10,
+                        width: 12,
+                        height: 12,
                         borderRadius: "50%",
                         backgroundColor: c.color,
                         display: "inline-block",
@@ -2247,14 +2248,19 @@ const SalesByDayContainer = () => {
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <span
                     style={{
-                      width: 12,
-                      height: 12,
+                      width: 14,
+                      height: 14,
                       borderRadius: "50%",
                       backgroundColor: c.color,
                       display: "inline-block",
                     }}
                   />
                   {c.name}
+                  {isAdmin && c.store && (
+                    <span style={{ opacity: 0.6, fontSize: 11, marginLeft: 4 }}>
+                      ({c.isAdmin ? "Admin" : c.store})
+                    </span>
+                  )}
                 </div>
               </Select.Option>
             ))}
@@ -2509,7 +2515,7 @@ const SalesByDayContainer = () => {
       {isModalCashierTotals && (
         <div className="fixed inset-0 z-[9999] bg-[#252525] bg-opacity-60 flex items-center justify-center">
           <div
-            className={`w-[50vh] p-8 rounded-md shadow-md relative ${themeStyles[theme].tailwindcss.modal}`}
+            className={`w-[60vh] p-8 rounded-md shadow-md relative ${themeStyles[theme].tailwindcss.modal}`}
           >
             <button
               className="absolute top-4 right-4"
@@ -2524,42 +2530,97 @@ const SalesByDayContainer = () => {
               <p className="text-gray-400">No hay ventas con cajero asignado</p>
             ) : (
               <div className="space-y-3">
-                {totalsByCashierArray.map((cashier, idx) => (
-                  <div
-                    key={idx}
-                    className="p-3 rounded-md"
-                    style={{
-                      backgroundColor: cashier.color + "30",
-                      borderLeft: `4px solid ${cashier.color}`,
-                    }}
-                  >
-                    <div className="font-bold text-lg">{cashier.name}</div>
-                    <div className="flex justify-between mt-1">
-                      <span>
-                        Prendas: <strong>{cashier.items}</strong>
-                      </span>
-                      <span>
-                        Cash: <strong>${formatCurrency(cashier.cash)}</strong>
-                      </span>
+                {totalsByCashierArray.map((cashier, idx) => {
+                  // Calcular porcentajes
+                  const itemsPercent =
+                    totalItemsAllCashiers > 0
+                      ? ((cashier.items / totalItemsAllCashiers) * 100).toFixed(
+                          1
+                        )
+                      : "0";
+                  const moneyPercent =
+                    totalMoneyAllCashiers > 0
+                      ? (
+                          ((cashier.cash + cashier.transfer) /
+                            totalMoneyAllCashiers) *
+                          100
+                        ).toFixed(1)
+                      : "0";
+
+                  return (
+                    <div
+                      key={idx}
+                      className="p-3 rounded-md"
+                      style={{
+                        backgroundColor: cashier.color + "30",
+                        borderLeft: `4px solid ${cashier.color}`,
+                      }}
+                    >
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="font-bold text-lg">
+                          {cashier.name}
+                        </span>
+                        <span className="text-sm text-gray-400">
+                          {moneyPercent}% del total
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 text-sm">
+                        <div>
+                          <span className="text-gray-400">Prendas:</span>
+                          <div className="font-bold">
+                            {cashier.items}{" "}
+                            <span className="text-xs text-gray-400">
+                              ({itemsPercent}%)
+                            </span>
+                          </div>
+                        </div>
+                        <div>
+                          <span className="text-gray-400">Cash:</span>
+                          <div className="font-bold text-green-400">
+                            ${formatCurrency(cashier.cash)}
+                          </div>
+                        </div>
+                        <div>
+                          <span className="text-gray-400">Transfer:</span>
+                          <div className="font-bold text-cyan-400">
+                            ${formatCurrency(cashier.transfer)}
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
 
                 {/* Total general */}
                 <div className="border-t border-gray-500 pt-3 mt-3">
-                  <div className="flex justify-between font-bold">
-                    <span>
-                      Total Prendas:{" "}
-                      {totalsByCashierArray.reduce(
-                        (acc, c) => acc + c.items,
-                        0
-                      )}
+                  <div className="grid grid-cols-3 gap-2 font-bold">
+                    <div>
+                      <span className="text-gray-400 text-sm">
+                        Total Prendas:
+                      </span>
+                      <div>{totalItemsAllCashiers}</div>
+                    </div>
+                    <div>
+                      <span className="text-gray-400 text-sm">Total Cash:</span>
+                      <div className="text-green-400">
+                        ${formatCurrency(totalCashAllCashiers)}
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-gray-400 text-sm">
+                        Total Transfer:
+                      </span>
+                      <div className="text-cyan-400">
+                        ${formatCurrency(totalTransferAllCashiers)}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-2 text-right">
+                    <span className="text-gray-400 text-sm">
+                      Total Dinero:{" "}
                     </span>
-                    <span>
-                      Total Cash: $
-                      {formatCurrency(
-                        totalsByCashierArray.reduce((acc, c) => acc + c.cash, 0)
-                      )}
+                    <span className="font-bold text-lg">
+                      ${formatCurrency(totalMoneyAllCashiers)}
                     </span>
                   </div>
                 </div>
@@ -2574,12 +2635,10 @@ const SalesByDayContainer = () => {
         isOpen={isModalCashBreakdown}
         setIsOpen={setIsModalCashBreakdown}
         salesData={salesByEmployees}
-        salesTransferData={salesTransferByEmployees}
       />
       <ModalTransferBreakdown
         isOpen={isModalTransferBreakdown}
         setIsOpen={setIsModalTransferBreakdown}
-        salesData={salesByEmployees}
         salesTransferData={salesTransferByEmployees}
       />
       <ModalItemsBreakdown
