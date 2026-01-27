@@ -47,10 +47,10 @@ const ModalCashBreakdown = ({ isOpen, setIsOpen, salesData }: any) => {
 
   const allCashSales = Object.values(salesData).flat() as any[];
 
-  // Calcular Total Neto IGUAL que el tag
+  // Calcular Total Neto (incluyendo negativos)
   const totalNeto = allCashSales.reduce(
-    (acc: number, sale: any) => acc + (sale.cash > 0 ? sale.cash : 0),
-    0
+    (acc: number, sale: any) => acc + (sale.cash || 0),
+    0,
   );
 
   // Calcular desglose (informativo)
@@ -60,9 +60,15 @@ const ModalCashBreakdown = ({ isOpen, setIsOpen, salesData }: any) => {
   let devolutionRemeras = 0;
   let surcharges = 0;
   let discounts = 0;
+  let negativeCash = 0; // Para trackear valores negativos
 
   allCashSales.forEach((sale: any) => {
-    if ((sale.cash || 0) > 0) {
+    const cashValue = sale.cash || 0;
+
+    if (cashValue < 0) {
+      // Acumular valores negativos
+      negativeCash += cashValue;
+    } else if (cashValue > 0) {
       // Ventas brutas
       const hasBreakdown =
         (sale.subTotalCashJeans || 0) + (sale.subTotalCashRemeras || 0) > 0;
@@ -194,6 +200,21 @@ const ModalCashBreakdown = ({ isOpen, setIsOpen, salesData }: any) => {
             recargos y pagos mixtos.
           </div>
 
+          {/* Valores Negativos (ej: correcciones manuales) */}
+          {negativeCash < 0 && (
+            <div className="p-3 rounded-lg bg-purple-900/20 border border-purple-800/30">
+              <label className="block text-xs text-purple-400 mb-2">
+                Ajustes Negativos
+              </label>
+              <div className="flex justify-between">
+                <span className="text-purple-300">Correcciones/Otros:</span>
+                <span className="font-bold text-purple-400">
+                  ${formatCurrency(negativeCash)}
+                </span>
+              </div>
+            </div>
+          )}
+
           {/* Total Neto */}
           <div className="p-3 rounded-lg bg-blue-900/30 border border-blue-700/50">
             <div className="flex justify-between text-lg">
@@ -221,10 +242,10 @@ const ModalTransferBreakdown = ({
 
   const allTransferSales = salesTransferData as any[];
 
-  // Calcular Total Neto IGUAL que el tag
+  // Calcular Total Neto (incluyendo negativos)
   const totalNeto = allTransferSales.reduce(
     (acc: number, sale: any) => acc + (sale.transfer || 0),
-    0
+    0,
   );
 
   // Calcular desglose (informativo)
@@ -234,9 +255,15 @@ const ModalTransferBreakdown = ({
   let devolutionRemeras = 0;
   let surcharges = 0;
   let discounts = 0;
+  let negativeTransfer = 0;
 
   allTransferSales.forEach((sale: any) => {
-    if ((sale.transfer || 0) > 0) {
+    const transferValue = sale.transfer || 0;
+
+    if (transferValue < 0) {
+      // Acumular valores negativos
+      negativeTransfer += transferValue;
+    } else if (transferValue > 0) {
       // Ventas brutas
       const hasBreakdown =
         (sale.subTotalTransferJeans || 0) +
@@ -366,6 +393,21 @@ const ModalTransferBreakdown = ({
             </div>
           )}
 
+          {/* Valores Negativos (ej: correcciones manuales) */}
+          {negativeTransfer < 0 && (
+            <div className="p-3 rounded-lg bg-purple-900/20 border border-purple-800/30">
+              <label className="block text-xs text-purple-400 mb-2">
+                Ajustes Negativos
+              </label>
+              <div className="flex justify-between">
+                <span className="text-purple-300">Correcciones/Otros:</span>
+                <span className="font-bold text-purple-400">
+                  ${formatCurrency(negativeTransfer)}
+                </span>
+              </div>
+            </div>
+          )}
+
           {/* Nota aclaratoria */}
           <div className="text-xs text-gray-500 italic px-1">
             * Los subtotales brutos pueden diferir del neto por descuentos,
@@ -424,7 +466,7 @@ const ModalItemsBreakdown = ({ isOpen, setIsOpen, salesData }: any) => {
       itemsRemeras: 0,
       devolutionJeans: 0,
       devolutionRemeras: 0,
-    }
+    },
   );
 
   const totalVentas = totals.itemsJeans + totals.itemsRemeras;
@@ -536,7 +578,7 @@ const ModalListDevolutions = ({ isOpen, setIsOpen, date, store }: any) => {
   // Obtener lista única de vendedores
   const vendedores = [
     ...new Set(
-      salesWithDevolutions.map((s: any) => s.employee).filter(Boolean)
+      salesWithDevolutions.map((s: any) => s.employee).filter(Boolean),
     ),
   ];
 
@@ -688,7 +730,7 @@ const ModalListDevolutions = ({ isOpen, setIsOpen, date, store }: any) => {
       montoDevolucionJeans: 0,
       montoDevolucionRemeras: 0,
       subTotalDevolutionItems: 0,
-    }
+    },
   );
 
   if (!isOpen) return null;
@@ -757,7 +799,7 @@ const ModalListDevolutions = ({ isOpen, setIsOpen, date, store }: any) => {
               />
             }
             fileName={`listado-devoluciones-${dayjs(date).format(
-              "DD-MM-YYYY"
+              "DD-MM-YYYY",
             )}.pdf`}
             className="bg-red-700 hover:bg-red-800 text-white px-4 py-1 rounded-md flex items-center justify-center select-none cursor-pointer"
           >
@@ -973,13 +1015,15 @@ const ModalListOutgoing = ({
   const handleManualValue = (item: any) => {
     if (item.action === "deleteLast") {
       return setValue((currentValue: any) =>
-        Number(String(currentValue).slice(0, -1))
+        Number(String(currentValue).slice(0, -1)),
       );
     }
 
     if (item.action === "addPrice") {
       dispatchCashflow(
-        cashflowActions.updateCashflow({ ...propSale, value })(dispatchCashflow)
+        cashflowActions.updateCashflow({ ...propSale, value })(
+          dispatchCashflow,
+        ),
       );
       setValue(0);
       setEditableRow(null);
@@ -987,7 +1031,7 @@ const ModalListOutgoing = ({
     }
 
     setValue((currentValue: any) =>
-      Number(String(currentValue) + String(item.value))
+      Number(String(currentValue) + String(item.value)),
     );
   };
 
@@ -1003,7 +1047,7 @@ const ModalListOutgoing = ({
   const getCashierColor = (cashierId: any) => {
     if (!cashierId) return null;
     const cashier = cashiers.find(
-      (c: any) => c.id === cashierId || c._id === cashierId
+      (c: any) => c.id === cashierId || c._id === cashierId,
     );
     return cashier?.color || null;
   };
@@ -1042,7 +1086,7 @@ const ModalListOutgoing = ({
                     dispatchCashflow(
                       cashflowActions.removeCashflows({
                         cashflowIds: itemsIdSelected,
-                      })(dispatchCashflow)
+                      })(dispatchCashflow),
                     );
                   }}
                 >
@@ -1158,14 +1202,14 @@ const ModalListTranferSale = ({
     // Filtrar por vendedor
     if (filterVendedor !== "Todos") {
       filtered = filtered.filter(
-        (sale: any) => sale.employee === filterVendedor
+        (sale: any) => sale.employee === filterVendedor,
       );
     }
 
     // Filtrar por cuenta
     if (filterCuenta !== "Todos") {
       filtered = filtered.filter(
-        (sale: any) => sale.accountForTransfer === filterCuenta
+        (sale: any) => sale.accountForTransfer === filterCuenta,
       );
     }
 
@@ -1279,13 +1323,13 @@ const ModalListTranferSale = ({
   const handleManualValue = (item: any) => {
     if (item.action === "deleteLast") {
       return setValue((currentValue: any) =>
-        Number(String(currentValue).slice(0, -1))
+        Number(String(currentValue).slice(0, -1)),
       );
     }
 
     if (item.action === "addPrice") {
       dispatchSale(
-        saleActions.updateSaleByEmployee({ ...propSale, value })(dispatchSale)
+        saleActions.updateSaleByEmployee({ ...propSale, value })(dispatchSale),
       );
       setValue(0);
       setEditableRow(null);
@@ -1293,7 +1337,7 @@ const ModalListTranferSale = ({
     }
 
     setValue((currentValue: any) =>
-      Number(String(currentValue) + String(item.value))
+      Number(String(currentValue) + String(item.value)),
     );
   };
 
@@ -1316,7 +1360,7 @@ const ModalListTranferSale = ({
           id: id,
           dataIndex: dataIndex,
           value: inputValue.value,
-        })(dispatchSale)
+        })(dispatchSale),
       );
 
       setTimeout(() => {
@@ -1333,7 +1377,7 @@ const ModalListTranferSale = ({
       items: acc.items + (sale.items || 0),
       total: acc.total + (sale.total || 0),
     }),
-    { cash: 0, transfer: 0, items: 0, total: 0 }
+    { cash: 0, transfer: 0, items: 0, total: 0 },
   );
 
   return (
@@ -1401,7 +1445,7 @@ const ModalListTranferSale = ({
                   />
                 }
                 fileName={`listado-transferencias-${dayjs(date).format(
-                  "DD-MM-YYYY"
+                  "DD-MM-YYYY",
                 )}.pdf`}
                 className="w-25 ml-2 bg-cyan-700 hover:bg-cyan-800 hover:cursor-pointer text-white px-4 py-1 rounded-md flex items-center justify-center select-none"
               >
@@ -1422,7 +1466,7 @@ const ModalListTranferSale = ({
                       saleActions.removeSales({
                         salesIds: itemsIdSelected,
                         cashflowIds: cashflowIdSelected,
-                      })(dispatchSale)
+                      })(dispatchSale),
                     );
                     setItemsIdSelected([]);
                     setCashflowIdSelected([]);
@@ -1468,8 +1512,8 @@ const ModalListTranferSale = ({
                         sale.type === "ingreso"
                           ? "bg-yellow-900/30"
                           : rowIndex % 2 === 1
-                          ? "bg-gray-800/40"
-                          : ""
+                            ? "bg-gray-800/40"
+                            : ""
                       }`}
                     >
                       <td className="p-2">
@@ -1478,10 +1522,10 @@ const ModalListTranferSale = ({
                           checked={
                             sale.id
                               ? itemsIdSelected.some(
-                                  (item: any) => item.id === sale.id
+                                  (item: any) => item.id === sale.id,
                                 ) ||
                                 cashflowIdSelected.some(
-                                  (item: any) => item.id === sale.id
+                                  (item: any) => item.id === sale.id,
                                 )
                               : false
                           }
@@ -1490,17 +1534,17 @@ const ModalListTranferSale = ({
                               setCashflowIdSelected((prev: any) =>
                                 prev.some((item: any) => item.id === sale.id)
                                   ? prev.filter(
-                                      (item: any) => item.id !== sale.id
+                                      (item: any) => item.id !== sale.id,
                                     )
-                                  : [...prev, { id: sale.id }]
+                                  : [...prev, { id: sale.id }],
                               );
                             } else {
                               setItemsIdSelected((prev: any) =>
                                 prev.some((item: any) => item.id === sale.id)
                                   ? prev.filter(
-                                      (item: any) => item.id !== sale.id
+                                      (item: any) => item.id !== sale.id,
                                     )
-                                  : [...prev, { id: sale.id }]
+                                  : [...prev, { id: sale.id }],
                               );
                             }
                           }}
@@ -1520,8 +1564,8 @@ const ModalListTranferSale = ({
                             {col.format && value !== undefined && value !== null
                               ? col.format(value)
                               : value !== undefined && value !== null
-                              ? value
-                              : "-"}
+                                ? value
+                                : "-"}
                           </td>
                         );
                       })}
@@ -1644,13 +1688,13 @@ const ModalSaleDetail = ({
   const handleManualValue = (item: any) => {
     if (item.action === "deleteLast") {
       return setValue((currentValue: any) =>
-        Number(String(currentValue).slice(0, -1))
+        Number(String(currentValue).slice(0, -1)),
       );
     }
 
     if (item.action === "addPrice") {
       dispatchSale(
-        saleActions.updateSaleByEmployee({ ...propSale, value })(dispatchSale)
+        saleActions.updateSaleByEmployee({ ...propSale, value })(dispatchSale),
       );
       setValue(0);
       setEditableRow(null);
@@ -1658,7 +1702,7 @@ const ModalSaleDetail = ({
     }
 
     setValue((currentValue: any) =>
-      Number(String(currentValue) + String(item.value))
+      Number(String(currentValue) + String(item.value)),
     );
   };
 
@@ -1772,7 +1816,7 @@ const ModalSaleDetail = ({
                         id: sale.id,
                         dataIndex: "description",
                         value: description,
-                      })(dispatchSale)
+                      })(dispatchSale),
                     )
                   }
                 >
@@ -1884,13 +1928,13 @@ const SalesByDayContainer = () => {
   const handleManualValue = (item: any) => {
     if (item.action === "deleteLast") {
       return setValue((currentValue: any) =>
-        Number(String(currentValue).slice(0, -1))
+        Number(String(currentValue).slice(0, -1)),
       );
     }
 
     if (item.action === "addPrice") {
       dispatchSale(
-        saleActions.updateSaleByEmployee({ ...propSale, value })(dispatchSale)
+        saleActions.updateSaleByEmployee({ ...propSale, value })(dispatchSale),
       );
 
       setValue(0);
@@ -1900,7 +1944,7 @@ const SalesByDayContainer = () => {
     }
 
     setValue((currentValue: any) =>
-      Number(String(currentValue) + String(item.value))
+      Number(String(currentValue) + String(item.value)),
     );
   };
 
@@ -1968,76 +2012,110 @@ const SalesByDayContainer = () => {
         (acc: any, current: any) =>
           Number(acc) +
           current.reduce(
-            (acc: any, current: any) =>
-              Number(acc) + (current.cash < 0 ? 0 : current.cash),
-            0
+            (acc: any, current: any) => Number(acc) + (current.cash || 0),
+            0,
           ),
-        0
+        0,
       ),
       items: Object.values(salesByEmployees).reduce(
         (acc: any, current: any) =>
           Number(acc) +
           current.reduce(
             (acc: any, current: any) => Number(acc) + current.items,
-            0
+            0,
           ),
-        0
+        0,
       ),
       transfer: salesTransferByEmployees.reduce(
         (acc: any, current: any) => Number(acc) + current.transfer,
-        0
+        0,
       ),
       outgoing: outgoings.reduce(
         (acc: any, current: any) => Number(acc) + current.amount,
-        0
+        0,
       ),
     });
   }, [salesByEmployees, salesTransferByEmployees, outgoings]);
 
   const totalsByCashier = Object.values(salesByEmployees)
     .flat()
-    .reduce((acc: any, sale: any) => {
-      if (sale.cashierId && sale.cashierName) {
-        if (!acc[sale.cashierId]) {
-          const cashier = cashiers.find(
-            (c: any) => c.id === sale.cashierId || c._id === sale.cashierId
-          );
-          acc[sale.cashierId] = {
-            name: sale.cashierName,
-            color: cashier?.color || "#666",
-            items: 0,
-            cash: 0,
-            transfer: 0,
-          };
+    .reduce(
+      (acc: any, sale: any) => {
+        if (sale.cashierId && sale.cashierName) {
+          if (!acc[sale.cashierId]) {
+            const cashier = cashiers.find(
+              (c: any) => c.id === sale.cashierId || c._id === sale.cashierId,
+            );
+            acc[sale.cashierId] = {
+              name: sale.cashierName,
+              color: cashier?.color || "#666",
+              items: 0,
+              itemsJeans: 0,
+              itemsRemeras: 0,
+              cash: 0,
+              transfer: 0,
+            };
+          }
+
+          // Normalizar items: si hay desglose J/R usar esos, sino todo a Jeans
+          const hasBreakdown =
+            (sale.itemsJeans || 0) + (sale.itemsRemeras || 0) > 0;
+          const jeans = hasBreakdown ? sale.itemsJeans || 0 : sale.items || 0;
+          const remeras = hasBreakdown ? sale.itemsRemeras || 0 : 0;
+
+          acc[sale.cashierId].items += sale.items || 0;
+          acc[sale.cashierId].itemsJeans += jeans;
+          acc[sale.cashierId].itemsRemeras += remeras;
+          acc[sale.cashierId].cash += sale.cash || 0;
+          acc[sale.cashierId].transfer += sale.transfer || 0;
         }
-        acc[sale.cashierId].items += sale.items || 0;
-        acc[sale.cashierId].cash += sale.cash || 0;
-        acc[sale.cashierId].transfer += sale.transfer || 0;
-      }
-      return acc;
-    }, {} as Record<string, { name: string; color: string; items: number; cash: number; transfer: number }>);
+        return acc;
+      },
+      {} as Record<
+        string,
+        {
+          name: string;
+          color: string;
+          items: number;
+          itemsJeans: number;
+          itemsRemeras: number;
+          cash: number;
+          transfer: number;
+        }
+      >,
+    );
 
   const totalsByCashierArray = Object.values(totalsByCashier) as {
     name: string;
     color: string;
     items: number;
+    itemsJeans: number;
+    itemsRemeras: number;
     cash: number;
     transfer: number;
   }[];
 
   const totalItemsAllCashiers = totalsByCashierArray.reduce(
     (acc, c) => acc + c.items,
-    0
+    0,
   );
   const totalCashAllCashiers = totalsByCashierArray.reduce(
     (acc, c) => acc + c.cash,
-    0
+    0,
   );
   const totalTransferAllCashiers = totalsByCashierArray.reduce(
     (acc, c) => acc + c.transfer,
-    0
+    0,
   );
   const totalMoneyAllCashiers = totalCashAllCashiers + totalTransferAllCashiers;
+  const totalJeansAllCashiers = totalsByCashierArray.reduce(
+    (acc, c) => acc + c.itemsJeans,
+    0,
+  );
+  const totalRemerasAllCashiers = totalsByCashierArray.reduce(
+    (acc, c) => acc + c.itemsRemeras,
+    0,
+  );
 
   const totalItemsSold = Object.entries(salesByEmployees).reduce(
     (acc: any, current: any) => {
@@ -2047,7 +2125,7 @@ const SalesByDayContainer = () => {
         acc + sales.reduce((acc: any, current: any) => acc + current.items, 0)
       );
     },
-    0
+    0,
   );
 
   return (
@@ -2100,13 +2178,13 @@ const SalesByDayContainer = () => {
             onClick={() => {
               if (!loading) {
                 dispatchSale(
-                  saleActions.getSalesCashByDay({ date, store })(dispatchSale)
+                  saleActions.getSalesCashByDay({ date, store })(dispatchSale),
                 );
 
                 dispatchSale(
                   saleActions.getSalesTranferByDay({ date, store })(
-                    dispatchSale
-                  )
+                    dispatchSale,
+                  ),
                 );
 
                 dispatchCashflow(
@@ -2114,7 +2192,7 @@ const SalesByDayContainer = () => {
                     date,
                     store,
                     type: "egreso",
-                  })(dispatchCashflow)
+                  })(dispatchCashflow),
                 );
               }
             }}
@@ -2158,7 +2236,7 @@ const SalesByDayContainer = () => {
                 saleActions.removeSales({
                   salesIds: itemsIdSelected,
                   cashflowIds: cashflowIdSelected,
-                })(dispatchSale)
+                })(dispatchSale),
               );
               setItemsIdSelected([]);
               setCashflowIdSelected([]);
@@ -2172,7 +2250,7 @@ const SalesByDayContainer = () => {
           className="w-25 ml-[10vh] bg-blue-700 hover:bg-blue-800 hover:cursor-pointer text-white px-4 py-1 rounded-md flex items-center justify-center select-none"
           onClick={() => {
             dispatchSale(
-              saleActions.getSalesTranferByDay({ date, store })(dispatchSale)
+              saleActions.getSalesTranferByDay({ date, store })(dispatchSale),
             );
             setIsModalListTranferSaleOpen(true);
           }}
@@ -2194,8 +2272,8 @@ const SalesByDayContainer = () => {
           onClick={() => {
             dispatchCashflow(
               cashflowActions.getCashFlowByDay({ date, store, type: "egreso" })(
-                dispatchCashflow
-              )
+                dispatchCashflow,
+              ),
             );
             setIsModalListOutgoingOpen(true);
           }}
@@ -2365,7 +2443,7 @@ const SalesByDayContainer = () => {
                                 {formatCurrency(
                                   selectedRow.transfer
                                     ? selectedRow.transfer
-                                    : 0
+                                    : 0,
                                 )}
                               </span>
                             </div>
@@ -2374,7 +2452,7 @@ const SalesByDayContainer = () => {
                               <span className="font-bold mx-2">
                                 $
                                 {formatCurrency(
-                                  selectedRow.cash ? selectedRow.cash : 0
+                                  selectedRow.cash ? selectedRow.cash : 0,
                                 )}
                               </span>
                             </div>
@@ -2385,7 +2463,7 @@ const SalesByDayContainer = () => {
                                 <span className="font-bold mx-2">
                                   $
                                   {formatCurrency(
-                                    selectedRow.total ? selectedRow.total : 0
+                                    selectedRow.total ? selectedRow.total : 0,
                                   )}
                                 </span>
                               </div>
@@ -2404,7 +2482,7 @@ const SalesByDayContainer = () => {
                     )}
                   </div>
                 );
-              }
+              },
             )}
         </div>
         <ModalSaleDetail
@@ -2468,8 +2546,8 @@ const SalesByDayContainer = () => {
         closeModal={() => {
           dispatchSale(
             saleActions.removeEmptyRows({ emp: employeeSelectedForNewRowSale })(
-              dispatchSale
-            )
+              dispatchSale,
+            ),
           );
           setValue(0);
           setEditableRow(null);
@@ -2515,7 +2593,7 @@ const SalesByDayContainer = () => {
       {isModalCashierTotals && (
         <div className="fixed inset-0 z-[9999] bg-[#252525] bg-opacity-60 flex items-center justify-center">
           <div
-            className={`w-[60vh] p-8 rounded-md shadow-md relative ${themeStyles[theme].tailwindcss.modal}`}
+            className={`w-[75vh] p-8 rounded-md shadow-md relative ${themeStyles[theme].tailwindcss.modal}`}
           >
             <button
               className="absolute top-4 right-4"
@@ -2535,8 +2613,19 @@ const SalesByDayContainer = () => {
                   const itemsPercent =
                     totalItemsAllCashiers > 0
                       ? ((cashier.items / totalItemsAllCashiers) * 100).toFixed(
-                          1
+                          1,
                         )
+                      : "0";
+                  const cashPercent =
+                    totalCashAllCashiers > 0
+                      ? ((cashier.cash / totalCashAllCashiers) * 100).toFixed(1)
+                      : "0";
+                  const transferPercent =
+                    totalTransferAllCashiers > 0
+                      ? (
+                          (cashier.transfer / totalTransferAllCashiers) *
+                          100
+                        ).toFixed(1)
                       : "0";
                   const moneyPercent =
                     totalMoneyAllCashiers > 0
@@ -2560,30 +2649,48 @@ const SalesByDayContainer = () => {
                         <span className="font-bold text-lg">
                           {cashier.name}
                         </span>
-                        <span className="text-sm text-gray-400">
-                          {moneyPercent}% del total
+                        <span className="text-sm px-2 py-1 rounded bg-gray-700/50 text-white font-medium">
+                          {moneyPercent}% Cash + Transfer
                         </span>
                       </div>
+
+                      {/* Fila de Cash, Transfer y Prendas */}
                       <div className="grid grid-cols-3 gap-2 text-sm">
-                        <div>
-                          <span className="text-gray-400">Prendas:</span>
-                          <div className="font-bold">
-                            {cashier.items}{" "}
-                            <span className="text-xs text-gray-400">
-                              ({itemsPercent}%)
-                            </span>
-                          </div>
-                        </div>
-                        <div>
+                        <div className="p-2 rounded bg-green-900/25 border border-green-800/30">
                           <span className="text-gray-400">Cash:</span>
                           <div className="font-bold text-green-400">
                             ${formatCurrency(cashier.cash)}
                           </div>
+                          <div className="text-xs text-green-300/70">
+                            {cashPercent}% del cash
+                          </div>
                         </div>
-                        <div>
+                        <div className="p-2 rounded bg-cyan-900/25 border border-cyan-800/30">
                           <span className="text-gray-400">Transfer:</span>
                           <div className="font-bold text-cyan-400">
                             ${formatCurrency(cashier.transfer)}
+                          </div>
+                          <div className="text-xs text-cyan-300/70">
+                            {transferPercent}% del transfer
+                          </div>
+                        </div>
+                        <div className="p-2 rounded bg-amber-900/25 border border-amber-800/30">
+                          <span className="text-gray-400">Prendas:</span>
+                          <div className="font-bold text-amber-400">
+                            {cashier.items}{" "}
+                            <span className="text-xs font-normal">
+                              (
+                              <span className="text-blue-400">
+                                J:{cashier.itemsJeans}
+                              </span>{" "}
+                              <span className="text-green-400">
+                                R:{cashier.itemsRemeras}
+                              </span>
+                              )
+                            </span>
+                          </div>
+                          <div className="text-xs text-amber-300/70">
+                            {itemsPercent}% de prendas
                           </div>
                         </div>
                       </div>
@@ -2594,34 +2701,38 @@ const SalesByDayContainer = () => {
                 {/* Total general */}
                 <div className="border-t border-gray-500 pt-3 mt-3">
                   <div className="grid grid-cols-3 gap-2 font-bold">
-                    <div>
-                      <span className="text-gray-400 text-sm">
-                        Total Prendas:
-                      </span>
-                      <div>{totalItemsAllCashiers}</div>
-                    </div>
-                    <div>
+                    <div className="p-2 rounded bg-green-900/30 border border-green-700/50">
                       <span className="text-gray-400 text-sm">Total Cash:</span>
-                      <div className="text-green-400">
+                      <div className="text-green-400 text-lg">
                         ${formatCurrency(totalCashAllCashiers)}
                       </div>
                     </div>
-                    <div>
+                    <div className="p-2 rounded bg-cyan-900/30 border border-cyan-700/50">
                       <span className="text-gray-400 text-sm">
                         Total Transfer:
                       </span>
-                      <div className="text-cyan-400">
+                      <div className="text-cyan-400 text-lg">
                         ${formatCurrency(totalTransferAllCashiers)}
                       </div>
                     </div>
-                  </div>
-                  <div className="mt-2 text-right">
-                    <span className="text-gray-400 text-sm">
-                      Total Dinero:{" "}
-                    </span>
-                    <span className="font-bold text-lg">
-                      ${formatCurrency(totalMoneyAllCashiers)}
-                    </span>
+                    <div className="p-2 rounded bg-amber-900/30 border border-amber-700/50">
+                      <span className="text-gray-400 text-sm">
+                        Total Prendas:
+                      </span>
+                      <div className="text-amber-400 text-lg">
+                        {totalItemsAllCashiers}{" "}
+                        <span className="text-sm font-normal">
+                          (
+                          <span className="text-blue-400">
+                            J:{totalJeansAllCashiers}
+                          </span>{" "}
+                          <span className="text-green-400">
+                            R:{totalRemerasAllCashiers}
+                          </span>
+                          )
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
