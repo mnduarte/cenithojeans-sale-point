@@ -10,12 +10,14 @@ const actionTypes = {
   ADD_PRICE: "add_price",
   UPDATE_PRICE: "update_price",
   REMOVE_PRICE: "remove_price",
+  SET_ORDER: "set_order",
 };
 
 // Tipo de estado para el contexto de precios
 type PriceState = {
   loading: boolean;
   error: any;
+  order: string;
   prices: any[];
 };
 
@@ -36,6 +38,7 @@ export const PriceProvider: React.FC<PriceProviderProps> = ({ children }) => {
   const initialState: PriceState = {
     loading: false,
     error: null,
+    order: "",
     prices: [],
   };
 
@@ -61,6 +64,15 @@ export const PriceProvider: React.FC<PriceProviderProps> = ({ children }) => {
           ...state,
           loading: false,
           prices: action.payload,
+        };
+      }
+      case actionTypes.SET_ORDER: {
+        return {
+          ...state,
+          order: action.payload,
+          prices: state.prices.sort((a: any, b: any) =>
+            action.payload === "lower" ? a.price - b.price : b.price - a.price
+          ),
         };
       }
       default:
@@ -111,7 +123,7 @@ export const priceActions = {
     }
   },
   addPrice:
-    ({ price, active }: any) =>
+    ({ price, active, type }: any) =>
     async (dispatch: any) => {
       dispatch({
         type: actionTypes.LOADING,
@@ -119,7 +131,7 @@ export const priceActions = {
       });
 
       try {
-        const { data } = await Api.addPrice({ price, active });
+        const { data } = await Api.addPrice({ price, active, type });
 
         dispatch({
           type: actionTypes.LIST_PRICES,
@@ -135,7 +147,7 @@ export const priceActions = {
       }
     },
   updatePrice:
-    ({ id, price, active }: any) =>
+    ({ id, price, active, type }: any) =>
     async (dispatch: any) => {
       dispatch({
         type: actionTypes.LOADING,
@@ -143,7 +155,7 @@ export const priceActions = {
       });
 
       try {
-        const { data } = await Api.updatePrice({ id, price, active });
+        const { data } = await Api.updatePrice({ id, price, active, type });
 
         dispatch({
           type: actionTypes.LIST_PRICES,
@@ -159,7 +171,7 @@ export const priceActions = {
       }
     },
   deleteSelectedPrices:
-    ({ itemsIdSelected, deleteAll }: any) =>
+    ({ itemsIdSelected, deleteAll, type }: any) =>
     async (dispatch: any) => {
       dispatch({
         type: actionTypes.LOADING,
@@ -167,7 +179,11 @@ export const priceActions = {
       });
 
       try {
-        const { data } = await Api.deleteSelectedPrices({ itemsIdSelected, deleteAll });
+        const { data } = await Api.deleteSelectedPrices({
+          itemsIdSelected,
+          deleteAll,
+          type,
+        });
 
         dispatch({
           type: actionTypes.LIST_PRICES,
@@ -206,4 +222,10 @@ export const priceActions = {
         });
       }
     },
+  setOrderPrices: (value: any) => async (dispatch: any) => {
+    dispatch({
+      type: actionTypes.SET_ORDER,
+      payload: value,
+    });
+  },
 };

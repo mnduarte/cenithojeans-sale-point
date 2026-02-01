@@ -38,6 +38,11 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       role: null,
       store: null,
     },
+    /*user: {
+      username: "admin",
+      role: "ADMIN",
+      store: "ALL",
+    },*/
   };
 
   // Reducer para manejar acciones

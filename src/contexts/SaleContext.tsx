@@ -9,7 +9,9 @@ const actionTypes = {
   LIST_SALES: "list_sales",
   LIST_ORDERS: "list_orders",
   LIST_REPORTS: "list_reports",
+  LIST_REPORTS_BY_EMPLOYEES: "list_reports_by_employees",
   LIST_SALES_BY_EMPLOYEES: "list_sales_by_employees",
+  LIST_SALES_TRANSFER_BY_EMPLOYEES: "list_sales_transfer_by_employees",
   LIST_SALE_BY_EMPLOYEES: "list_sale_by_employees",
   ADD_SALE: "add_sale",
   ADD_NEW_ROW_SALE: "add_new_row_sale",
@@ -23,6 +25,7 @@ const actionTypes = {
   UPDATE_ORDER: "update_order",
   UPDATE_SALE_BY_EMPLOYEE: "update_sale_by_employee",
   CANCEL_ORDERS: "cancel_orders",
+  ENABLE_ORDERS: "enable_orders",
   LAST_NUM_ORDER_BY_SELLER: "last_num_order_by_seller",
 };
 
@@ -31,9 +34,12 @@ type SaleState = {
   loading: boolean;
   error: any;
   reports: any;
+  reportsByEmployees: any;
   orders: any[];
   sales: any[];
+  lastSaleUpdated: any;
   salesByEmployees: any[];
+  salesTransferByEmployees: any[];
   showSuccessToast: boolean;
   showErrorToast: boolean;
   showSuccessToastMsg: any;
@@ -43,8 +49,8 @@ type SaleState = {
 
 // Crear el contexto de precios
 type SaleContextType = {
-  state: SaleState; // Asegúrate de que SaleState esté definido según tu estructura
-  dispatch: React.Dispatch<any>; // O ajusta el tipo según tu implementación
+  state: SaleState;
+  dispatch: React.Dispatch<any>;
 };
 
 const SaleContext = createContext<SaleContextType | undefined>(undefined);
@@ -62,9 +68,73 @@ export const SaleProvider: React.FC<SaleProviderProps> = ({ children }) => {
       salesGeneral: [],
       typeSale: null,
     },
+    reportsByEmployees: {
+      BOGOTA: {
+        byItemWeek: {
+          employees: [],
+          totalItems: 0,
+        },
+        byQuantitySalePedido: {
+          employees: [],
+          totalItems: 0,
+        },
+        byItemSaleLocal: {
+          employees: [],
+          totalItems: 0,
+        },
+        byItemShipmentRetiraLocal: {
+          employees: [],
+          totalItems: 0,
+        },
+        byItemShipmentEnvio: {
+          employees: [],
+          totalItems: 0,
+        },
+        byItemConceptEmployee: {
+          employees: [],
+          totalItems: 0,
+        },
+        byItemConcept: {
+          concepts: [],
+          totalItems: 0,
+        },
+      },
+      HELGUERA: {
+        byItemWeek: {
+          employees: [],
+          totalItems: 0,
+        },
+        byQuantitySalePedido: {
+          employees: [],
+          totalItems: 0,
+        },
+        byItemSaleLocal: {
+          employees: [],
+          totalItems: 0,
+        },
+        byItemShipmentRetiraLocal: {
+          employees: [],
+          totalItems: 0,
+        },
+        byItemShipmentEnvio: {
+          employees: [],
+          totalItems: 0,
+        },
+        byItemConceptEmployee: {
+          employees: [],
+          totalItems: 0,
+        },
+        byItemConcept: {
+          concepts: [],
+          totalItems: 0,
+        },
+      },
+    },
     orders: [],
     sales: [],
+    lastSaleUpdated: null,
     salesByEmployees: [],
+    salesTransferByEmployees: [],
     showSuccessToast: false,
     showErrorToast: false,
     showSuccessToastMsg: "",
@@ -133,14 +203,18 @@ export const SaleProvider: React.FC<SaleProviderProps> = ({ children }) => {
       }
       case actionTypes.UPDATE_SALE_BY_EMPLOYEE: {
         const newSalesByEmployees = state.salesByEmployees;
-        newSalesByEmployees[action.payload.employee] = state.salesByEmployees[
-          action.payload.employee
-        ].map((sale: any) => {
-          if (sale.id === action.payload.id) {
-            return { ...sale, ...action.payload };
-          }
-          return sale;
-        });
+        const newSalesTransferByEmployees = state.salesTransferByEmployees;
+
+        if (newSalesByEmployees[action.payload.employee]) {
+          newSalesByEmployees[action.payload.employee] = newSalesByEmployees[
+            action.payload.employee
+          ].map((sale: any) => {
+            if (sale.id === action.payload.id) {
+              return { ...sale, ...action.payload };
+            }
+            return sale;
+          });
+        }
 
         return {
           ...state,
@@ -149,6 +223,15 @@ export const SaleProvider: React.FC<SaleProviderProps> = ({ children }) => {
           showSuccessToast: true,
           showSuccessToastMsg: "Venta actualizada",
           salesByEmployees: newSalesByEmployees,
+          salesTransferByEmployees: newSalesTransferByEmployees.map(
+            (sale: any) => {
+              if (sale.id === action.payload.id) {
+                return { ...sale, ...action.payload };
+              }
+              return sale;
+            }
+          ),
+          lastSaleUpdated: action.payload,
         };
       }
       case actionTypes.CANCEL_ORDERS: {
@@ -158,14 +241,34 @@ export const SaleProvider: React.FC<SaleProviderProps> = ({ children }) => {
           error: null,
           showSuccessToast: true,
           showSuccessToastMsg: "Pedidos anulados",
-          sales: state.sales.map((sale: any) => {
+          orders: state.orders.map((order: any) => {
             const foundItem = action.payload.find(
-              (order: any) => order.id === sale.id
+              (orderUpdated: any) => orderUpdated.id === order.id
             );
+
             if (foundItem) {
-              return { ...sale, ...foundItem };
+              return { ...order, ...foundItem };
             }
-            return sale;
+            return order;
+          }),
+        };
+      }
+      case actionTypes.ENABLE_ORDERS: {
+        return {
+          ...state,
+          loading: false,
+          error: null,
+          showSuccessToast: true,
+          showSuccessToastMsg: "Pedidos Habilitados",
+          orders: state.orders.map((order: any) => {
+            const foundItem = action.payload.find(
+              (orderUpdated: any) => orderUpdated.id === order.id
+            );
+
+            if (foundItem) {
+              return { ...order, ...foundItem };
+            }
+            return order;
           }),
         };
       }
@@ -190,7 +293,11 @@ export const SaleProvider: React.FC<SaleProviderProps> = ({ children }) => {
         };
       }
       case actionTypes.REMOVE_SALES: {
-        const formatIdSalesRemoved = action.payload.map(({ id }: any) => id);
+        const { salesIds, cashflowIds } = action.payload;
+        const newSalesTransferByEmployees = state.salesTransferByEmployees;
+        const formatIdSalesRemoved = [...salesIds, ...cashflowIds].map(
+          ({ id }: any) => id
+        );
         const newSalesByEmployees: any = {};
 
         Object.entries(state.salesByEmployees).forEach(
@@ -208,6 +315,9 @@ export const SaleProvider: React.FC<SaleProviderProps> = ({ children }) => {
           loading: false,
           error: null,
           salesByEmployees: newSalesByEmployees,
+          salesTransferByEmployees: newSalesTransferByEmployees.filter(
+            (sale: any) => !formatIdSalesRemoved.includes(sale.id)
+          ),
         };
       }
       case actionTypes.SUCCESS_PRINT: {
@@ -255,6 +365,13 @@ export const SaleProvider: React.FC<SaleProviderProps> = ({ children }) => {
           reports: { ...action.payload },
         };
       }
+      case actionTypes.LIST_REPORTS_BY_EMPLOYEES: {
+        return {
+          ...state,
+          loading: false,
+          reportsByEmployees: { ...action.payload },
+        };
+      }
       case actionTypes.LIST_SALES_BY_EMPLOYEES: {
         return {
           ...state,
@@ -262,16 +379,36 @@ export const SaleProvider: React.FC<SaleProviderProps> = ({ children }) => {
           salesByEmployees: action.payload,
         };
       }
+      case actionTypes.LIST_SALES_TRANSFER_BY_EMPLOYEES: {
+        return {
+          ...state,
+          loading: false,
+          salesTransferByEmployees: action.payload,
+        };
+      }
       case actionTypes.LIST_SALE_BY_EMPLOYEES: {
         const newSalesByEmployees = state.salesByEmployees;
 
-        const lastSale =
-          newSalesByEmployees[action.payload.employee][
-            newSalesByEmployees[action.payload.employee].length - 1
-          ];
+        let lastNonIngresoIndex = -1;
 
-        if (lastSale.id !== action.payload.id) {
-          newSalesByEmployees[action.payload.employee].push(action.payload);
+        newSalesByEmployees[action.payload.employee].forEach(
+          (sale: any, idx: number) => {
+            if (!sale.type) {
+              lastNonIngresoIndex = idx;
+            }
+          }
+        );
+
+        const findValue = newSalesByEmployees[action.payload.employee].find(
+          (sale: any) => sale.id === action.payload.id
+        );
+
+        if (!findValue) {
+          newSalesByEmployees[action.payload.employee].splice(
+            lastNonIngresoIndex + 1,
+            0,
+            action.payload
+          );
         }
 
         return {
@@ -345,8 +482,48 @@ export const saleActions = {
         });
       }
     },
+  getReportsByEmployees:
+    ({ startDate, endDate, month, year, employees, typeDate }: any) =>
+    async (dispatch: any) => {
+      dispatch({
+        type: actionTypes.LOADING,
+        payload: { loading: true },
+      });
+
+      try {
+        const { data } = await Api.getReportsByEmployees({
+          startDate,
+          endDate,
+          month,
+          year,
+          employees: employees.join(","),
+          typeDate,
+        });
+
+        dispatch({
+          type: actionTypes.LIST_REPORTS_BY_EMPLOYEES,
+          payload: data,
+        });
+      } catch (error) {
+        console.log(error);
+
+        dispatch({
+          type: actionTypes.ERROR,
+          payload: ERROR_MESSAGE_TIMEOUT,
+        });
+      }
+    },
   getOrders:
-    ({ startDate, endDate, typeSale, store, employee, typeShipment }: any) =>
+    ({
+      startDate,
+      endDate,
+      typeSale,
+      store,
+      employee,
+      typeShipment,
+      checkoutDate,
+      q,
+    }: any) =>
     async (dispatch: any) => {
       dispatch({
         type: actionTypes.LOADING,
@@ -361,6 +538,8 @@ export const saleActions = {
           store,
           employee,
           typeShipment,
+          checkoutDate,
+          q,
         });
 
         dispatch({
@@ -376,7 +555,38 @@ export const saleActions = {
         });
       }
     },
-  getSalesByDay:
+  getOrdersCheckoutDate:
+    ({ startDate, endDate, typeSale, store, employee, typeShipment }: any) =>
+    async (dispatch: any) => {
+      dispatch({
+        type: actionTypes.LOADING,
+        payload: { loading: true },
+      });
+
+      try {
+        const { data } = await Api.getOrdersCheckoutDate({
+          startDate,
+          endDate,
+          typeSale,
+          store,
+          typeShipment,
+          employee,
+        });
+
+        dispatch({
+          type: actionTypes.LIST_ORDERS,
+          payload: data.results,
+        });
+      } catch (error) {
+        console.log(error);
+
+        dispatch({
+          type: actionTypes.ERROR,
+          payload: ERROR_MESSAGE_TIMEOUT,
+        });
+      }
+    },
+  getSalesCashByDay:
     ({ date, store }: any) =>
     async (dispatch: any) => {
       dispatch({
@@ -385,13 +595,40 @@ export const saleActions = {
       });
 
       try {
-        const { data } = await Api.getSalesByDay({
+        const { data } = await Api.getSalesCashByDay({
           date,
           store,
         });
 
         dispatch({
           type: actionTypes.LIST_SALES_BY_EMPLOYEES,
+          payload: data.results,
+        });
+      } catch (error) {
+        console.log(error);
+
+        dispatch({
+          type: actionTypes.ERROR,
+          payload: ERROR_MESSAGE_TIMEOUT,
+        });
+      }
+    },
+  getSalesTranferByDay:
+    ({ date, store }: any) =>
+    async (dispatch: any) => {
+      dispatch({
+        type: actionTypes.LOADING,
+        payload: { loading: true },
+      });
+
+      try {
+        const { data } = await Api.getSalesTranferByDay({
+          date,
+          store,
+        });
+
+        dispatch({
+          type: actionTypes.LIST_SALES_TRANSFER_BY_EMPLOYEES,
           payload: data.results,
         });
       } catch (error) {
@@ -446,7 +683,37 @@ export const saleActions = {
       username,
       numOrder,
       typeShipment,
-      total,
+      percentageCash,
+      percentageTransfer,
+      cashWithDisccount,
+      transferWithRecharge,
+      totalCash,
+      totalTransfer,
+      totalToPay,
+      totalFinal,
+      isWithPrepaid,
+      accountForTransfer,
+      cashierId,
+      cashierName,
+      // Nuevos campos jeans/remeras
+      itemsJeans,
+      itemsRemeras,
+      itemsDevolutionJeans,
+      itemsDevolutionRemeras,
+      subTotalCashJeans,
+      subTotalCashRemeras,
+      subTotalTransferJeans,
+      subTotalTransferRemeras,
+      subTotalDevolutionCashJeans,
+      subTotalDevolutionCashRemeras,
+      subTotalDevolutionTransferJeans,
+      subTotalDevolutionTransferRemeras,
+      amountOfSurchargesCash,
+      amountOfDiscountCash,
+      amountOfSurchargesTransfer,
+      amountOfDiscountTransfer,
+      baseCash,
+      baseTransfer,
     }: any) =>
     async (dispatch: any) => {
       dispatch({
@@ -468,7 +735,37 @@ export const saleActions = {
           username,
           numOrder,
           typeShipment,
-          total,
+          percentageCash,
+          percentageTransfer,
+          cashWithDisccount,
+          transferWithRecharge,
+          totalCash,
+          totalTransfer,
+          totalToPay,
+          totalFinal,
+          isWithPrepaid,
+          accountForTransfer,
+          cashierId,
+          cashierName,
+          // Nuevos campos
+          itemsJeans,
+          itemsRemeras,
+          itemsDevolutionJeans,
+          itemsDevolutionRemeras,
+          subTotalCashJeans,
+          subTotalCashRemeras,
+          subTotalTransferJeans,
+          subTotalTransferRemeras,
+          subTotalDevolutionCashJeans,
+          subTotalDevolutionCashRemeras,
+          subTotalDevolutionTransferJeans,
+          subTotalDevolutionTransferRemeras,
+          amountOfSurchargesCash,
+          amountOfDiscountCash,
+          amountOfSurchargesTransfer,
+          amountOfDiscountTransfer,
+      baseCash,
+      baseTransfer,
         });
 
         dispatch({
@@ -485,7 +782,7 @@ export const saleActions = {
       }
     },
   addNewSaleByEmployee:
-    ({ items, total, employee, store, username }: any) =>
+    ({ items, cash, total, employee, store, username }: any) =>
     async (dispatch: any) => {
       dispatch({
         type: actionTypes.LOADING,
@@ -495,6 +792,7 @@ export const saleActions = {
       try {
         const { data } = await Api.addNewSaleByEmployee({
           items,
+          cash,
           total,
           employee,
           store,
@@ -531,7 +829,7 @@ export const saleActions = {
       });
     },
   updateOrder:
-    ({ id, dataIndex, value }: any) =>
+    ({ id, dataIndex, value, onlyOneField, cashierId, cashierName }: any) =>
     async (dispatch: any) => {
       dispatch({
         type: actionTypes.LOADING,
@@ -543,6 +841,9 @@ export const saleActions = {
           id,
           dataIndex,
           value,
+          onlyOneField,
+          cashierId,
+          cashierName,
         });
 
         dispatch({
@@ -587,7 +888,7 @@ export const saleActions = {
       }
     },
   cancelOrders:
-    ({ itemsIdSelected }: any) =>
+    ({ itemsIdSelected, reason, user }: any) =>
     async (dispatch: any) => {
       dispatch({
         type: actionTypes.LOADING,
@@ -595,8 +896,15 @@ export const saleActions = {
       });
 
       try {
+        const now = new Date();
+        const offset = now.getTimezoneOffset();
+        const localDate = new Date(now.getTime() - offset * 60000);
+
         const { data } = await Api.cancelOrders({
           itemsIdSelected,
+          reason,
+          user,
+          cancellationDate: localDate.toISOString(),
         });
 
         dispatch({
@@ -612,8 +920,7 @@ export const saleActions = {
         });
       }
     },
-
-  removeSales:
+  enableOrders:
     ({ itemsIdSelected }: any) =>
     async (dispatch: any) => {
       dispatch({
@@ -622,13 +929,41 @@ export const saleActions = {
       });
 
       try {
-        await Api.cancelOrders({
+        const { data } = await Api.enableOrders({
           itemsIdSelected,
         });
 
         dispatch({
+          type: actionTypes.ENABLE_ORDERS,
+          payload: data.results,
+        });
+      } catch (error) {
+        console.log(error);
+
+        dispatch({
+          type: actionTypes.ERROR,
+          payload: ERROR_MESSAGE_TIMEOUT,
+        });
+      }
+    },
+
+  removeSales:
+    ({ salesIds, cashflowIds }: any) =>
+    async (dispatch: any) => {
+      dispatch({
+        type: actionTypes.LOADING,
+        payload: { loading: true },
+      });
+
+      try {
+        await Api.removeSales({
+          salesIds,
+          cashflowIds,
+        });
+
+        dispatch({
           type: actionTypes.REMOVE_SALES,
-          payload: itemsIdSelected,
+          payload: { salesIds, cashflowIds },
         });
       } catch (error) {
         console.log(error);
@@ -652,6 +987,13 @@ export const saleActions = {
       pricesDevolutionWithconcepts,
       totalPrices,
       totalDevolutionPrices,
+      percentageCash,
+      percentageTransfer,
+      cashWithDisccount,
+      transferWithRecharge,
+      totalCash,
+      totalTransfer,
+      totalToPay,
       total,
     }: any) =>
     async (dispatch: any) => {
@@ -673,6 +1015,13 @@ export const saleActions = {
           pricesDevolutionWithconcepts,
           totalPrices,
           totalDevolutionPrices,
+          percentageCash,
+          percentageTransfer,
+          cashWithDisccount,
+          transferWithRecharge,
+          totalCash,
+          totalTransfer,
+          totalToPay,
           total,
         });
 

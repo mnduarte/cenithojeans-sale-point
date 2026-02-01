@@ -10,6 +10,8 @@ const actionTypes = {
   LIST_CASHFLOW: "list_cashflow",
   LIST_OUTGOINGS_BY_DAY: "list_outgoins_by_day",
   SET_HIDE_TOAST: "set_hide_toast",
+  UPDATE_CASHFLOW: "update_cashflow",
+  REMOVE_CASHFLOW: "remove_cashflow",
 };
 
 const CashflowContext = createContext<any>(undefined);
@@ -70,6 +72,40 @@ export const CashflowProvider: React.FC<CashflowProviderProps> = ({
           outgoings: action.payload.outgoings,
         };
       }
+      case actionTypes.UPDATE_CASHFLOW: {
+        return {
+          ...state,
+          loading: false,
+          error: false,
+          incomes: state.incomes.map((income: any) => {
+            if (income.id === action.payload.id) {
+              return { ...income, ...action.payload };
+            }
+            return income;
+          }),
+          outgoings: state.outgoings.map((outgoing: any) => {
+            if (outgoing.id === action.payload.id) {
+              return { ...outgoing, ...action.payload };
+            }
+            return outgoing;
+          }),
+        };
+      }
+      case actionTypes.REMOVE_CASHFLOW: {
+        const { cashflowIds } = action.payload;
+        const formatIdCashflowRemoved = cashflowIds.map(({ id }: any) => id);
+        return {
+          ...state,
+          loading: false,
+          error: false,
+          incomes: state.incomes.filter(
+            (income: any) => !formatIdCashflowRemoved.includes(income.id)
+          ),
+          outgoings: state.outgoings.filter(
+            (outgoing: any) => !formatIdCashflowRemoved.includes(outgoing.id)
+          ),
+        };
+      }
       case actionTypes.LIST_OUTGOINGS_BY_DAY: {
         return {
           ...state,
@@ -112,7 +148,18 @@ export const useCashflow = () => {
 // Acciones para modificar el estado del contexto de precios
 export const cashflowActions = {
   addCashflow:
-    ({ type, amount, employee, store, description, items }: any) =>
+    ({
+      type,
+      amount,
+      employee,
+      store,
+      description,
+      items,
+      typePayment,
+      date,
+      cashierId,
+      cashierName,
+    }: any) =>
     async (dispatch: any) => {
       dispatch({
         type: actionTypes.LOADING,
@@ -127,11 +174,69 @@ export const cashflowActions = {
           store,
           description,
           items,
+          typePayment,
+          date,
+          cashierId,
+          cashierName,
         });
 
         dispatch({
           type: actionTypes.ADD_SUCCESS,
           payload: `${type} añadido!!`,
+        });
+      } catch (error) {
+        console.log(error);
+
+        dispatch({
+          type: actionTypes.ERROR,
+          payload: ERROR_MESSAGE_TIMEOUT,
+        });
+      }
+    },
+  updateCashflow:
+    ({ id, dataIndex, value }: any) =>
+    async (dispatch: any) => {
+      dispatch({
+        type: actionTypes.LOADING,
+        payload: { loading: true },
+      });
+
+      try {
+        const { data } = await Api.updateCashflow({
+          id,
+          dataIndex,
+          value,
+        });
+
+        dispatch({
+          type: actionTypes.UPDATE_CASHFLOW,
+          payload: data.results,
+        });
+      } catch (error) {
+        console.log(error);
+
+        dispatch({
+          type: actionTypes.ERROR,
+          payload: ERROR_MESSAGE_TIMEOUT,
+        });
+      }
+    },
+  removeCashflows:
+    ({ cashflowIds }: any) =>
+    async (dispatch: any) => {
+      dispatch({
+        type: actionTypes.LOADING,
+        payload: { loading: true },
+      });
+
+      try {
+        await Api.removeCashflows({
+          cashflowIds,
+        });
+
+        dispatch({
+          type: actionTypes.REMOVE_CASHFLOW,
+          payload: { cashflowIds },
         });
       } catch (error) {
         console.log(error);

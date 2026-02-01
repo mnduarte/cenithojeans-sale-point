@@ -1,21 +1,17 @@
 import { useEffect, useState } from "react";
-import { usePrice } from "../contexts/PriceContext";
-import { useEmployee } from "../contexts/EmployeeContext";
-import {
-  Price,
-  PriceDevolutionSelected,
-  PriceSelected,
-  SaleItem,
-} from "../types";
+import { usePrice } from "../../contexts/PriceContext";
+import { useEmployee } from "../../contexts/EmployeeContext";
+import { saleActions, useSale } from "../../contexts/SaleContext";
+import { Price, PriceSelected, SaleItem } from "../../types";
 import ShoppingCartContainer from "./ShoppingCartContainer";
 import ListOfPricesContainer from "./ListOfPricesContainer";
 import ConfirmSale from "./ConfirmSale";
-import { saleActions, useSale } from "../contexts/SaleContext";
-import Toast from "../components/Toast";
-import KeyboardNum from "../components/KeyboardNum";
-import { useUser } from "../contexts/UserContext";
-import { concepts } from "../utils/constants";
-import { calculateTotalPercentage } from "../utils/formatUtils";
+import Toast from "../../components/Toast";
+import KeyboardNum from "../../components/KeyboardNum";
+import { useUser } from "../../contexts/UserContext";
+import { concepts } from "../../utils/constants";
+import { useAccountForTransfer } from "../../contexts/AccountForTransferContext";
+import { useCashier } from "../../contexts/CashierContext";
 
 const SalesContainer = () => {
   const {
@@ -28,6 +24,7 @@ const SalesContainer = () => {
   const {
     state: { user },
   } = useUser();
+  const { selectedCashier } = useCashier();
 
   const {
     state: {
@@ -41,15 +38,17 @@ const SalesContainer = () => {
     dispatch: dispatchSale,
   } = useSale();
 
-  const [pricesFiltered, setPricesFiltered] = useState<any[]>([]);
   const [employeesFiltered, setEmployeesFiltered] = useState<any[]>([]);
+
+  const {
+    state: { accountsForTransfer },
+  } = useAccountForTransfer();
 
   const [pricesSelected, setPricesSelected] = useState<any[]>([]);
   const [devolutionPricesSelected, setDevolutionPricesSelected] = useState<
     any[]
   >([]);
 
-  const [searchAmount, setSearchAmount] = useState("");
   const [manualPrice, setManualPrice] = useState("");
   const [totalItems, setTotalItems] = useState(0);
   const [totalDevolutionItems, setTotalDevolutionItems] = useState(0);
@@ -65,6 +64,9 @@ const SalesContainer = () => {
   const [itemIdFocusForQuantity, setItemIdFocusForQuantity] = useState("");
   const [quantityForItem, setQuantityForItem] = useState("");
   const [concept, setConcept] = useState("");
+  const [enabledDisplacedPrices, setEnabledDisplacedPrices] = useState(false);
+  const [enabledDisplacedDevolutions, setEnabledDisplacedDevolutions] =
+    useState(false);
 
   const openModalSale = () => {
     setIsModalSaleOpen(true);
@@ -100,12 +102,6 @@ const SalesContainer = () => {
   }, [pricesSelected, devolutionPricesSelected]);
 
   useEffect(() => {
-    const activePrices = prices.filter((price: any) => price.active);
-
-    setPricesFiltered(activePrices);
-  }, [prices]);
-
-  useEffect(() => {
     const activeEmployees = employees.filter((price: any) => price.active);
 
     setEmployeesFiltered(activeEmployees);
@@ -118,16 +114,17 @@ const SalesContainer = () => {
   }, [isModalSaleOpen]);
 
   const onSale = (data: any) => {
-    const totalToPay = totalPrices - (totalDevolutionPrices || 0);
-
     data.items = totalItems - totalDevolutionItems;
     data.subTotalItems = totalPrices;
     data.devolutionItems = totalDevolutionItems;
     data.subTotalDevolutionItems = totalDevolutionPrices;
     data.percentageToDisccountOrAdd = percentageToDisccountOrAdd;
     data.username = user.username;
-    data.total =
-      totalToPay * calculateTotalPercentage(percentageToDisccountOrAdd);
+    data.cashierId = selectedCashier?.id || null;
+    data.cashierName = selectedCashier?.name || null;
+
+    // Los nuevos campos (itemsJeans, itemsRemeras, subtotals, amounts) 
+    // ya vienen calculados desde ConfirmSale.tsx en el objeto data
 
     dispatchSale(saleActions.addSale(data)(dispatchSale));
   };
@@ -161,7 +158,9 @@ const SalesContainer = () => {
 
   const addManualPrice = (concept: any) => {
     if (manualPrice) {
-      const [foundConcept]: any = concepts.filter((c) => c.value === concept);
+      const [foundConcept]: any = concepts.filter(
+        (c: any) => c.value === concept
+      );
 
       let setPricesItems = devolutionModeActive
         ? setDevolutionPricesSelected
@@ -262,6 +261,14 @@ const SalesContainer = () => {
     numOrder,
     pricesWithconcepts,
     pricesDevolutionWithconcepts,
+    percentageCash,
+    percentageTransfer,
+    cashWithDisccount,
+    transferWithRecharge,
+    totalCash,
+    totalTransfer,
+    totalToPay,
+    totalFinal,
   }: any) =>
     dispatchSale(
       saleActions.printSale({
@@ -273,14 +280,20 @@ const SalesContainer = () => {
         username: user.username,
         seller: sellerSelected,
         typeSale,
-        numOrder,
+        numOrder: numOrder || (typeSale === "local" ? lastNumOrder : 0),
         pricesWithconcepts,
         pricesDevolutionWithconcepts,
         totalPrices: totalPrices,
         totalDevolutionPrices: totalDevolutionPrices,
-        total:
-          (totalPrices - totalDevolutionPrices) *
-          calculateTotalPercentage(percentageToDisccountOrAdd),
+        percentageCash,
+        percentageTransfer,
+        cashWithDisccount,
+        transferWithRecharge,
+        totalCash,
+        totalTransfer,
+        totalToPay,
+        total: totalFinal,
+        cashierName: selectedCashier?.name || "",
       })(dispatchSale)
     );
 
@@ -306,26 +319,29 @@ const SalesContainer = () => {
           setIsModalKeyboardNumOpen={setIsModalKeyboardNumOpen}
           handleQuantityByPrice={handleQuantityByPrice}
           handleOpenKeyboardNum={handleOpenKeyboardNum}
+          enabledDisplacedPrices={enabledDisplacedPrices}
+          setEnabledDisplacedPrices={setEnabledDisplacedPrices}
+          enabledDisplacedDevolutions={enabledDisplacedDevolutions}
+          setEnabledDisplacedDevolutions={setEnabledDisplacedDevolutions}
         />
       </div>
       <div className="w-4/5">
         <ListOfPricesContainer
           prices={prices}
-          setSearchAmount={setSearchAmount}
-          setPricesFiltered={setPricesFiltered}
           pricesSelected={pricesSelected}
           setPricesSelected={setPricesSelected}
           devolutionPricesSelected={devolutionPricesSelected}
           setDevolutionPricesSelected={setDevolutionPricesSelected}
-          searchAmount={searchAmount}
-          pricesFiltered={pricesFiltered}
           devolutionModeActive={devolutionModeActive}
           setDevolutionModeActive={setDevolutionModeActive}
           isLoading={loadingPrices || loadingEmployees}
+          setEnabledDisplacedPrices={setEnabledDisplacedPrices}
+          setEnabledDisplacedDevolutions={setEnabledDisplacedDevolutions}
         />
       </div>
       <ConfirmSale
         employees={employeesFiltered}
+        accountsForTransfer={accountsForTransfer}
         isModalSaleOpen={isModalSaleOpen}
         setIsModalSaleOpen={setIsModalSaleOpen}
         totalItems={totalItems}

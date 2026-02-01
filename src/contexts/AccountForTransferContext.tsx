@@ -6,49 +6,49 @@ import Api from "../services/Api";
 const actionTypes = {
   LOADING: "loading",
   ERROR: "error",
-  LIST_EMPLOYEES: "list_employees",
+  LIST_ACCOUNTS_FOR_TRANSFER: "list_accounts_for_transfer",
   SUCCESS_NEW_NUM_ORDER: "success_new_num_order",
   SET_HIDE_TOAST: "set_hide_toast",
 };
 // Tipo de estado para el contexto de empleados
-type EmployeeState = {
+type AccountForTransferState = {
   loading: boolean;
   error: any;
-  employees: any[];
+  accountsForTransfer: any[];
   showSuccessToast: boolean;
   showErrorToast: boolean;
   showSuccessToastMsg: any;
 };
 // Crear el contexto de precios
-type EmployeeContextType = {
-  state: EmployeeState; // Asegúrate de que PriceState esté definido según tu estructura
+type AccountForTransferContextType = {
+  state: AccountForTransferState; // Asegúrate de que PriceState esté definido según tu estructura
   dispatch: React.Dispatch<any>; // O ajusta el tipo según tu implementación
 };
 
 // Crear el contexto de precios
-const EmployeeContext = createContext<EmployeeContextType | undefined>(
-  undefined
-);
+const AccountForTransferContext = createContext<
+  AccountForTransferContextType | undefined
+>(undefined);
 
-type EmployeeProviderProps = {
+type AccountForTransferProviderProps = {
   children?: React.ReactNode;
 };
 
 // Proveedor de contexto para el contexto de precios
-export const EmployeeProvider: React.FC<EmployeeProviderProps> = ({
-  children,
-}) => {
-  const initialState: EmployeeState = {
+export const AccountForTransferProvider: React.FC<
+  AccountForTransferProviderProps
+> = ({ children }) => {
+  const initialState: AccountForTransferState = {
     loading: false,
     error: null,
-    employees: [],
+    accountsForTransfer: [],
     showSuccessToast: false,
     showErrorToast: false,
     showSuccessToastMsg: "",
   };
 
   // Reducer para manejar acciones
-  const reducer = (state: EmployeeState, action: any) => {
+  const reducer = (state: AccountForTransferState, action: any) => {
     switch (action.type) {
       case actionTypes.LOADING: {
         return {
@@ -66,11 +66,13 @@ export const EmployeeProvider: React.FC<EmployeeProviderProps> = ({
           showSuccessToastMsg: "¡Error! Algo salió mal.",
         };
       }
-      case actionTypes.LIST_EMPLOYEES: {
+      case actionTypes.LIST_ACCOUNTS_FOR_TRANSFER: {
         return {
           ...state,
           loading: false,
-          employees: action.payload,
+          accountsForTransfer: action.payload.sort(
+            (a: any, b: any) => a.position - b.position
+          ),
         };
       }
       case actionTypes.SUCCESS_NEW_NUM_ORDER: {
@@ -98,23 +100,25 @@ export const EmployeeProvider: React.FC<EmployeeProviderProps> = ({
   const [state, dispatch] = useReducer(reducer, initialState);
 
   return (
-    <EmployeeContext.Provider value={{ state, dispatch }}>
+    <AccountForTransferContext.Provider value={{ state, dispatch }}>
       {children}
-    </EmployeeContext.Provider>
+    </AccountForTransferContext.Provider>
   );
 };
 
 // Hook personalizado para acceder al contexto de empleados
-export const useEmployee = () => {
-  const context = useContext(EmployeeContext);
+export const useAccountForTransfer = () => {
+  const context = useContext(AccountForTransferContext);
   if (!context) {
-    throw new Error("useEmployee debe usarse dentro de un EmployeeProvider");
+    throw new Error(
+      "useAccountForTransfer debe usarse dentro de un AccountForTranferProvider"
+    );
   }
   return context;
 };
 
 // Acciones para modificar el estado del contexto de precios
-export const employeeActions = {
+export const accountForTransferActions = {
   getAll:
     ({ store }: any) =>
     async (dispatch: any) => {
@@ -124,10 +128,10 @@ export const employeeActions = {
       });
 
       try {
-        const { data } = await Api.getEmployees({ store });
+        const { data } = await Api.getAccountsForTransfer({ store });
 
         dispatch({
-          type: actionTypes.LIST_EMPLOYEES,
+          type: actionTypes.LIST_ACCOUNTS_FOR_TRANSFER,
           payload: data.results,
         });
       } catch (error) {
@@ -139,8 +143,8 @@ export const employeeActions = {
         });
       }
     },
-  addEmployee:
-    ({ name, store, position, active, activeForCost, saleType }: any) =>
+  addAccountForTransfer:
+    ({ name, store, position, active }: any) =>
     async (dispatch: any) => {
       dispatch({
         type: actionTypes.LOADING,
@@ -148,17 +152,15 @@ export const employeeActions = {
       });
 
       try {
-        const { data } = await Api.addEmployee({
+        const { data } = await Api.addAccountForTransfer({
           name,
           store,
           position,
           active,
-          activeForCost,
-          saleType,
         });
 
         dispatch({
-          type: actionTypes.LIST_EMPLOYEES,
+          type: actionTypes.LIST_ACCOUNTS_FOR_TRANSFER,
           payload: data.results,
         });
       } catch (error) {
@@ -170,8 +172,8 @@ export const employeeActions = {
         });
       }
     },
-  updateEmployee:
-    ({ id, name, store, position, active, activeForCost, saleType }: any) =>
+  updateAccountForTransfer:
+    ({ id, name, store, position, active, activeForCost }: any) =>
     async (dispatch: any) => {
       dispatch({
         type: actionTypes.LOADING,
@@ -179,18 +181,16 @@ export const employeeActions = {
       });
 
       try {
-        const { data } = await Api.updateEmployee({
+        const { data } = await Api.updateAccountForTransfer({
           id,
           name,
           store,
           position,
           active,
-          activeForCost,
-          saleType,
         });
 
         dispatch({
-          type: actionTypes.LIST_EMPLOYEES,
+          type: actionTypes.LIST_ACCOUNTS_FOR_TRANSFER,
           payload: data.results,
         });
       } catch (error) {
@@ -202,34 +202,7 @@ export const employeeActions = {
         });
       }
     },
-  addNewNumOrder:
-    ({ employeeId, newNumOrder }: any) =>
-    async (dispatch: any) => {
-      dispatch({
-        type: actionTypes.LOADING,
-        payload: { loading: true },
-      });
-
-      try {
-        const { data } = await Api.addNewNumOrder({
-          employeeId,
-          newNumOrder,
-        });
-
-        dispatch({
-          type: actionTypes.SUCCESS_NEW_NUM_ORDER,
-          payload: data.results,
-        });
-      } catch (error) {
-        console.log(error);
-
-        dispatch({
-          type: actionTypes.ERROR,
-          payload: ERROR_MESSAGE_TIMEOUT,
-        });
-      }
-    },
-  removeEmployee:
+  removeAccountForTransfer:
     ({ id }: any) =>
     async (dispatch: any) => {
       dispatch({
@@ -238,10 +211,10 @@ export const employeeActions = {
       });
 
       try {
-        const { data } = await Api.removeEmployee({ id });
+        const { data } = await Api.removeAccountForTransfer({ id });
 
         dispatch({
-          type: actionTypes.LIST_EMPLOYEES,
+          type: actionTypes.LIST_ACCOUNTS_FOR_TRANSFER,
           payload: data.results,
         });
       } catch (error) {

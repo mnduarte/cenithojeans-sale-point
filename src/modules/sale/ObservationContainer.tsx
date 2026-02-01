@@ -1,18 +1,22 @@
 import { useState } from "react";
 import { MdClose } from "react-icons/md";
-import Spinner from "../components/Spinner";
-import Toast from "../components/Toast";
-import Keyboard from "../components/Keyboard";
-import { useUser } from "../contexts/UserContext";
+import Spinner from "../../components/Spinner";
+import Toast from "../../components/Toast";
+import Keyboard from "../../components/Keyboard";
+import { useUser } from "../../contexts/UserContext";
 import {
   observationActions,
   useObservation,
-} from "../contexts/ObservationContext";
+} from "../../contexts/ObservationContext";
+import { useTheme } from "../../contexts/ThemeContext";
 
 const ObservationContainer = ({
   isModalObservationOpen,
   setIsModalObservationOpen,
 }: any) => {
+  const {
+    state: { theme, themeStyles },
+  } = useTheme();
   const {
     state: { user },
   } = useUser();
@@ -36,7 +40,7 @@ const ObservationContainer = ({
   const handleObservation = () => {
     const data = {
       observation,
-      store: user.store,
+      store: user.store === "ALL" ? "BOGOTA" : user.store,
       username: user.username,
     };
 
@@ -51,24 +55,21 @@ const ObservationContainer = ({
       {isModalObservationOpen && (
         <div className="fixed inset-0 bg-[#252525] bg-opacity-60 flex items-center justify-center">
           {/* Contenido del modal */}
-          <div className="w-[60vh] bg-gray-800 border border-[#000000] p-8 rounded shadow-md relative">
+          <div
+            className={`w-[60vh] p-8 rounded-md shadow-md relative  ${themeStyles[theme].tailwindcss.modal}`}
+          >
             {/* Icono de cerrar en la esquina superior derecha */}
-            <button
-              className="absolute top-4 right-4 text-white"
-              onClick={closeModal}
-            >
+            <button className="absolute top-4 right-4" onClick={closeModal}>
               <MdClose className="text-2xl" />
             </button>
 
-            <h2 className="text-white text-lg font-bold mb-4">
-              Agregar Observacion
-            </h2>
+            <h2 className=" text-lg font-bold mb-4">Agregar Observacion</h2>
 
             <div className="mb-4">
               <textarea
                 value={observation}
                 readOnly
-                className="w-[50vh] p-2 border border-[#484E55] rounded-md mr-2 text-lg"
+                className={`w-[50vh] p-2 rounded-md mr-2 text-lg ${themeStyles[theme].tailwindcss.inputText}`}
               />
             </div>
 

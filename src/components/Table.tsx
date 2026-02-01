@@ -1,6 +1,7 @@
 import { FaCheck } from "react-icons/fa";
 import { MdClose } from "react-icons/md";
 import { formatCurrency } from "../utils/formatUtils";
+import { useTheme } from "../contexts/ThemeContext";
 
 const Table = ({
   data,
@@ -10,16 +11,25 @@ const Table = ({
   enableSelectItem = false,
   itemsIdSelected = false,
   setItemsIdSelected = false,
+  showZero = false,
 }: any) => {
+  const {
+    state: { theme, themeStyles },
+  } = useTheme();
+
   return (
-    <table className="w-full bg-[#252525] border border-[#2A2B2A] ">
+    <table className={`w-full ${themeStyles[theme].tailwindcss.table.main}`}>
       <thead>
         <tr className="border-b-2 border-[#1BA1E2]">
-          {enableSelectItem && <th className="p-2 px-5"></th>}
+          {enableSelectItem && (
+            <th
+              className={`p-2 px-5 ${themeStyles[theme].tailwindcss.table.thead.th}`}
+            ></th>
+          )}
           {columns.map((column: any) => (
             <th
               key={column.title}
-              className="text-left font-normal border border-[#333333] p-2 px-5"
+              className={`text-left font-normal p-2 px-5 ${themeStyles[theme].tailwindcss.table.thead.th}`}
             >
               {column.title}
             </th>
@@ -32,17 +42,19 @@ const Table = ({
             key={item.id}
             className={
               itemSelected.id === item.id
-                ? "bg-[#1b78e2]"
+                ? themeStyles[theme].tailwindcss.table.par
                 : index % 2 === 0
-                ? "bg-[#1E1E1E]"
-                : "hover:bg-[#1E1E1E]"
+                ? themeStyles[theme].tailwindcss.table.impar
+                : themeStyles[theme].tailwindcss.table.hover
             }
             onClick={() => {
               setItemSelected && setItemSelected(item);
             }}
           >
             {enableSelectItem && (
-              <td className="p-2 pl-2 border border-[#292A28]">
+              <td
+                className={`p-2 pl-2 ${themeStyles[theme].tailwindcss.table.tbody.td}`}
+              >
                 <input
                   type="checkbox"
                   checked={Boolean(
@@ -57,14 +69,18 @@ const Table = ({
                       return items.filter((i: any) => i.id !== item.id);
                     });
                   }}
-                  className="form-checkbox h-5 w-5 text-[#1BA1E2] focus:ring-[#1BA1E2] border-gray-300 rounded"
+                  className={`form-checkbox h-4 w-4 border border-gray-300 ${
+                    Boolean(
+                      !itemsIdSelected.find((i: any) => i.id === item.id)
+                    ) && themeStyles[theme].tailwindcss.table.checkbox
+                  } rounded p-2`}
                 />
               </td>
             )}
 
             {columns.map((column: any, idx: number) => (
               <td
-                className="text-right p-2 px-3 border border-[#292A28]"
+                className={`text-right p-2 px-3 ${themeStyles[theme].tailwindcss.table.tbody.td}`}
                 key={idx}
               >
                 {typeof item[column.dataIndex] === "boolean" ? (
@@ -81,7 +97,8 @@ const Table = ({
                   ) : (
                     "-"
                   )
-                ) : Boolean(item[column.dataIndex]) ? (
+                ) : Boolean(item[column.dataIndex]) ||
+                  (item[column.dataIndex] === 0 && showZero) ? (
                   item[column.dataIndex]
                 ) : (
                   "-"

@@ -1,3 +1,64 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.ant-picker-custom-style .ant-picker-panel-container,
+.ant-picker-custom-style .ant-picker-date-panel-container,
+.ant-picker-custom-style .ant-picker-content,
+.ant-picker-custom-style .ant-picker-header,
+.ant-picker-custom-style .ant-picker-content th,
+.ant-picker-custom-style .ant-picker-cell,
+.ant-picker-custom-style .ant-picker-super-prev-icon,
+.ant-picker-custom-style .ant-picker-prev-icon,
+.ant-picker-custom-style .ant-picker-next-icon,
+.ant-picker-custom-style .ant-picker-next-icon,
+.ant-picker-custom-style .ant-picker-super-next-icon {
+  background-color: #3b3b3b;
+  color: #fff;
+}
+
+.ant-datepicker-indicator-custom .anticon-calendar {
+  color: #fff !important;
+}
+
+.ant-selector-custom-style .ant-select-selector {
+  background-color: #3b3b3b !important;
+  color: #ffffff !important;
+}
+
+.ant-selector-custom-style .ant-select-item {
+  background-color: #3b3b3b !important;
+  color: #ffffff !important;
+}
+
+.ant-selector-custom-style .ant-select-item:hover {
+  background-color: #000000 !important;
+}
+
+.ant-selector-custom-style .ant-select-arrow {
+  color: #ffffff !important;
+}
+
+.selector-item .ant-select-item-option-content {
+  background-color: #333333;
+}
+
+.selector-item .ant-select-item,
+.selector-item .ant-select-item-option,
+.selector-item .ant-select-item-option-active,
+.selector-item .ant-select-item-option-selected {
+  background-color: #333333 !important;
+  color: #ffffff !important;
+}
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+

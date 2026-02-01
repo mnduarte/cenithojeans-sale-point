@@ -9,11 +9,11 @@ const login = ({ username, password }: any) =>
 const getStores = () => instance.get("/store/stores/");
 
 const getPrices = () => instance.get("/price/prices");
-const addPrice = ({ price, active }: any) =>
-  instance.post("/price/add-price", { price, active });
+const addPrice = ({ price, active, type }: any) =>
+  instance.post("/price/add-price", { price, active, type });
 
-const updatePrice = ({ id, price, active }: any) =>
-  instance.put("/price/update-price", { id, price, active });
+const updatePrice = ({ id, price, active, type }: any) =>
+  instance.put("/price/update-price", { id, price, active, type });
 
 const removePrice = ({ id }: any) =>
   instance.delete(`/price/remove-price/${id}`);
@@ -23,14 +23,66 @@ const deleteSelectedPrices = ({ itemsIdSelected, deleteAll }: any) =>
 
 const getEmployees = ({ store }: any) =>
   instance.post("/employee/employees/", { store });
-const addEmployee = ({ name, store, active }: any) =>
-  instance.post("/employee/add-employee", { name, store, active });
+const addEmployee = ({
+  name,
+  store,
+  position,
+  active,
+  activeForCost,
+  saleType,
+}: any) =>
+  instance.post("/employee/add-employee", {
+    name,
+    store,
+    position,
+    active,
+    activeForCost,
+    saleType,
+  });
 
-const updateEmployee = ({ id, name, store, active }: any) =>
-  instance.put("/employee/update-employee", { id, name, store, active });
+const updateEmployee = ({
+  id,
+  name,
+  store,
+  position,
+  active,
+  activeForCost,
+  saleType,
+}: any) =>
+  instance.put("/employee/update-employee", {
+    id,
+    name,
+    store,
+    position,
+    active,
+    activeForCost,
+    saleType,
+  });
 
 const removeEmployee = ({ id }: any) =>
   instance.delete(`/employee/remove-employee/${id}`);
+
+const getAccountsForTransfer = ({ store }: any) =>
+  instance.post("/accounttransfer/", { store });
+const addAccountForTransfer = ({ name, store, position, active }: any) =>
+  instance.post("/accounttransfer/add", {
+    name,
+    store,
+    position,
+    active,
+  });
+
+const updateAccountForTransfer = ({ id, name, store, position, active }: any) =>
+  instance.put("/accounttransfer/", {
+    id,
+    name,
+    store,
+    position,
+    active,
+  });
+
+const removeAccountForTransfer = ({ id }: any) =>
+  instance.delete(`/accounttransfer/${id}`);
 
 const getSales = ({ startDate, endDate, store, employee }: any) => {
   const config: AxiosRequestConfig = {
@@ -52,6 +104,8 @@ const getOrders = ({
   store,
   employee,
   typeShipment,
+  checkoutDate,
+  q,
 }: any) => {
   const config: AxiosRequestConfig = {
     params: {
@@ -61,10 +115,34 @@ const getOrders = ({
       store,
       employee,
       typeShipment,
+      checkoutDate,
+      q,
     },
   };
 
   return instance.get("/sale/orders", config);
+};
+
+const getOrdersCheckoutDate = ({
+  startDate,
+  endDate,
+  typeSale,
+  store,
+  typeShipment,
+  employee,
+}: any) => {
+  const config: AxiosRequestConfig = {
+    params: {
+      startDate,
+      endDate,
+      typeSale,
+      store,
+      typeShipment,
+      employee,
+    },
+  };
+
+  return instance.get("/sale/orders-checkoutdate", config);
 };
 
 const getReports = ({ month, year, store, typeSale }: any) => {
@@ -80,6 +158,28 @@ const getReports = ({ month, year, store, typeSale }: any) => {
   return instance.get("/sale/reports", config);
 };
 
+const getReportsByEmployees = ({
+  startDate,
+  endDate,
+  month,
+  year,
+  employees,
+  typeDate,
+}: any) => {
+  const config: AxiosRequestConfig = {
+    params: {
+      startDate,
+      endDate,
+      month,
+      year,
+      employees,
+      typeDate,
+    },
+  };
+
+  return instance.get("/sale/reports-by-employees", config);
+};
+
 const getObservations = ({ month, year, store }: any) => {
   const config: AxiosRequestConfig = {
     params: {
@@ -92,7 +192,7 @@ const getObservations = ({ month, year, store }: any) => {
   return instance.get("/observation/observations", config);
 };
 
-const getSalesByDay = ({ date, store }: any) => {
+const getSalesCashByDay = ({ date, store }: any) => {
   const config: AxiosRequestConfig = {
     params: {
       date,
@@ -100,7 +200,29 @@ const getSalesByDay = ({ date, store }: any) => {
     },
   };
 
-  return instance.get("/sale/sales-by-employees", config);
+  return instance.get("/sale/sales-cash-by-employees", config);
+};
+
+const getSalesTranferByDay = ({ date, store }: any) => {
+  const config: AxiosRequestConfig = {
+    params: {
+      date,
+      store,
+    },
+  };
+
+  return instance.get("/sale/sales-transfer-by-employees", config);
+};
+
+const getSalesWithDevolutions = ({ date, store }: any) => {
+  const config: AxiosRequestConfig = {
+    params: {
+      date,
+      store,
+    },
+  };
+
+  return instance.get("/sale/sales-with-devolutions", config);
 };
 
 const getCashflowByDay = ({ date, store }: any) => {
@@ -138,7 +260,37 @@ const addSale = ({
   username,
   numOrder,
   typeShipment,
-  total,
+  percentageCash,
+  percentageTransfer,
+  cashWithDisccount,
+  transferWithRecharge,
+  totalCash,
+  totalTransfer,
+  totalToPay,
+  totalFinal,
+  isWithPrepaid,
+  accountForTransfer,
+  cashierId,
+  cashierName,
+  // Nuevos campos jeans/remeras
+  itemsJeans,
+  itemsRemeras,
+  itemsDevolutionJeans,
+  itemsDevolutionRemeras,
+  subTotalCashJeans,
+  subTotalCashRemeras,
+  subTotalTransferJeans,
+  subTotalTransferRemeras,
+  subTotalDevolutionCashJeans,
+  subTotalDevolutionCashRemeras,
+  subTotalDevolutionTransferJeans,
+  subTotalDevolutionTransferRemeras,
+  amountOfSurchargesCash,
+  amountOfDiscountCash,
+  amountOfSurchargesTransfer,
+  amountOfDiscountTransfer,
+  baseCash,
+  baseTransfer,
 }: any) =>
   instance.post("/sale/add-sale", {
     store,
@@ -153,7 +305,37 @@ const addSale = ({
     username,
     numOrder,
     typeShipment,
-    total,
+    percentageCash,
+    percentageTransfer,
+    cashWithDisccount,
+    transferWithRecharge,
+    totalCash,
+    totalTransfer,
+    totalToPay,
+    totalFinal,
+    isWithPrepaid,
+    accountForTransfer,
+    cashierId,
+    cashierName,
+    // Nuevos campos
+    itemsJeans,
+    itemsRemeras,
+    itemsDevolutionJeans,
+    itemsDevolutionRemeras,
+    subTotalCashJeans,
+    subTotalCashRemeras,
+    subTotalTransferJeans,
+    subTotalTransferRemeras,
+    subTotalDevolutionCashJeans,
+    subTotalDevolutionCashRemeras,
+    subTotalDevolutionTransferJeans,
+    subTotalDevolutionTransferRemeras,
+    amountOfSurchargesCash,
+    amountOfDiscountCash,
+    amountOfSurchargesTransfer,
+    amountOfDiscountTransfer,
+    baseCash,
+    baseTransfer,
   });
 
 const addNewNumOrder = ({ employeeId, newNumOrder }: any) =>
@@ -164,6 +346,7 @@ const addNewNumOrder = ({ employeeId, newNumOrder }: any) =>
 
 const addNewSaleByEmployee = ({
   items,
+  cash,
   total,
   employee,
   store,
@@ -171,20 +354,51 @@ const addNewSaleByEmployee = ({
 }: any) =>
   instance.post("/sale/add-sale-by-employee", {
     items,
+    cash,
     total,
     employee,
     store,
     username,
   });
 
-const updateOrder = ({ id, dataIndex, value }: any) =>
-  instance.put("/sale/update-order", { id, dataIndex, value });
+const updateOrder = ({ id, dataIndex, value, cashierId, cashierName }: any) =>
+  instance.put("/sale/update-order", {
+    id,
+    dataIndex,
+    value,
+    cashierId,
+    cashierName,
+  });
 
 const updatSaleByEmployee = ({ id, dataIndex, value }: any) =>
   instance.put("/sale/update-sale-by-employee", { id, dataIndex, value });
 
-const cancelOrders = ({ itemsIdSelected }: any) =>
-  instance.post("/sale/cancel-order", { itemsIdSelected });
+const updateCashflow = ({ id, dataIndex, value }: any) =>
+  instance.put("/cashflow/update-cashflow", { id, dataIndex, value });
+
+const cancelOrders = ({
+  itemsIdSelected,
+  reason,
+  user,
+  cancellationDate,
+}: any) =>
+  instance.post("/sale/cancel-order", {
+    itemsIdSelected,
+    reason,
+    user,
+    cancellationDate,
+  });
+
+const enableOrders = ({ itemsIdSelected }: any) =>
+  instance.post("/sale/enable-order", {
+    itemsIdSelected,
+  });
+
+const removeSales = ({ salesIds, cashflowIds }: any) =>
+  instance.post("/sale/remove-sale", { salesIds, cashflowIds });
+
+const removeCashflows = ({ cashflowIds }: any) =>
+  instance.post("/cashflow/remove-cashflow", { cashflowIds });
 
 const getLastNumOrder = ({ seller }: any) =>
   instance.post("/sale/last-num-order-by-seller", { seller });
@@ -201,6 +415,13 @@ const printSale = ({
   pricesDevolutionWithconcepts,
   totalPrices,
   totalDevolutionPrices,
+  percentageCash,
+  percentageTransfer,
+  cashWithDisccount,
+  transferWithRecharge,
+  totalCash,
+  totalTransfer,
+  totalToPay,
   total,
 }: any) =>
   instance.post("/sale/print-sale", {
@@ -215,6 +436,13 @@ const printSale = ({
     pricesDevolutionWithconcepts,
     totalPrices,
     totalDevolutionPrices,
+    percentageCash,
+    percentageTransfer,
+    cashWithDisccount,
+    transferWithRecharge,
+    totalCash,
+    totalTransfer,
+    totalToPay,
     total,
   });
 
@@ -225,6 +453,10 @@ const addCashflow = ({
   store,
   description,
   items,
+  typePayment,
+  date,
+  cashierId,
+  cashierName,
 }: any) =>
   instance.post("/cashflow/add-cashflow", {
     type,
@@ -233,6 +465,10 @@ const addCashflow = ({
     store,
     description,
     items,
+    typePayment,
+    date,
+    cashierId,
+    cashierName,
   });
 
 const addObservation = ({ observation, store, username }: any) =>
@@ -241,6 +477,241 @@ const addObservation = ({ observation, store, username }: any) =>
     store,
     username,
   });
+
+const getGraphData = ({ startDate, endDate, store }: any) => {
+  const config: AxiosRequestConfig = {
+    params: {
+      startDate,
+      endDate,
+      store,
+    },
+  };
+
+  return instance.get("/graph/get-data", config);
+};
+
+const deleteData = ({ startDate, endDate }: any) => {
+  const config: AxiosRequestConfig = {
+    params: {
+      startDate,
+      endDate,
+    },
+  };
+
+  return instance.get("/admin/delete-data", config);
+};
+
+/**COSTS */
+const getCosts = ({
+  startDate,
+  endDate,
+  accounts,
+  employees,
+  typeShipment,
+  checkoutDate,
+  approved,
+  store,
+  q,
+}: any) => {
+  const config: AxiosRequestConfig = {
+    params: {
+      startDate,
+      endDate,
+      accounts,
+      employees,
+      typeShipment,
+      checkoutDate,
+      approved,
+      store,
+      q,
+    },
+  };
+
+  return instance.get("/cost/costs", config);
+};
+
+const getCostsByDateApproved = ({ dateApproved, store }: any) => {
+  const config: AxiosRequestConfig = {
+    params: {
+      dateApproved,
+      store,
+    },
+  };
+
+  return instance.get("/cost/costs-by-date-approved", config);
+};
+
+const addCost = ({
+  date,
+  account,
+  numOrder,
+  amount,
+  approved,
+  dateApproved,
+  employee,
+  customer,
+  typeShipment,
+  checkoutDate,
+  cashierId,
+  cashierName,
+}: any) =>
+  instance.post("/cost/add-cost", {
+    date,
+    account,
+    numOrder,
+    amount,
+    approved,
+    dateApproved,
+    employee,
+    customer,
+    typeShipment,
+    checkoutDate,
+    cashierId,
+    cashierName,
+  });
+
+const updateCost = ({
+  id,
+  date,
+  account,
+  numOrder,
+  amount,
+  approved,
+  dateApproved,
+  employee,
+  customer,
+  typeShipment,
+  checkoutDate,
+  lastEditCashierId,
+  lastEditCashierName,
+  checkoutCashierId,
+  checkoutCashierName,
+  editedField,
+}: any) =>
+  instance.put("/cost/update-cost", {
+    id,
+    date,
+    account,
+    numOrder,
+    amount,
+    approved,
+    dateApproved,
+    employee,
+    customer,
+    typeShipment,
+    checkoutDate,
+    lastEditCashierId,
+    lastEditCashierName,
+    checkoutCashierId,
+    checkoutCashierName,
+    editedField,
+  });
+
+
+const updateColorCost = ({
+  costsIds,
+  backgroundColor,
+  textColor,
+  color,
+}: any) =>
+  instance.put("/cost/update-color-cost", {
+    costsIds,
+    backgroundColor,
+    textColor,
+    color,
+  });
+
+const removeCosts = ({ costsIds }: any) =>
+  instance.post("/cost/remove-cost", { costsIds });
+
+/** ACCOUNTS */
+const getAccounts = ({}: any) => {
+  const config: AxiosRequestConfig = {
+    params: {},
+  };
+
+  return instance.get("/cost/accounts", config);
+};
+
+const addAccount = ({ name }: any) =>
+  instance.post("/cost/add-account", {
+    name,
+  });
+
+const updateAccount = ({ id, name }: any) =>
+  instance.put("/cost/update-account", {
+    id,
+    name,
+  });
+
+const removeAccounts = ({ accountsIds }: any) =>
+  instance.post("/cost/remove-account", { accountsIds });
+
+export interface Cashier {
+  id: string;
+  name: string;
+  store: string;
+  color: string;
+  position: number;
+  active?: boolean;
+  isAdmin?: boolean;
+}
+
+export interface CashierResponse {
+  results: Cashier[];
+}
+
+// Obtener todos los cajeros
+const getAllCashiers = async (): Promise<Cashier[]> => {
+  const response = await instance.get<CashierResponse>(`/cashier`);
+  return response.data.results;
+};
+
+// Obtener cajeros por sucursal
+const getCashiersByStore = async (store: string): Promise<Cashier[]> => {
+  const response = await instance.post<CashierResponse>(`/cashier/by-store`, {
+    store,
+  });
+  return response.data.results;
+};
+
+// Crear cajero
+const createCashier = async (cashier: {
+  name: string;
+  store: string;
+  color: string;
+  position: number;
+  isAdmin?: boolean;
+}): Promise<Cashier[]> => {
+  const response = await instance.post<CashierResponse>(
+    `/cashier/add`,
+    cashier
+  );
+  return response.data.results;
+};
+
+// Actualizar cajero
+const updateCashier = async (cashier: {
+  id: string;
+  name: string;
+  store: string;
+  color: string;
+  position: number;
+  active?: boolean;
+  isAdmin?: boolean;
+}): Promise<Cashier[]> => {
+  const response = await instance.put<CashierResponse>(
+    `/cashier/update`,
+    cashier
+  );
+  return response.data.results;
+};
+
+// Eliminar cajero
+const deleteCashier = async (id: string): Promise<Cashier[]> => {
+  const response = await instance.delete<CashierResponse>(`/cashier/${id}`);
+  return response.data.results;
+};
 
 const Api = {
   login,
@@ -258,18 +729,31 @@ const Api = {
   updateEmployee,
   removeEmployee,
 
+  getAccountsForTransfer,
+  addAccountForTransfer,
+  updateAccountForTransfer,
+  removeAccountForTransfer,
+
   addSale,
   addNewNumOrder,
   addNewSaleByEmployee,
   updateOrder,
   updatSaleByEmployee,
+  updateCashflow,
   cancelOrders,
+  enableOrders,
+  removeSales,
+  removeCashflows,
   printSale,
   getSales,
   getOrders,
+  getOrdersCheckoutDate,
   getReports,
+  getReportsByEmployees,
   getObservations,
-  getSalesByDay,
+  getSalesCashByDay,
+  getSalesTranferByDay,
+  getSalesWithDevolutions,
   getCashflowByDay,
   getOutgoingsByDay,
 
@@ -277,6 +761,28 @@ const Api = {
   addObservation,
 
   getLastNumOrder,
+
+  getGraphData,
+
+  deleteData,
+
+  getCosts,
+  getCostsByDateApproved,
+  addCost,
+  updateCost,
+  updateColorCost,
+  removeCosts,
+
+  getAccounts,
+  addAccount,
+  updateAccount,
+  removeAccounts,
+
+  getAllCashiers,
+  getCashiersByStore,
+  createCashier,
+  updateCashier,
+  deleteCashier,
 };
 
 export default Api;

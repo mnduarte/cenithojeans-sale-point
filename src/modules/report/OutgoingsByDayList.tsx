@@ -1,26 +1,31 @@
 import { MdClose } from "react-icons/md";
-import EditableTable from "../components/EditableTable";
-import Spinner from "../components/Spinner";
+import EditableTable from "../../components/EditableTable";
+import Spinner from "../../components/Spinner";
+import { formatCurrency } from "../../utils/formatUtils";
 
-const ObservationsByMonth = ({
-  isModalObservationsByMonth,
-  setIsModalObservationsByMonth,
-  month,
+const OutgoingsByDayList = ({
+  isModalOutgoingsByDayList,
+  setIsModalOutgoingsByDayList,
   loading,
-  observations,
+  outgoings,
+  date,
 }: any) => {
   const columns = [
-    { title: "Fecha", dataIndex: "date" },
-    { title: "Observacion", dataIndex: "observation" },
+    {
+      title: "Importe",
+      dataIndex: "amount",
+      format: (number: any) => `$${formatCurrency(number)}`,
+    },
+    { title: "Descripcion", dataIndex: "description" },
   ];
 
   const closeModal = () => {
-    setIsModalObservationsByMonth(false);
+    setIsModalOutgoingsByDayList(false);
   };
 
   return (
     <>
-      {isModalObservationsByMonth && (
+      {isModalOutgoingsByDayList && (
         <div className="fixed inset-0 bg-[#252525] bg-opacity-60 flex items-center justify-center">
           <div className="w-[50vh] bg-gray-800 border border-[#000000] p-8 rounded shadow-md relative">
             <button
@@ -31,20 +36,16 @@ const ObservationsByMonth = ({
             </button>
 
             <h2 className="text-white text-lg font-bold mb-4">
-              Observaciones de {month}
+              Detalle de Gastos - {date}
             </h2>
 
-            <div className="mt-5 max-w h-[30vh] overflow-hidden overflow-y-auto overflow-x-auto">
+            <div className="flex items-center justify-start">
               {loading ? (
                 <div className="flex items-center justify-center h-[70vh]">
                   <Spinner size="lg" />
                 </div>
               ) : (
-                <EditableTable
-                  data={observations}
-                  columns={columns}
-                  table={`-`}
-                />
+                <EditableTable data={outgoings} columns={columns} table={`-`} />
               )}
             </div>
           </div>
@@ -54,4 +55,4 @@ const ObservationsByMonth = ({
   );
 };
 
-export default ObservationsByMonth;
+export default OutgoingsByDayList;

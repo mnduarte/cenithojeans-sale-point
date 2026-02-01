@@ -58,7 +58,7 @@ const Keyboard = ({ onKeyPress }: any) => {
           {row.map((key, keyIndex) => (
             <button
               key={keyIndex}
-              className="flex-1 w-[3vh] h-10 border border-gray-300 rounded focus:outline-none focus:ring focus:border-blue-300 bg-[#333333] mr-2"
+              className="flex-1 w-[3vh] h-10 border border-gray-300 rounded focus:outline-none focus:ring focus:border-blue-300 mr-2"
               onClick={() => onKeyPress(key)}
             >
               {key.value}

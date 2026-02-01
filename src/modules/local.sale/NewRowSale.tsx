@@ -1,18 +1,20 @@
 import { useState } from "react";
 import { MdClose } from "react-icons/md";
-import KeyboardNum from "../components/KeyboardNum";
-import { useEmployee } from "../contexts/EmployeeContext";
-import { cashflowActions, useCashflow } from "../contexts/CashflowContext";
-import Spinner from "../components/Spinner";
-import Toast from "../components/Toast";
-import { saleActions, useSale } from "../contexts/SaleContext";
-import { useUser } from "../contexts/UserContext";
+import KeyboardNum from "../../components/KeyboardNum";
+import { useEmployee } from "../../contexts/EmployeeContext";
+import Spinner from "../../components/Spinner";
+import { saleActions, useSale } from "../../contexts/SaleContext";
+import { useUser } from "../../contexts/UserContext";
+import { useTheme } from "../../contexts/ThemeContext";
 
 const NewRowSale = ({
   isModalNewRowSale,
   setIsModalNewRowSale,
   employee,
 }: any) => {
+  const {
+    state: { theme, themeStyles },
+  } = useTheme();
   const {
     state: { employees },
   } = useEmployee();
@@ -49,6 +51,7 @@ const NewRowSale = ({
     dispatchSale(
       saleActions.addNewSaleByEmployee({
         ...propSale,
+        cash: propSale.total,
         employee: foundEmployee.name,
         store: foundEmployee.store,
         username: user.username,
@@ -95,16 +98,16 @@ const NewRowSale = ({
               <MdClose className="text-2xl" />
             </button>
 
-            <h2 className="text-white text-lg font-bold mb-4">
+            <h2 className=" text-lg font-bold mb-4">
               Nueva Venta - {employee}
             </h2>
 
             <div className="mb-4 h-[5vh] flex items-center justify-start">
-              <label className="mr-2 text-white">Agrege Prendas:</label>
+              <label className="mr-2">Agrege Prendas:</label>
 
               <input
                 type="text"
-                className="w-[10vh] p-2 border border-[#484E55] rounded-md mr-2"
+                className={`w-[10vh] p-2 rounded-md mr-2 ${themeStyles[theme].tailwindcss.inputText}`}
                 readOnly
                 value={propSale.items}
                 onFocus={() => {
@@ -115,11 +118,11 @@ const NewRowSale = ({
             </div>
 
             <div className="mb-4 h-[5vh] flex items-center justify-start">
-              <label className="mr-2 text-white">Agrege Total:</label>
+              <label className="mr-2">Agrege Efectivo/Total:</label>
 
               <input
                 type="text"
-                className="w-[10vh] p-2 border border-[#484E55] rounded-md mr-2"
+                className={`w-[10vh] p-2 rounded-md mr-2 ${themeStyles[theme].tailwindcss.inputText}`}
                 readOnly
                 value={propSale.total}
                 onFocus={() => {
