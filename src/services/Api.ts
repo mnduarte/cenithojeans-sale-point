@@ -423,6 +423,7 @@ const printSale = ({
   totalTransfer,
   totalToPay,
   total,
+  cashierName,
 }: any) =>
   instance.post("/sale/print-sale", {
     pricesSelected,
@@ -444,6 +445,7 @@ const printSale = ({
     totalTransfer,
     totalToPay,
     total,
+    cashierName,
   });
 
 const addCashflow = ({
@@ -607,7 +609,6 @@ const updateCost = ({
     editedField,
   });
 
-
 const updateColorCost = ({
   costsIds,
   backgroundColor,
@@ -685,7 +686,7 @@ const createCashier = async (cashier: {
 }): Promise<Cashier[]> => {
   const response = await instance.post<CashierResponse>(
     `/cashier/add`,
-    cashier
+    cashier,
   );
   return response.data.results;
 };
@@ -702,7 +703,7 @@ const updateCashier = async (cashier: {
 }): Promise<Cashier[]> => {
   const response = await instance.put<CashierResponse>(
     `/cashier/update`,
-    cashier
+    cashier,
   );
   return response.data.results;
 };

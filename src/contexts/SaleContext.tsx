@@ -229,7 +229,7 @@ export const SaleProvider: React.FC<SaleProviderProps> = ({ children }) => {
                 return { ...sale, ...action.payload };
               }
               return sale;
-            }
+            },
           ),
           lastSaleUpdated: action.payload,
         };
@@ -243,7 +243,7 @@ export const SaleProvider: React.FC<SaleProviderProps> = ({ children }) => {
           showSuccessToastMsg: "Pedidos anulados",
           orders: state.orders.map((order: any) => {
             const foundItem = action.payload.find(
-              (orderUpdated: any) => orderUpdated.id === order.id
+              (orderUpdated: any) => orderUpdated.id === order.id,
             );
 
             if (foundItem) {
@@ -262,7 +262,7 @@ export const SaleProvider: React.FC<SaleProviderProps> = ({ children }) => {
           showSuccessToastMsg: "Pedidos Habilitados",
           orders: state.orders.map((order: any) => {
             const foundItem = action.payload.find(
-              (orderUpdated: any) => orderUpdated.id === order.id
+              (orderUpdated: any) => orderUpdated.id === order.id,
             );
 
             if (foundItem) {
@@ -296,7 +296,7 @@ export const SaleProvider: React.FC<SaleProviderProps> = ({ children }) => {
         const { salesIds, cashflowIds } = action.payload;
         const newSalesTransferByEmployees = state.salesTransferByEmployees;
         const formatIdSalesRemoved = [...salesIds, ...cashflowIds].map(
-          ({ id }: any) => id
+          ({ id }: any) => id,
         );
         const newSalesByEmployees: any = {};
 
@@ -305,9 +305,9 @@ export const SaleProvider: React.FC<SaleProviderProps> = ({ children }) => {
             const [emp, sales] = saleByEmployee;
 
             newSalesByEmployees[emp] = sales.filter(
-              (sale: any) => !formatIdSalesRemoved.includes(sale.id)
+              (sale: any) => !formatIdSalesRemoved.includes(sale.id),
             );
-          }
+          },
         );
 
         return {
@@ -316,7 +316,7 @@ export const SaleProvider: React.FC<SaleProviderProps> = ({ children }) => {
           error: null,
           salesByEmployees: newSalesByEmployees,
           salesTransferByEmployees: newSalesTransferByEmployees.filter(
-            (sale: any) => !formatIdSalesRemoved.includes(sale.id)
+            (sale: any) => !formatIdSalesRemoved.includes(sale.id),
           ),
         };
       }
@@ -396,18 +396,18 @@ export const SaleProvider: React.FC<SaleProviderProps> = ({ children }) => {
             if (!sale.type) {
               lastNonIngresoIndex = idx;
             }
-          }
+          },
         );
 
         const findValue = newSalesByEmployees[action.payload.employee].find(
-          (sale: any) => sale.id === action.payload.id
+          (sale: any) => sale.id === action.payload.id,
         );
 
         if (!findValue) {
           newSalesByEmployees[action.payload.employee].splice(
             lastNonIngresoIndex + 1,
             0,
-            action.payload
+            action.payload,
           );
         }
 
@@ -764,8 +764,8 @@ export const saleActions = {
           amountOfDiscountCash,
           amountOfSurchargesTransfer,
           amountOfDiscountTransfer,
-      baseCash,
-      baseTransfer,
+          baseCash,
+          baseTransfer,
         });
 
         dispatch({
@@ -995,6 +995,7 @@ export const saleActions = {
       totalTransfer,
       totalToPay,
       total,
+      cashierName,
     }: any) =>
     async (dispatch: any) => {
       dispatch({
@@ -1023,6 +1024,7 @@ export const saleActions = {
           totalTransfer,
           totalToPay,
           total,
+          cashierName,
         });
 
         dispatch({
