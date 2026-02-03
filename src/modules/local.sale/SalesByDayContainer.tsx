@@ -1588,6 +1588,84 @@ const ModalListTranferSale = ({
                 </tfoot>
               </table>
 
+              {/* Consolidado por Cuenta - solo cuando filterCuenta es "Todos" */}
+              {filterCuenta === "Todos" && salesFiltered.length > 0 && (
+                <div className="mt-4 pt-4 border-t border-cyan-700">
+                  <h3 className="text-lg font-bold text-cyan-400 mb-3">
+                    Consolidado por Cuenta
+                  </h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    {(() => {
+                      // Agrupar por cuenta
+                      const consolidado = salesFiltered.reduce(
+                        (acc: any, sale: any) => {
+                          const cuenta =
+                            sale.accountForTransfer || "Sin cuenta";
+                          if (!acc[cuenta]) {
+                            acc[cuenta] = {
+                              cuenta,
+                              efectivo: 0,
+                              transferencia: 0,
+                              prendas: 0,
+                              total: 0,
+                            };
+                          }
+                          acc[cuenta].efectivo += sale.cash || 0;
+                          acc[cuenta].transferencia += sale.transfer || 0;
+                          acc[cuenta].prendas += sale.items || 0;
+                          acc[cuenta].total += sale.total || 0;
+                          return acc;
+                        },
+                        {},
+                      );
+
+                      return Object.values(consolidado).map(
+                        (cuenta: any, idx: number) => (
+                          <div
+                            key={idx}
+                            className="p-3 rounded-lg bg-cyan-900/30 border border-cyan-700/50"
+                          >
+                            <h4 className="font-bold text-cyan-300 mb-2 pb-1 border-b border-cyan-700/50">
+                              {cuenta.cuenta}
+                            </h4>
+                            <div className="space-y-1 text-sm">
+                              <div className="flex justify-between">
+                                <span className="text-gray-400">Efectivo:</span>
+                                <span className="font-medium text-green-400">
+                                  ${formatCurrency(cuenta.efectivo)}
+                                </span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-gray-400">
+                                  Transferencia:
+                                </span>
+                                <span className="font-medium text-cyan-400">
+                                  ${formatCurrency(cuenta.transferencia)}
+                                </span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-gray-400">Prendas:</span>
+                                <span className="font-medium text-amber-400">
+                                  {cuenta.prendas}
+                                </span>
+                              </div>
+                              <div className="flex justify-between pt-1 mt-1 border-t border-cyan-700/50">
+                                <span className="font-bold text-white">
+                                  Total:
+                                </span>
+                                <span className="font-bold text-cyan-300">
+                                  ${formatCurrency(cuenta.total)}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        ),
+                      );
+                    })()}
+                  </div>
+                </div>
+              )}
+
               <KeyboardNum
                 isModalKeyboardNumOpen={isModalKeyboardNumOpen}
                 manualNum={value}

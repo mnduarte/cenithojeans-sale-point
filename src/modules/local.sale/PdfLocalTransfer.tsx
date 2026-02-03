@@ -122,6 +122,74 @@ const styles = StyleSheet.create({
     borderTopColor: "#e5e7eb",
     paddingTop: 5,
   },
+  // Consolidado por cuenta
+  consolidadoSection: {
+    marginTop: 12,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: "#0891b2",
+  },
+  consolidadoTitle: {
+    fontSize: 9,
+    fontWeight: "bold",
+    color: "#0891b2",
+    marginBottom: 6,
+  },
+  consolidadoGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 6,
+  },
+  consolidadoCard: {
+    width: "48%",
+    backgroundColor: "#f0fdfa",
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: "#0891b2",
+    padding: 6,
+    marginBottom: 6,
+  },
+  consolidadoCardTitle: {
+    fontSize: 8,
+    fontWeight: "bold",
+    color: "#0891b2",
+    marginBottom: 4,
+    borderBottomWidth: 0.5,
+    borderBottomColor: "#0891b2",
+    paddingBottom: 2,
+  },
+  consolidadoRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 2,
+  },
+  consolidadoLabel: {
+    fontSize: 6,
+    color: "#666666",
+  },
+  consolidadoValue: {
+    fontSize: 6,
+    fontWeight: "bold",
+    color: "#333333",
+  },
+  consolidadoTotal: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 3,
+    paddingTop: 3,
+    borderTopWidth: 0.5,
+    borderTopColor: "#0891b2",
+  },
+  consolidadoTotalLabel: {
+    fontSize: 7,
+    fontWeight: "bold",
+    color: "#0891b2",
+  },
+  consolidadoTotalValue: {
+    fontSize: 7,
+    fontWeight: "bold",
+    color: "#0891b2",
+  },
 });
 
 const formatTime = (dateString: string) => {
@@ -259,7 +327,74 @@ const TableListTransfer = ({ data }: any) => {
   );
 };
 
-const PdfLocalTransfer = ({ date, store, data }: any) => {
+// Componente para el consolidado por cuenta
+// wrap={false} evita que se corte entre páginas
+const ConsolidadoPorCuenta = ({ data }: any) => {
+  // Agrupar por cuenta
+  const consolidado = data.reduce((acc: any, sale: any) => {
+    const cuenta = sale.accountForTransfer || "Sin cuenta";
+    if (!acc[cuenta]) {
+      acc[cuenta] = {
+        cuenta,
+        efectivo: 0,
+        transferencia: 0,
+        prendas: 0,
+        total: 0,
+      };
+    }
+    acc[cuenta].efectivo += sale.cash || 0;
+    acc[cuenta].transferencia += sale.transfer || 0;
+    acc[cuenta].prendas += sale.items || 0;
+    acc[cuenta].total += sale.total || 0;
+    return acc;
+  }, {});
+
+  const cuentasArray = Object.values(consolidado) as any[];
+
+  if (cuentasArray.length === 0) return null;
+
+  return (
+    <View style={styles.consolidadoSection} wrap={false}>
+      <Text style={styles.consolidadoTitle}>Consolidado por Cuenta</Text>
+      <View style={styles.consolidadoGrid}>
+        {cuentasArray.map((cuenta: any, index: number) => (
+          <View key={index} style={styles.consolidadoCard}>
+            <Text style={styles.consolidadoCardTitle}>{cuenta.cuenta}</Text>
+            <View style={styles.consolidadoRow}>
+              <Text style={styles.consolidadoLabel}>Efectivo:</Text>
+              <Text style={styles.consolidadoValue}>
+                ${formatCurrency(cuenta.efectivo)}
+              </Text>
+            </View>
+            <View style={styles.consolidadoRow}>
+              <Text style={styles.consolidadoLabel}>Transferencia:</Text>
+              <Text style={styles.consolidadoValue}>
+                ${formatCurrency(cuenta.transferencia)}
+              </Text>
+            </View>
+            <View style={styles.consolidadoRow}>
+              <Text style={styles.consolidadoLabel}>Prendas:</Text>
+              <Text style={styles.consolidadoValue}>{cuenta.prendas}</Text>
+            </View>
+            <View style={styles.consolidadoTotal}>
+              <Text style={styles.consolidadoTotalLabel}>Total:</Text>
+              <Text style={styles.consolidadoTotalValue}>
+                ${formatCurrency(cuenta.total)}
+              </Text>
+            </View>
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+};
+
+const PdfLocalTransfer = ({
+  date,
+  store,
+  data,
+  showConsolidado = true,
+}: any) => {
   const totalRegistros = data.length;
 
   return (
@@ -274,16 +409,23 @@ const PdfLocalTransfer = ({ date, store, data }: any) => {
             </Text>
           </View>
           <View style={styles.headerRight}>
-            <Text style={styles.registrosText}>Registros: {totalRegistros}</Text>
+            <Text style={styles.registrosText}>
+              Registros: {totalRegistros}
+            </Text>
           </View>
         </View>
 
         {/* Table */}
         <TableListTransfer data={data} />
 
+        {/* Consolidado por cuenta - solo si showConsolidado es true */}
+        {/* wrap={false} hace que si no cabe completo, se mueva a la siguiente página */}
+        {showConsolidado && <ConsolidadoPorCuenta data={data} />}
+
         {/* Footer */}
         <Text style={styles.footerInfo}>
-          Documento generado automáticamente - {new Date().toLocaleString("es-AR")}
+          Documento generado automáticamente -{" "}
+          {new Date().toLocaleString("es-AR")}
         </Text>
       </Page>
     </Document>
