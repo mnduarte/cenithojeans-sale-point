@@ -42,7 +42,7 @@ const CashierSelect: React.FC<CashierSelectProps> = ({
     } else if (selectedValue === "all") {
       onChange?.("all", null);
     } else {
-      const cashier = filteredCashiers.find((c) => c.id === selectedValue);
+      const cashier = filteredCashiers.find((c:any) => c.id === selectedValue);
       if (cashier) {
         onChange?.(cashier.id, {
           id: cashier.id,
@@ -75,7 +75,7 @@ const CashierSelect: React.FC<CashierSelectProps> = ({
           <span style={{ fontWeight: 500 }}>Todos</span>
         </Select.Option>
       )}
-      {filteredCashiers.map((cashier) => (
+      {filteredCashiers.map((cashier:any) => (
         <Select.Option key={cashier.id} value={cashier.id}>
           <div
             style={{
@@ -130,7 +130,7 @@ export const CashierSelectPOS: React.FC<CashierSelectPOSProps> = ({
     if (!selectedValue) {
       onSelect(null);
     } else {
-      const cashier = filteredCashiers.find((c) => c.id === selectedValue);
+      const cashier = filteredCashiers.find((c:any) => c.id === selectedValue);
       if (cashier) {
         onSelect({
           id: cashier.id,
@@ -155,7 +155,7 @@ export const CashierSelectPOS: React.FC<CashierSelectPOSProps> = ({
       allowClear
       onClear={() => onSelect(null)}
     >
-      {filteredCashiers.map((cashier) => (
+      {filteredCashiers.map((cashier:any) => (
         <Select.Option key={cashier.id} value={cashier.id}>
           <div
             style={{
