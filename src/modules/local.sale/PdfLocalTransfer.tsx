@@ -56,6 +56,22 @@ const styles = StyleSheet.create({
     fontSize: 6,
     textAlign: "center",
   },
+  tableHeaderCellBlue: {
+    color: "#93c5fd",
+    fontWeight: "bold",
+    paddingVertical: 4,
+    paddingHorizontal: 2,
+    fontSize: 6,
+    textAlign: "center",
+  },
+  tableHeaderCellGreen: {
+    color: "#86efac",
+    fontWeight: "bold",
+    paddingVertical: 4,
+    paddingHorizontal: 2,
+    fontSize: 6,
+    textAlign: "center",
+  },
   tableRow: {
     flexDirection: "row",
     borderBottomWidth: 0.5,
@@ -85,15 +101,31 @@ const styles = StyleSheet.create({
     fontSize: 6,
     textAlign: "left",
   },
-  // Column widths optimizados para A5
-  colOrder: { width: "6%" },
-  colVendedor: { width: "13%" },
-  colHora: { width: "8%" },
-  colEfectivo: { width: "13%" },
-  colTransfer: { width: "13%" },
-  colPrendas: { width: "8%" },
-  colCuenta: { width: "22%" },
-  colTotal: { width: "13%" },
+  tableCellBlue: {
+    paddingVertical: 3,
+    paddingHorizontal: 2,
+    fontSize: 6,
+    textAlign: "center",
+    color: "#2563eb",
+  },
+  tableCellGreen: {
+    paddingVertical: 3,
+    paddingHorizontal: 2,
+    fontSize: 6,
+    textAlign: "center",
+    color: "#16a34a",
+  },
+  // Column widths optimizados para A5 con nuevas columnas
+  colOrder: { width: "5%" },
+  colVendedor: { width: "11%" },
+  colHora: { width: "7%" },
+  colEfectivo: { width: "11%" },
+  colTransfer: { width: "11%" },
+  colPrendasJ: { width: "7%" },
+  colPrendasR: { width: "7%" },
+  colPrendas: { width: "7%" },
+  colCuenta: { width: "18%" },
+  colTotal: { width: "11%" },
   // Footer
   tableFooter: {
     flexDirection: "row",
@@ -103,6 +135,22 @@ const styles = StyleSheet.create({
   },
   tableFooterCell: {
     color: "#ffffff",
+    fontWeight: "bold",
+    paddingVertical: 4,
+    paddingHorizontal: 2,
+    fontSize: 6,
+    textAlign: "center",
+  },
+  tableFooterCellBlue: {
+    color: "#93c5fd",
+    fontWeight: "bold",
+    paddingVertical: 4,
+    paddingHorizontal: 2,
+    fontSize: 6,
+    textAlign: "center",
+  },
+  tableFooterCellGreen: {
+    color: "#86efac",
     fontWeight: "bold",
     paddingVertical: 4,
     paddingHorizontal: 2,
@@ -172,6 +220,16 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#333333",
   },
+  consolidadoValueBlue: {
+    fontSize: 6,
+    fontWeight: "bold",
+    color: "#2563eb",
+  },
+  consolidadoValueGreen: {
+    fontSize: 6,
+    fontWeight: "bold",
+    color: "#16a34a",
+  },
   consolidadoTotal: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -207,10 +265,12 @@ const TableListTransfer = ({ data }: any) => {
     (acc: any, current: any) => ({
       efectivo: acc.efectivo + (current.cash || 0),
       transferencia: acc.transferencia + (current.transfer || 0),
+      prendasJeans: acc.prendasJeans + (current.itemsJeans || 0),
+      prendasRemeras: acc.prendasRemeras + (current.itemsRemeras || 0),
       prendas: acc.prendas + (current.items || 0),
       total: acc.total + (current.total || 0),
     }),
-    { efectivo: 0, transferencia: 0, prendas: 0, total: 0 }
+    { efectivo: 0, transferencia: 0, prendasJeans: 0, prendasRemeras: 0, prendas: 0, total: 0 }
   );
 
   return (
@@ -231,6 +291,12 @@ const TableListTransfer = ({ data }: any) => {
         </View>
         <View style={styles.colTransfer}>
           <Text style={styles.tableHeaderCell}>Transfer</Text>
+        </View>
+        <View style={styles.colPrendasJ}>
+          <Text style={styles.tableHeaderCellBlue}>Prend J</Text>
+        </View>
+        <View style={styles.colPrendasR}>
+          <Text style={styles.tableHeaderCellGreen}>Prend R</Text>
         </View>
         <View style={styles.colPrendas}>
           <Text style={styles.tableHeaderCell}>Prendas</Text>
@@ -274,6 +340,12 @@ const TableListTransfer = ({ data }: any) => {
               ${formatCurrency(item.transfer || 0)}
             </Text>
           </View>
+          <View style={styles.colPrendasJ}>
+            <Text style={styles.tableCellBlue}>{item.itemsJeans || 0}</Text>
+          </View>
+          <View style={styles.colPrendasR}>
+            <Text style={styles.tableCellGreen}>{item.itemsRemeras || 0}</Text>
+          </View>
           <View style={styles.colPrendas}>
             <Text style={styles.tableCell}>{item.items || 0}</Text>
           </View>
@@ -311,6 +383,12 @@ const TableListTransfer = ({ data }: any) => {
             ${formatCurrency(totals.transferencia)}
           </Text>
         </View>
+        <View style={styles.colPrendasJ}>
+          <Text style={styles.tableFooterCellBlue}>{totals.prendasJeans}</Text>
+        </View>
+        <View style={styles.colPrendasR}>
+          <Text style={styles.tableFooterCellGreen}>{totals.prendasRemeras}</Text>
+        </View>
         <View style={styles.colPrendas}>
           <Text style={styles.tableFooterCell}>{totals.prendas}</Text>
         </View>
@@ -338,12 +416,16 @@ const ConsolidadoPorCuenta = ({ data }: any) => {
         cuenta,
         efectivo: 0,
         transferencia: 0,
+        prendasJeans: 0,
+        prendasRemeras: 0,
         prendas: 0,
         total: 0,
       };
     }
     acc[cuenta].efectivo += sale.cash || 0;
     acc[cuenta].transferencia += sale.transfer || 0;
+    acc[cuenta].prendasJeans += sale.itemsJeans || 0;
+    acc[cuenta].prendasRemeras += sale.itemsRemeras || 0;
     acc[cuenta].prendas += sale.items || 0;
     acc[cuenta].total += sale.total || 0;
     return acc;
@@ -373,7 +455,15 @@ const ConsolidadoPorCuenta = ({ data }: any) => {
               </Text>
             </View>
             <View style={styles.consolidadoRow}>
-              <Text style={styles.consolidadoLabel}>Prendas:</Text>
+              <Text style={styles.consolidadoLabel}>Prendas J:</Text>
+              <Text style={styles.consolidadoValueBlue}>{cuenta.prendasJeans}</Text>
+            </View>
+            <View style={styles.consolidadoRow}>
+              <Text style={styles.consolidadoLabel}>Prendas R:</Text>
+              <Text style={styles.consolidadoValueGreen}>{cuenta.prendasRemeras}</Text>
+            </View>
+            <View style={styles.consolidadoRow}>
+              <Text style={styles.consolidadoLabel}>Prendas Total:</Text>
               <Text style={styles.consolidadoValue}>{cuenta.prendas}</Text>
             </View>
             <View style={styles.consolidadoTotal}>

@@ -1171,10 +1171,11 @@ const ModalListTranferSale = ({
   const {
     state: { accountsForTransfer },
   } = useAccountForTransfer();
+
   const [itemsIdSelected, setItemsIdSelected] = useState<any[]>([]);
-  const [editableRow, setEditableRow] = useState<number | null>(null);
-  const [isModalKeyboardNumOpen, setIsModalKeyboardNumOpen] = useState(false);
   const [cashflowIdSelected, setCashflowIdSelected] = useState<any[]>([]);
+  const [editableRowId, setEditableRowId] = useState<string | null>(null);
+  const [isModalKeyboardNumOpen, setIsModalKeyboardNumOpen] = useState(false);
   const [value, setValue] = useState(0);
   const [propSale, setPropSale] = useState({
     id: "",
@@ -1219,21 +1220,18 @@ const ModalListTranferSale = ({
         let aValue = a[sortConfig.key];
         let bValue = b[sortConfig.key];
 
-        // Manejar valores numéricos
         if (typeof aValue === "number" && typeof bValue === "number") {
           return sortConfig.direction === "asc"
             ? aValue - bValue
             : bValue - aValue;
         }
 
-        // Manejar fechas
         if (sortConfig.key === "createdAt") {
           const dateA = new Date(aValue || 0).getTime();
           const dateB = new Date(bValue || 0).getTime();
           return sortConfig.direction === "asc" ? dateA - dateB : dateB - dateA;
         }
 
-        // Manejar strings
         aValue = String(aValue || "").toLowerCase();
         bValue = String(bValue || "").toLowerCase();
         if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
@@ -1263,63 +1261,7 @@ const ModalListTranferSale = ({
     return <FaSortDown className="ml-1 text-cyan-400 text-xs" />;
   };
 
-  const columns = [
-    { title: "N°", dataIndex: "order", size: "w-5", sortable: true },
-    { title: "Vendedor", dataIndex: "employee", sortable: true },
-    {
-      title: "Hora",
-      dataIndex: "createdAt",
-      sortable: true,
-      format: formatTime,
-    },
-    {
-      title: "Efectivo",
-      dataIndex: "cash",
-      editableCell: true,
-      type: "string",
-      format: (number: any) => `$${formatCurrency(number)}`,
-      applyFormat: true,
-      sumAcc: user.role === "ADMIN",
-      sortable: true,
-    },
-    {
-      title: "Transferencia",
-      dataIndex: "transfer",
-      editableCell: true,
-      type: "string",
-      format: (number: any) => `$${formatCurrency(number)}`,
-      applyFormat: true,
-      sumAcc: user.role === "ADMIN",
-      sortable: true,
-    },
-    {
-      title: "Prendas",
-      dataIndex: "items",
-      editableCell: true,
-      type: "string",
-      sumAcc: true,
-      sortable: true,
-    },
-    {
-      title: "Cuenta para transferir",
-      dataIndex: "accountForTransfer",
-      editableCell: true,
-      type: "select",
-      dataSelect: accountsForTransfer.map(({ name }: any) => name),
-      sortable: true,
-    },
-    {
-      title: "Total",
-      dataIndex: "total",
-      format: (number: any) => `$${formatCurrency(number)}`,
-      editableCell: true,
-      type: "string",
-      applyFormat: true,
-      sumAcc: user.role === "ADMIN",
-      sortable: true,
-    },
-  ];
-
+  // Manejar edición con KeyboardNum
   const handleManualValue = (item: any) => {
     if (item.action === "deleteLast") {
       return setValue((currentValue: any) =>
@@ -1332,7 +1274,7 @@ const ModalListTranferSale = ({
         saleActions.updateSaleByEmployee({ ...propSale, value })(dispatchSale),
       );
       setValue(0);
-      setEditableRow(null);
+      setEditableRowId(null); // Reset fila al estado normal
       return setIsModalKeyboardNumOpen(false);
     }
 
@@ -1341,32 +1283,29 @@ const ModalListTranferSale = ({
     );
   };
 
-  const handleAction = ({
-    dataIndex,
-    value,
-    id,
-    inputType,
-    inputValue,
-  }: any) => {
-    if (inputType === "string") {
-      setPropSale({ dataIndex, id });
-      setValue(value ? value : 0);
-      setIsModalKeyboardNumOpen(true);
-    }
+  // Click en fila para seleccionarla (paso 1)
+  const handleRowClick = (sale: any) => {
+    if (sale.type === "ingreso") return;
+    setEditableRowId(editableRowId === sale.id ? null : sale.id);
+  };
 
-    if (inputType === "select") {
-      dispatchSale(
-        saleActions.updateSaleByEmployee({
-          id: id,
-          dataIndex: dataIndex,
-          value: inputValue.value,
-        })(dispatchSale),
-      );
+  // Click en input para abrir KeyboardNum (paso 2)
+  const handleInputClick = (e: React.MouseEvent, sale: any, dataIndex: string, currentValue: any) => {
+    e.stopPropagation();
+    setPropSale({ id: sale.id, dataIndex });
+    setValue(currentValue || 0);
+    setIsModalKeyboardNumOpen(true);
+  };
 
-      setTimeout(() => {
-        setEditableRow(null);
-      }, 50);
-    }
+  // Manejar cambio en select de cuenta
+  const handleAccountChange = (sale: any, newValue: string) => {
+    dispatchSale(
+      saleActions.updateSaleByEmployee({
+        id: sale.id,
+        dataIndex: "accountForTransfer",
+        value: newValue,
+      })(dispatchSale),
+    );
   };
 
   // Calcular totales
@@ -1374,21 +1313,71 @@ const ModalListTranferSale = ({
     (acc: any, sale: any) => ({
       cash: acc.cash + (sale.cash || 0),
       transfer: acc.transfer + (sale.transfer || 0),
+      itemsJeans: acc.itemsJeans + (sale.itemsJeans || 0),
+      itemsRemeras: acc.itemsRemeras + (sale.itemsRemeras || 0),
       items: acc.items + (sale.items || 0),
       total: acc.total + (sale.total || 0),
     }),
-    { cash: 0, transfer: 0, items: 0, total: 0 },
+    { cash: 0, transfer: 0, itemsJeans: 0, itemsRemeras: 0, items: 0, total: 0 },
   );
+
+  // Calcular consolidado (siempre, no depende del filtro)
+  const consolidado = salesFiltered.reduce(
+    (acc: any, sale: any) => {
+      const cuenta = sale.accountForTransfer || "Sin cuenta";
+      if (!acc[cuenta]) {
+        acc[cuenta] = {
+          cuenta,
+          efectivo: 0,
+          transferencia: 0,
+          prendasJeans: 0,
+          prendasRemeras: 0,
+          prendas: 0,
+          total: 0,
+        };
+      }
+      acc[cuenta].efectivo += sale.cash || 0;
+      acc[cuenta].transferencia += sale.transfer || 0;
+      acc[cuenta].prendasJeans += sale.itemsJeans || 0;
+      acc[cuenta].prendasRemeras += sale.itemsRemeras || 0;
+      acc[cuenta].prendas += sale.items || 0;
+      acc[cuenta].total += sale.total || 0;
+      return acc;
+    },
+    {},
+  );
+
+  // Definición de columnas con anchos ajustados
+  type Column = {
+    key: string;
+    title: string;
+    sortable: boolean;
+    editable: boolean | string;
+    width: string;
+    format?: (value: any) => string;
+    color?: string;
+  };
+
+  const columns: Column[] = [
+    { key: "order", title: "N°", sortable: true, editable: false, width: "w-10" },
+    { key: "employee", title: "Vendedor", sortable: true, editable: false, width: "w-20" },
+    { key: "createdAt", title: "Hora", sortable: true, editable: false, width: "w-14", format: formatTime },
+    { key: "cash", title: "Efectivo", sortable: true, editable: true, width: "w-24", format: (v: any) => `$${formatCurrency(v)}` },
+    { key: "transfer", title: "Transfer", sortable: true, editable: true, width: "w-24", format: (v: any) => `$${formatCurrency(v)}` },
+    { key: "itemsJeans", title: "P.J", sortable: true, editable: true, width: "w-12", color: "#3b82f6" },
+    { key: "itemsRemeras", title: "P.R", sortable: true, editable: true, width: "w-12", color: "#22c55e" },
+    { key: "items", title: "Prend", sortable: true, editable: false, width: "w-12" },
+    { key: "accountForTransfer", title: "Cuenta", sortable: true, editable: "select", width: "w-28" },
+    { key: "total", title: "Total", sortable: true, editable: true, width: "w-24", format: (v: any) => `$${formatCurrency(v)}` },
+  ];
 
   return (
     <>
       {isModalListTransferSaleOpen && (
         <div className="fixed inset-0 z-[1050] bg-[#252525] bg-opacity-60 flex items-center justify-center">
-          {/* Contenido del modal */}
           <div
-            className={`w-[95vh] h-[75vh] p-8 rounded-md shadow-md relative ${themeStyles[theme].tailwindcss.modal}`}
+            className={`w-[115vh] h-[85vh] p-8 rounded-md shadow-md relative ${themeStyles[theme].tailwindcss.modal}`}
           >
-            {/* Icono de cerrar en la esquina superior derecha */}
             <button
               className="absolute top-4 right-4"
               onClick={() => setIsModalListTransferSaleOpen(false)}
@@ -1400,8 +1389,8 @@ const ModalListTranferSale = ({
               Listado de Transferencias - {date}
             </h2>
 
+            {/* Filtros */}
             <div className="mt-2 h-[6vh] mx-auto max-w flex items-center flex-wrap gap-2">
-              {/* Filtro por Vendedor */}
               <div className="inline-block">
                 <label className="mr-2 text-sm">Vendedor:</label>
                 <Select
@@ -1417,7 +1406,7 @@ const ModalListTranferSale = ({
                   ]}
                 />
               </div>
-              {/* Filtro por Cuenta */}
+
               <div className="inline-block">
                 <label className="mr-2 text-sm">Cuenta:</label>
                 <Select
@@ -1436,29 +1425,25 @@ const ModalListTranferSale = ({
                   ]}
                 />
               </div>
+
               <PDFDownloadLink
                 document={
                   <PdfLocalTransfer
                     date={dayjs(date).format("DD-MM-YYYY")}
                     store={mappingListStore[store]}
                     data={salesFiltered}
+                    showConsolidado={true}
                   />
                 }
-                fileName={`listado-transferencias-${dayjs(date).format(
-                  "DD-MM-YYYY",
-                )}.pdf`}
+                fileName={`listado-transferencias-${dayjs(date).format("DD-MM-YYYY")}.pdf`}
                 className="w-25 ml-2 bg-cyan-700 hover:bg-cyan-800 hover:cursor-pointer text-white px-4 py-1 rounded-md flex items-center justify-center select-none"
               >
                 {({ loading }) =>
-                  loading ? (
-                    <button>Cargando...</button>
-                  ) : (
-                    <button>Generar PDF</button>
-                  )
+                  loading ? <button>Cargando...</button> : <button>Generar PDF</button>
                 }
               </PDFDownloadLink>
-              {(Boolean(itemsIdSelected.length) ||
-                Boolean(cashflowIdSelected.length)) && (
+
+              {(Boolean(itemsIdSelected.length) || Boolean(cashflowIdSelected.length)) && (
                 <div
                   className="ml-2 bg-red-700 hover:bg-red-800 hover:cursor-pointer text-white px-4 py-1 rounded-md flex items-center justify-center select-none"
                   onClick={() => {
@@ -1475,105 +1460,168 @@ const ModalListTranferSale = ({
                   Eliminar Items Seleccionados
                 </div>
               )}
-              Registros: {salesFiltered.length}
+
+              <span className="ml-2 text-sm">Registros: {salesFiltered.length}</span>
             </div>
 
-            <div className="mt-2 h-[55vh] mx-auto max-w overflow-hidden overflow-y-auto overflow-x-auto">
-              {/* Tabla personalizada con sorting */}
+            {/* Tabla */}
+            <div className="mt-2 h-[40vh] mx-auto max-w overflow-hidden overflow-y-auto overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="sticky top-0 bg-gray-800">
+                <thead className="sticky top-0 bg-gray-800 z-[5]">
                   <tr>
                     <th className="p-2 w-8">
                       <input type="checkbox" className="opacity-50" disabled />
                     </th>
-                    {columns.map((col: any, idx: number) => (
+                    {columns.map((col, idx) => (
                       <th
                         key={idx}
-                        className={`p-2 text-left cursor-pointer hover:bg-gray-700 transition-colors ${
-                          col.sortable ? "select-none" : ""
-                        }`}
-                        onClick={() =>
-                          col.sortable && handleSort(col.dataIndex)
-                        }
+                        className={`p-2 text-left cursor-pointer hover:bg-gray-700 transition-colors select-none ${col.width} whitespace-nowrap`}
+                        style={col.color ? { color: col.color } : {}}
+                        onClick={() => col.sortable && handleSort(col.key)}
                       >
                         <div className="flex items-center">
                           {col.title}
-                          {col.sortable && getSortIcon(col.dataIndex)}
+                          {col.sortable && getSortIcon(col.key)}
                         </div>
                       </th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {salesFiltered.map((sale: any, rowIndex: number) => (
-                    <tr
-                      key={rowIndex}
-                      className={`border-b border-gray-700 hover:bg-gray-700/50 ${
-                        sale.type === "ingreso"
-                          ? "bg-yellow-900/30"
-                          : rowIndex % 2 === 1
-                            ? "bg-gray-800/40"
-                            : ""
-                      }`}
-                    >
-                      <td className="p-2">
-                        <input
-                          type="checkbox"
-                          checked={
-                            sale.id
-                              ? itemsIdSelected.some(
-                                  (item: any) => item.id === sale.id,
-                                ) ||
-                                cashflowIdSelected.some(
-                                  (item: any) => item.id === sale.id,
-                                )
-                              : false
+                  {salesFiltered.map((sale: any, rowIndex: number) => {
+                    const isEditing = editableRowId === sale.id;
+                    
+                    return (
+                      <tr
+                        key={rowIndex}
+                        className={`border-b border-gray-700 cursor-pointer transition-colors ${
+                          isEditing
+                            ? "bg-cyan-900/40"
+                            : sale.type === "ingreso"
+                              ? "bg-yellow-900/30"
+                              : rowIndex % 2 === 1
+                                ? "bg-gray-800/40"
+                                : "hover:bg-gray-700/50"
+                        }`}
+                        onClick={() => handleRowClick(sale)}
+                      >
+                        {/* Checkbox */}
+                        <td className="p-2" onClick={(e) => e.stopPropagation()}>
+                          <input
+                            type="checkbox"
+                            checked={
+                              sale.id
+                                ? itemsIdSelected.some((item: any) => item.id === sale.id) ||
+                                  cashflowIdSelected.some((item: any) => item.id === sale.id)
+                                : false
+                            }
+                            onChange={() => {
+                              if (sale.type === "ingreso") {
+                                setCashflowIdSelected((prev: any) =>
+                                  prev.some((item: any) => item.id === sale.id)
+                                    ? prev.filter((item: any) => item.id !== sale.id)
+                                    : [...prev, { id: sale.id }],
+                                );
+                              } else {
+                                setItemsIdSelected((prev: any) =>
+                                  prev.some((item: any) => item.id === sale.id)
+                                    ? prev.filter((item: any) => item.id !== sale.id)
+                                    : [...prev, { id: sale.id }],
+                                );
+                              }
+                            }}
+                          />
+                        </td>
+
+                        {/* Columnas */}
+                        {columns.map((col, colIndex) => {
+                          let displayValue = sale[col.key];
+
+                          // Para ingresos, no mostrar cash
+                          if (sale.type === "ingreso" && col.key === "cash") {
+                            displayValue = undefined;
                           }
-                          onChange={() => {
-                            if (sale.type === "ingreso") {
-                              setCashflowIdSelected((prev: any) =>
-                                prev.some((item: any) => item.id === sale.id)
-                                  ? prev.filter(
-                                      (item: any) => item.id !== sale.id,
-                                    )
-                                  : [...prev, { id: sale.id }],
-                              );
-                            } else {
-                              setItemsIdSelected((prev: any) =>
-                                prev.some((item: any) => item.id === sale.id)
-                                  ? prev.filter(
-                                      (item: any) => item.id !== sale.id,
-                                    )
-                                  : [...prev, { id: sale.id }],
+
+                          // Formatear valor para mostrar
+                          const formattedValue =
+                            col.format && displayValue !== undefined && displayValue !== null
+                              ? col.format(displayValue)
+                              : displayValue !== undefined && displayValue !== null
+                                ? displayValue
+                                : "-";
+
+                          // Celda editable con input (cuando la fila está seleccionada)
+                          if (col.editable === true && sale.type !== "ingreso") {
+                            if (isEditing) {
+                              return (
+                                <td key={colIndex} className="p-1" onClick={(e) => e.stopPropagation()}>
+                                  <input
+                                    type="text"
+                                    readOnly
+                                    value={displayValue !== undefined && displayValue !== null ? displayValue : ""}
+                                    className="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded text-sm cursor-pointer hover:border-cyan-500"
+                                    style={col.color ? { color: col.color } : {}}
+                                    onClick={(e) => handleInputClick(e, sale, col.key, sale[col.key])}
+                                  />
+                                </td>
                               );
                             }
-                          }}
-                        />
-                      </td>
-                      {columns.map((col: any, colIndex: number) => {
-                        let value = sale[col.dataIndex];
-                        // Para ingresos (cashflow), el campo cash no existe, mostrar "-"
-                        if (
-                          sale.type === "ingreso" &&
-                          col.dataIndex === "cash"
-                        ) {
-                          value = undefined;
-                        }
-                        return (
-                          <td key={colIndex} className="p-2">
-                            {col.format && value !== undefined && value !== null
-                              ? col.format(value)
-                              : value !== undefined && value !== null
-                                ? value
-                                : "-"}
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  ))}
+                            return (
+                              <td
+                                key={colIndex}
+                                className="p-2"
+                                style={col.color ? { color: col.color } : {}}
+                              >
+                                {formattedValue}
+                              </td>
+                            );
+                          }
+
+                          // Celda editable con Select (Cuenta)
+                          if (col.editable === "select" && sale.type !== "ingreso") {
+                            if (isEditing) {
+                              return (
+                                <td key={colIndex} className="p-1" onClick={(e) => e.stopPropagation()}>
+                                  <Select
+                                    value={sale[col.key] || ""}
+                                    className={themeStyles[theme].classNameSelector}
+                                    dropdownStyle={themeStyles[theme].dropdownStylesCustom}
+                                    popupClassName={themeStyles[theme].classNameSelectorItem}
+                                    style={{ width: 110 }}
+                                    onSelect={(value: any) => handleAccountChange(sale, value)}
+                                    options={accountsForTransfer.map((data: any) => ({
+                                      value: data.name,
+                                      label: data.name,
+                                    }))}
+                                  />
+                                </td>
+                              );
+                            }
+                            return (
+                              <td key={colIndex} className="p-2">
+                                {sale[col.key] || "-"}
+                              </td>
+                            );
+                          }
+
+                          // Celda normal (no editable)
+                          return (
+                            <td
+                              key={colIndex}
+                              className="p-2"
+                              style={col.color ? { color: col.color } : {}}
+                            >
+                              {formattedValue}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    );
+                  })}
                 </tbody>
+
                 {/* Footer con totales */}
-                <tfoot className="sticky bottom-0 bg-cyan-800 font-bold">
+                <tfoot className="sticky bottom-0 bg-cyan-800 font-bold z-[5]">
                   <tr>
                     <td className="p-2"></td>
                     <td className="p-2">TOTALES</td>
@@ -1581,103 +1629,85 @@ const ModalListTranferSale = ({
                     <td className="p-2"></td>
                     <td className="p-2">${formatCurrency(totals.cash)}</td>
                     <td className="p-2">${formatCurrency(totals.transfer)}</td>
+                    <td className="p-2" style={{ color: "#93c5fd" }}>{totals.itemsJeans}</td>
+                    <td className="p-2" style={{ color: "#86efac" }}>{totals.itemsRemeras}</td>
                     <td className="p-2">{totals.items}</td>
                     <td className="p-2"></td>
                     <td className="p-2">${formatCurrency(totals.total)}</td>
                   </tr>
                 </tfoot>
               </table>
-
-              {/* Consolidado por Cuenta - solo cuando filterCuenta es "Todos" */}
-              {filterCuenta === "Todos" && salesFiltered.length > 0 && (
-                <div className="mt-4 pt-4 border-t border-cyan-700">
-                  <h3 className="text-lg font-bold text-cyan-400 mb-3">
-                    Consolidado por Cuenta
-                  </h3>
-                  <div className="grid grid-cols-2 gap-3">
-                    {(() => {
-                      // Agrupar por cuenta
-                      const consolidado = salesFiltered.reduce(
-                        (acc: any, sale: any) => {
-                          const cuenta =
-                            sale.accountForTransfer || "Sin cuenta";
-                          if (!acc[cuenta]) {
-                            acc[cuenta] = {
-                              cuenta,
-                              efectivo: 0,
-                              transferencia: 0,
-                              prendas: 0,
-                              total: 0,
-                            };
-                          }
-                          acc[cuenta].efectivo += sale.cash || 0;
-                          acc[cuenta].transferencia += sale.transfer || 0;
-                          acc[cuenta].prendas += sale.items || 0;
-                          acc[cuenta].total += sale.total || 0;
-                          return acc;
-                        },
-                        {},
-                      );
-
-                      return Object.values(consolidado).map(
-                        (cuenta: any, idx: number) => (
-                          <div
-                            key={idx}
-                            className="p-3 rounded-lg bg-cyan-900/30 border border-cyan-700/50"
-                          >
-                            <h4 className="font-bold text-cyan-300 mb-2 pb-1 border-b border-cyan-700/50">
-                              {cuenta.cuenta}
-                            </h4>
-                            <div className="space-y-1 text-sm">
-                              <div className="flex justify-between">
-                                <span className="text-gray-400">Efectivo:</span>
-                                <span className="font-medium text-green-400">
-                                  ${formatCurrency(cuenta.efectivo)}
-                                </span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-gray-400">
-                                  Transferencia:
-                                </span>
-                                <span className="font-medium text-cyan-400">
-                                  ${formatCurrency(cuenta.transferencia)}
-                                </span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-gray-400">Prendas:</span>
-                                <span className="font-medium text-amber-400">
-                                  {cuenta.prendas}
-                                </span>
-                              </div>
-                              <div className="flex justify-between pt-1 mt-1 border-t border-cyan-700/50">
-                                <span className="font-bold text-white">
-                                  Total:
-                                </span>
-                                <span className="font-bold text-cyan-300">
-                                  ${formatCurrency(cuenta.total)}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        ),
-                      );
-                    })()}
-                  </div>
-                </div>
-              )}
-
-              <KeyboardNum
-                isModalKeyboardNumOpen={isModalKeyboardNumOpen}
-                manualNum={value}
-                handleManualNum={handleManualValue}
-                closeModal={() => {
-                  setValue(0);
-                  setEditableRow(null);
-                  setIsModalKeyboardNumOpen(false);
-                }}
-                title={"Ingrese " + mappingConceptToUpdate[propSale.dataIndex]}
-              />
             </div>
+
+            {/* Consolidado por Cuenta - SIEMPRE VISIBLE */}
+            {salesFiltered.length > 0 && (
+              <div className="mt-4 pt-4 border-t border-cyan-700 h-[22vh] overflow-y-auto">
+                <h3 className="text-lg font-bold text-cyan-400 mb-3">
+                  Consolidado por Cuenta
+                </h3>
+                <div className="grid grid-cols-2 gap-3">
+                  {Object.values(consolidado).map((cuenta: any, idx: number) => (
+                    <div
+                      key={idx}
+                      className="p-3 rounded-lg bg-cyan-900/30 border border-cyan-700/50"
+                    >
+                      <h4 className="font-bold text-cyan-300 mb-2 pb-1 border-b border-cyan-700/50">
+                        {cuenta.cuenta}
+                      </h4>
+                      <div className="space-y-1 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Efectivo:</span>
+                          <span className="font-medium text-green-400">
+                            ${formatCurrency(cuenta.efectivo)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Transferencia:</span>
+                          <span className="font-medium text-cyan-400">
+                            ${formatCurrency(cuenta.transferencia)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Prendas:</span>
+                          <span className="font-medium text-amber-400">
+                            {cuenta.prendas}{" "}
+                            <span className="text-xs">
+                              (<span className="text-blue-400">J:{cuenta.prendasJeans}</span>{" "}
+                              <span className="text-green-400">R:{cuenta.prendasRemeras}</span>)
+                            </span>
+                          </span>
+                        </div>
+                        <div className="flex justify-between pt-1 mt-1 border-t border-cyan-700/50">
+                          <span className="font-bold text-white">Total:</span>
+                          <span className="font-bold text-cyan-300">
+                            ${formatCurrency(cuenta.total)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* KeyboardNum para edición - envuelto en contenedor con z-index alto */}
+            {isModalKeyboardNumOpen && (
+              <div className="fixed inset-0 z-[9999] flex items-center justify-center pointer-events-none">
+                <div className="pointer-events-auto">
+                  <KeyboardNum
+                    isModalKeyboardNumOpen={isModalKeyboardNumOpen}
+                    manualNum={value}
+                    handleManualNum={handleManualValue}
+                    closeModal={() => {
+                      setValue(0);
+                      setEditableRowId(null);
+                      setIsModalKeyboardNumOpen(false);
+                    }}
+                    title={"Ingrese " + (mappingConceptToUpdate[propSale.dataIndex] || propSale.dataIndex)}
+                  />
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
