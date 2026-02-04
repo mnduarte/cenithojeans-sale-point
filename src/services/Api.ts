@@ -424,6 +424,7 @@ const printSale = ({
   totalToPay,
   total,
   cashierName,
+  userStore,
 }: any) =>
   instance.post("/sale/print-sale", {
     pricesSelected,
@@ -446,6 +447,7 @@ const printSale = ({
     totalToPay,
     total,
     cashierName,
+    userStore,
   });
 
 const addCashflow = ({

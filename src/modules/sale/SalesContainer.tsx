@@ -294,6 +294,7 @@ const SalesContainer = () => {
         totalToPay,
         total: totalFinal,
         cashierName: selectedCashier?.name || "",
+        userStore: user.store
       })(dispatchSale)
     );
 

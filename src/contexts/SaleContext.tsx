@@ -996,6 +996,7 @@ export const saleActions = {
       totalToPay,
       total,
       cashierName,
+      userStore,
     }: any) =>
     async (dispatch: any) => {
       dispatch({
@@ -1025,6 +1026,7 @@ export const saleActions = {
           totalToPay,
           total,
           cashierName,
+          userStore,
         });
 
         dispatch({
