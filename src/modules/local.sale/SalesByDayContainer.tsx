@@ -1290,7 +1290,12 @@ const ModalListTranferSale = ({
   };
 
   // Click en input para abrir KeyboardNum (paso 2)
-  const handleInputClick = (e: React.MouseEvent, sale: any, dataIndex: string, currentValue: any) => {
+  const handleInputClick = (
+    e: React.MouseEvent,
+    sale: any,
+    dataIndex: string,
+    currentValue: any,
+  ) => {
     e.stopPropagation();
     setPropSale({ id: sale.id, dataIndex });
     setValue(currentValue || 0);
@@ -1318,34 +1323,38 @@ const ModalListTranferSale = ({
       items: acc.items + (sale.items || 0),
       total: acc.total + (sale.total || 0),
     }),
-    { cash: 0, transfer: 0, itemsJeans: 0, itemsRemeras: 0, items: 0, total: 0 },
+    {
+      cash: 0,
+      transfer: 0,
+      itemsJeans: 0,
+      itemsRemeras: 0,
+      items: 0,
+      total: 0,
+    },
   );
 
   // Calcular consolidado (siempre, no depende del filtro)
-  const consolidado = salesFiltered.reduce(
-    (acc: any, sale: any) => {
-      const cuenta = sale.accountForTransfer || "Sin cuenta";
-      if (!acc[cuenta]) {
-        acc[cuenta] = {
-          cuenta,
-          efectivo: 0,
-          transferencia: 0,
-          prendasJeans: 0,
-          prendasRemeras: 0,
-          prendas: 0,
-          total: 0,
-        };
-      }
-      acc[cuenta].efectivo += sale.cash || 0;
-      acc[cuenta].transferencia += sale.transfer || 0;
-      acc[cuenta].prendasJeans += sale.itemsJeans || 0;
-      acc[cuenta].prendasRemeras += sale.itemsRemeras || 0;
-      acc[cuenta].prendas += sale.items || 0;
-      acc[cuenta].total += sale.total || 0;
-      return acc;
-    },
-    {},
-  );
+  const consolidado = salesFiltered.reduce((acc: any, sale: any) => {
+    const cuenta = sale.accountForTransfer || "Sin cuenta";
+    if (!acc[cuenta]) {
+      acc[cuenta] = {
+        cuenta,
+        efectivo: 0,
+        transferencia: 0,
+        prendasJeans: 0,
+        prendasRemeras: 0,
+        prendas: 0,
+        total: 0,
+      };
+    }
+    acc[cuenta].efectivo += sale.cash || 0;
+    acc[cuenta].transferencia += sale.transfer || 0;
+    acc[cuenta].prendasJeans += sale.itemsJeans || 0;
+    acc[cuenta].prendasRemeras += sale.itemsRemeras || 0;
+    acc[cuenta].prendas += sale.items || 0;
+    acc[cuenta].total += sale.total || 0;
+    return acc;
+  }, {});
 
   // Definición de columnas con anchos ajustados
   type Column = {
@@ -1359,16 +1368,82 @@ const ModalListTranferSale = ({
   };
 
   const columns: Column[] = [
-    { key: "order", title: "N°", sortable: true, editable: false, width: "w-10" },
-    { key: "employee", title: "Vendedor", sortable: true, editable: false, width: "w-20" },
-    { key: "createdAt", title: "Hora", sortable: true, editable: false, width: "w-14", format: formatTime },
-    { key: "cash", title: "Efectivo", sortable: true, editable: true, width: "w-24", format: (v: any) => `$${formatCurrency(v)}` },
-    { key: "transfer", title: "Transfer", sortable: true, editable: true, width: "w-24", format: (v: any) => `$${formatCurrency(v)}` },
-    { key: "itemsJeans", title: "P.J", sortable: true, editable: true, width: "w-12", color: "#3b82f6" },
-    { key: "itemsRemeras", title: "P.R", sortable: true, editable: true, width: "w-12", color: "#22c55e" },
-    { key: "items", title: "Prend", sortable: true, editable: false, width: "w-12" },
-    { key: "accountForTransfer", title: "Cuenta", sortable: true, editable: "select", width: "w-28" },
-    { key: "total", title: "Total", sortable: true, editable: true, width: "w-24", format: (v: any) => `$${formatCurrency(v)}` },
+    {
+      key: "order",
+      title: "N°",
+      sortable: true,
+      editable: false,
+      width: "w-10",
+    },
+    {
+      key: "employee",
+      title: "Vendedor",
+      sortable: true,
+      editable: false,
+      width: "w-20",
+    },
+    {
+      key: "createdAt",
+      title: "Hora",
+      sortable: true,
+      editable: false,
+      width: "w-14",
+      format: formatTime,
+    },
+    {
+      key: "cash",
+      title: "Efectivo",
+      sortable: true,
+      editable: true,
+      width: "w-24",
+      format: (v: any) => `$${formatCurrency(v)}`,
+    },
+    {
+      key: "transfer",
+      title: "Transfer",
+      sortable: true,
+      editable: true,
+      width: "w-24",
+      format: (v: any) => `$${formatCurrency(v)}`,
+    },
+    {
+      key: "itemsJeans",
+      title: "P.J",
+      sortable: true,
+      editable: true,
+      width: "w-12",
+      color: "#3b82f6",
+    },
+    {
+      key: "itemsRemeras",
+      title: "P.R",
+      sortable: true,
+      editable: true,
+      width: "w-12",
+      color: "#22c55e",
+    },
+    {
+      key: "items",
+      title: "Prend",
+      sortable: true,
+      editable: false,
+      width: "w-12",
+    },
+    {
+      key: "accountForTransfer",
+      title: "Cuenta",
+      sortable: true,
+      editable: "select",
+      width: "w-28",
+    },
+    {
+      key: "total",
+      title: "Total",
+      sortable: true,
+      editable: true,
+      width: "w-24",
+      format: (v: any) => `$${formatCurrency(v)}`,
+    },
   ];
 
   return (
@@ -1439,11 +1514,16 @@ const ModalListTranferSale = ({
                 className="w-25 ml-2 bg-cyan-700 hover:bg-cyan-800 hover:cursor-pointer text-white px-4 py-1 rounded-md flex items-center justify-center select-none"
               >
                 {({ loading }) =>
-                  loading ? <button>Cargando...</button> : <button>Generar PDF</button>
+                  loading ? (
+                    <button>Cargando...</button>
+                  ) : (
+                    <button>Generar PDF</button>
+                  )
                 }
               </PDFDownloadLink>
 
-              {(Boolean(itemsIdSelected.length) || Boolean(cashflowIdSelected.length)) && (
+              {(Boolean(itemsIdSelected.length) ||
+                Boolean(cashflowIdSelected.length)) && (
                 <div
                   className="ml-2 bg-red-700 hover:bg-red-800 hover:cursor-pointer text-white px-4 py-1 rounded-md flex items-center justify-center select-none"
                   onClick={() => {
@@ -1461,7 +1541,9 @@ const ModalListTranferSale = ({
                 </div>
               )}
 
-              <span className="ml-2 text-sm">Registros: {salesFiltered.length}</span>
+              <span className="ml-2 text-sm">
+                Registros: {salesFiltered.length}
+              </span>
             </div>
 
             {/* Tabla */}
@@ -1490,7 +1572,7 @@ const ModalListTranferSale = ({
                 <tbody>
                   {salesFiltered.map((sale: any, rowIndex: number) => {
                     const isEditing = editableRowId === sale.id;
-                    
+
                     return (
                       <tr
                         key={rowIndex}
@@ -1506,26 +1588,37 @@ const ModalListTranferSale = ({
                         onClick={() => handleRowClick(sale)}
                       >
                         {/* Checkbox */}
-                        <td className="p-2" onClick={(e) => e.stopPropagation()}>
+                        <td
+                          className="p-2"
+                          onClick={(e) => e.stopPropagation()}
+                        >
                           <input
                             type="checkbox"
                             checked={
                               sale.id
-                                ? itemsIdSelected.some((item: any) => item.id === sale.id) ||
-                                  cashflowIdSelected.some((item: any) => item.id === sale.id)
+                                ? itemsIdSelected.some(
+                                    (item: any) => item.id === sale.id,
+                                  ) ||
+                                  cashflowIdSelected.some(
+                                    (item: any) => item.id === sale.id,
+                                  )
                                 : false
                             }
                             onChange={() => {
                               if (sale.type === "ingreso") {
                                 setCashflowIdSelected((prev: any) =>
                                   prev.some((item: any) => item.id === sale.id)
-                                    ? prev.filter((item: any) => item.id !== sale.id)
+                                    ? prev.filter(
+                                        (item: any) => item.id !== sale.id,
+                                      )
                                     : [...prev, { id: sale.id }],
                                 );
                               } else {
                                 setItemsIdSelected((prev: any) =>
                                   prev.some((item: any) => item.id === sale.id)
-                                    ? prev.filter((item: any) => item.id !== sale.id)
+                                    ? prev.filter(
+                                        (item: any) => item.id !== sale.id,
+                                      )
                                     : [...prev, { id: sale.id }],
                                 );
                               }
@@ -1544,24 +1637,48 @@ const ModalListTranferSale = ({
 
                           // Formatear valor para mostrar
                           const formattedValue =
-                            col.format && displayValue !== undefined && displayValue !== null
+                            col.format &&
+                            displayValue !== undefined &&
+                            displayValue !== null
                               ? col.format(displayValue)
-                              : displayValue !== undefined && displayValue !== null
+                              : displayValue !== undefined &&
+                                  displayValue !== null
                                 ? displayValue
                                 : "-";
 
                           // Celda editable con input (cuando la fila está seleccionada)
-                          if (col.editable === true && sale.type !== "ingreso") {
+                          if (
+                            col.editable === true &&
+                            sale.type !== "ingreso"
+                          ) {
                             if (isEditing) {
                               return (
-                                <td key={colIndex} className="p-1" onClick={(e) => e.stopPropagation()}>
+                                <td
+                                  key={colIndex}
+                                  className="p-1"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
                                   <input
                                     type="text"
                                     readOnly
-                                    value={displayValue !== undefined && displayValue !== null ? displayValue : ""}
+                                    value={
+                                      displayValue !== undefined &&
+                                      displayValue !== null
+                                        ? displayValue
+                                        : ""
+                                    }
                                     className="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded text-sm cursor-pointer hover:border-cyan-500"
-                                    style={col.color ? { color: col.color } : {}}
-                                    onClick={(e) => handleInputClick(e, sale, col.key, sale[col.key])}
+                                    style={
+                                      col.color ? { color: col.color } : {}
+                                    }
+                                    onClick={(e) =>
+                                      handleInputClick(
+                                        e,
+                                        sale,
+                                        col.key,
+                                        sale[col.key],
+                                      )
+                                    }
                                   />
                                 </td>
                               );
@@ -1578,21 +1695,38 @@ const ModalListTranferSale = ({
                           }
 
                           // Celda editable con Select (Cuenta)
-                          if (col.editable === "select" && sale.type !== "ingreso") {
+                          if (
+                            col.editable === "select" &&
+                            sale.type !== "ingreso"
+                          ) {
                             if (isEditing) {
                               return (
-                                <td key={colIndex} className="p-1" onClick={(e) => e.stopPropagation()}>
+                                <td
+                                  key={colIndex}
+                                  className="p-1"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
                                   <Select
                                     value={sale[col.key] || ""}
-                                    className={themeStyles[theme].classNameSelector}
-                                    dropdownStyle={themeStyles[theme].dropdownStylesCustom}
-                                    popupClassName={themeStyles[theme].classNameSelectorItem}
+                                    className={
+                                      themeStyles[theme].classNameSelector
+                                    }
+                                    dropdownStyle={
+                                      themeStyles[theme].dropdownStylesCustom
+                                    }
+                                    popupClassName={
+                                      themeStyles[theme].classNameSelectorItem
+                                    }
                                     style={{ width: 110 }}
-                                    onSelect={(value: any) => handleAccountChange(sale, value)}
-                                    options={accountsForTransfer.map((data: any) => ({
-                                      value: data.name,
-                                      label: data.name,
-                                    }))}
+                                    onSelect={(value: any) =>
+                                      handleAccountChange(sale, value)
+                                    }
+                                    options={accountsForTransfer.map(
+                                      (data: any) => ({
+                                        value: data.name,
+                                        label: data.name,
+                                      }),
+                                    )}
                                   />
                                 </td>
                               );
@@ -1629,8 +1763,12 @@ const ModalListTranferSale = ({
                     <td className="p-2"></td>
                     <td className="p-2">${formatCurrency(totals.cash)}</td>
                     <td className="p-2">${formatCurrency(totals.transfer)}</td>
-                    <td className="p-2" style={{ color: "#93c5fd" }}>{totals.itemsJeans}</td>
-                    <td className="p-2" style={{ color: "#86efac" }}>{totals.itemsRemeras}</td>
+                    <td className="p-2" style={{ color: "#93c5fd" }}>
+                      {totals.itemsJeans}
+                    </td>
+                    <td className="p-2" style={{ color: "#86efac" }}>
+                      {totals.itemsRemeras}
+                    </td>
                     <td className="p-2">{totals.items}</td>
                     <td className="p-2"></td>
                     <td className="p-2">${formatCurrency(totals.total)}</td>
@@ -1646,46 +1784,56 @@ const ModalListTranferSale = ({
                   Consolidado por Cuenta
                 </h3>
                 <div className="grid grid-cols-2 gap-3">
-                  {Object.values(consolidado).map((cuenta: any, idx: number) => (
-                    <div
-                      key={idx}
-                      className="p-3 rounded-lg bg-cyan-900/30 border border-cyan-700/50"
-                    >
-                      <h4 className="font-bold text-cyan-300 mb-2 pb-1 border-b border-cyan-700/50">
-                        {cuenta.cuenta}
-                      </h4>
-                      <div className="space-y-1 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">Efectivo:</span>
-                          <span className="font-medium text-green-400">
-                            ${formatCurrency(cuenta.efectivo)}
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">Transferencia:</span>
-                          <span className="font-medium text-cyan-400">
-                            ${formatCurrency(cuenta.transferencia)}
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">Prendas:</span>
-                          <span className="font-medium text-amber-400">
-                            {cuenta.prendas}{" "}
-                            <span className="text-xs">
-                              (<span className="text-blue-400">J:{cuenta.prendasJeans}</span>{" "}
-                              <span className="text-green-400">R:{cuenta.prendasRemeras}</span>)
+                  {Object.values(consolidado).map(
+                    (cuenta: any, idx: number) => (
+                      <div
+                        key={idx}
+                        className="p-3 rounded-lg bg-cyan-900/30 border border-cyan-700/50"
+                      >
+                        <h4 className="font-bold text-cyan-300 mb-2 pb-1 border-b border-cyan-700/50">
+                          {cuenta.cuenta}
+                        </h4>
+                        <div className="space-y-1 text-sm">
+                          <div className="flex justify-between">
+                            <span className="text-gray-400">Efectivo:</span>
+                            <span className="font-medium text-green-400">
+                              ${formatCurrency(cuenta.efectivo)}
                             </span>
-                          </span>
-                        </div>
-                        <div className="flex justify-between pt-1 mt-1 border-t border-cyan-700/50">
-                          <span className="font-bold text-white">Total:</span>
-                          <span className="font-bold text-cyan-300">
-                            ${formatCurrency(cuenta.total)}
-                          </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-400">
+                              Transferencia:
+                            </span>
+                            <span className="font-medium text-cyan-400">
+                              ${formatCurrency(cuenta.transferencia)}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-400">Prendas:</span>
+                            <span className="font-medium text-amber-400">
+                              {cuenta.prendas}{" "}
+                              <span className="text-xs">
+                                (
+                                <span className="text-blue-400">
+                                  J:{cuenta.prendasJeans}
+                                </span>{" "}
+                                <span className="text-green-400">
+                                  R:{cuenta.prendasRemeras}
+                                </span>
+                                )
+                              </span>
+                            </span>
+                          </div>
+                          <div className="flex justify-between pt-1 mt-1 border-t border-cyan-700/50">
+                            <span className="font-bold text-white">Total:</span>
+                            <span className="font-bold text-cyan-300">
+                              ${formatCurrency(cuenta.total)}
+                            </span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    ),
+                  )}
                 </div>
               </div>
             )}
@@ -1703,7 +1851,11 @@ const ModalListTranferSale = ({
                       setEditableRowId(null);
                       setIsModalKeyboardNumOpen(false);
                     }}
-                    title={"Ingrese " + (mappingConceptToUpdate[propSale.dataIndex] || propSale.dataIndex)}
+                    title={
+                      "Ingrese " +
+                      (mappingConceptToUpdate[propSale.dataIndex] ||
+                        propSale.dataIndex)
+                    }
                   />
                 </div>
               </div>
@@ -2757,22 +2909,26 @@ const SalesByDayContainer = () => {
                         <span className="font-bold text-lg">
                           {cashier.name}
                         </span>
-                        <span className="text-sm px-2 py-1 rounded bg-gray-700/50 text-white font-medium">
-                          {moneyPercent}% Cash + Transfer
-                        </span>
+                        {user.store === "ALL" && (
+                          <span className="text-sm px-2 py-1 rounded bg-gray-700/50 text-white font-medium">
+                            {moneyPercent}% Cash + Transfer
+                          </span>
+                        )}
                       </div>
 
                       {/* Fila de Cash, Transfer y Prendas */}
                       <div className="grid grid-cols-3 gap-2 text-sm">
-                        <div className="p-2 rounded bg-green-900/25 border border-green-800/30">
-                          <span className="text-gray-400">Cash:</span>
-                          <div className="font-bold text-green-400">
-                            ${formatCurrency(cashier.cash)}
+                        {user.store === "ALL" && (
+                          <div className="p-2 rounded bg-green-900/25 border border-green-800/30">
+                            <span className="text-gray-400">Cash:</span>
+                            <div className="font-bold text-green-400">
+                              ${formatCurrency(cashier.cash)}
+                            </div>
+                            <div className="text-xs text-green-300/70">
+                              {cashPercent}% del cash
+                            </div>
                           </div>
-                          <div className="text-xs text-green-300/70">
-                            {cashPercent}% del cash
-                          </div>
-                        </div>
+                        )}
                         <div className="p-2 rounded bg-cyan-900/25 border border-cyan-800/30">
                           <span className="text-gray-400">Transfer:</span>
                           <div className="font-bold text-cyan-400">
@@ -2809,12 +2965,16 @@ const SalesByDayContainer = () => {
                 {/* Total general */}
                 <div className="border-t border-gray-500 pt-3 mt-3">
                   <div className="grid grid-cols-3 gap-2 font-bold">
-                    <div className="p-2 rounded bg-green-900/30 border border-green-700/50">
-                      <span className="text-gray-400 text-sm">Total Cash:</span>
-                      <div className="text-green-400 text-lg">
-                        ${formatCurrency(totalCashAllCashiers)}
+                    {user.store === "ALL" && (
+                      <div className="p-2 rounded bg-green-900/30 border border-green-700/50">
+                        <span className="text-gray-400 text-sm">
+                          Total Cash:
+                        </span>
+                        <div className="text-green-400 text-lg">
+                          ${formatCurrency(totalCashAllCashiers)}
+                        </div>
                       </div>
-                    </div>
+                    )}
                     <div className="p-2 rounded bg-cyan-900/30 border border-cyan-700/50">
                       <span className="text-gray-400 text-sm">
                         Total Transfer:
