@@ -3,6 +3,7 @@ import { FaPlus } from "react-icons/fa";
 import Spinner from "../../components/Spinner";
 import { useTheme } from "../../contexts/ThemeContext";
 import { CASHIER_COLORS, getTextColorForBackground } from "../../utils/cashierColors";
+import Api from "../../services/Api";
 
 interface Store {
   name: string;
@@ -39,11 +40,17 @@ const CashierForm = ({
     store: "",
     color: "",
     position: totalPositions,
-    isAdmin: false,  // <-- AGREGAR
+    isAdmin: false,
+    printerId: "",  // <-- NUEVO
   };
 
   const [isNewCashier, setIsNewCashier] = useState(true);
   const [cashierValues, setCashierValues] = useState(initialValues);
+  
+  // ========== NUEVO: Estado para impresoras ==========
+  const [printers, setPrinters] = useState<any>([]);
+  const [loadingPrinters, setLoadingPrinters] = useState(false);
+  // ===================================================
 
   const titleForm = `${isNewCashier ? "Agregar" : "Editar"} Cajero`;
 
@@ -58,7 +65,8 @@ const CashierForm = ({
     if (itemSelected?.id) {
       setCashierValues({
         ...itemSelected,
-        isAdmin: itemSelected.isAdmin || false,  // <-- Asegurar que tenga valor
+        isAdmin: itemSelected.isAdmin || false,
+        printerId: itemSelected.printerId || "",  // <-- NUEVO
       });
       setIsNewCashier(false);
     }
@@ -69,6 +77,29 @@ const CashierForm = ({
       setCashierValues((prev) => ({ ...prev, position: totalPositions }));
     }
   }, [totalPositions, isNewCashier]);
+
+  // ========== NUEVO: Cargar impresoras cuando cambia la sucursal ==========
+  useEffect(() => {
+    const fetchPrinters = async () => {
+      if (cashierValues.store) {
+        setLoadingPrinters(true);
+        try {
+          const result = await Api.getPrintersByStore(cashierValues.store);
+          setPrinters(result);
+        } catch (error) {
+          console.error("Error cargando impresoras:", error);
+          setPrinters([]);
+        } finally {
+          setLoadingPrinters(false);
+        }
+      } else {
+        setPrinters([]);
+      }
+    };
+
+    fetchPrinters();
+  }, [cashierValues.store]);
+  // ========================================================================
 
   return (
     <div className="p-4 rounded-md">
@@ -105,7 +136,11 @@ const CashierForm = ({
         <select
           value={cashierValues.store}
           onChange={(e) =>
-            setCashierValues({ ...cashierValues, store: e.target.value })
+            setCashierValues({ 
+              ...cashierValues, 
+              store: e.target.value,
+              printerId: "",  // Reset impresora al cambiar sucursal
+            })
           }
           className={`p-1 rounded-md w-full ${themeStyles[theme].tailwindcss.inputText}`}
         >
@@ -176,6 +211,40 @@ const CashierForm = ({
           className={`p-1 rounded-md w-full ${themeStyles[theme].tailwindcss.inputText}`}
         />
       </div>
+
+      {/* ==================== NUEVO: SELECTOR DE IMPRESORA ==================== */}
+      <div className="mb-4">
+        <label className="block mb-2">Impresora:</label>
+        <select
+          value={cashierValues.printerId}
+          onChange={(e) =>
+            setCashierValues({ ...cashierValues, printerId: e.target.value })
+          }
+          className={`p-1 rounded-md w-full ${themeStyles[theme].tailwindcss.inputText}`}
+          disabled={!cashierValues.store || loadingPrinters}
+        >
+          <option value="">
+            {loadingPrinters 
+              ? "Cargando..." 
+              : !cashierValues.store 
+                ? "Seleccione sucursal primero" 
+                : "🖨️ Usar impresora por defecto"
+            }
+          </option>
+          {printers.map((printer:any) => (
+            <option key={printer.id} value={printer.id}>
+              {printer.name} ({printer.networkName})
+              {printer.isDefault ? " ⭐" : ""}
+            </option>
+          ))}
+        </select>
+        {!cashierValues.printerId && cashierValues.store && (
+          <p className="text-xs text-gray-400 mt-1">
+            Se usará la impresora por defecto de {cashierValues.store}
+          </p>
+        )}
+      </div>
+      {/* ==================== FIN SELECTOR DE IMPRESORA ==================== */}
 
       {/* ==================== CHECKBOX ADMIN ==================== */}
       <div className="mb-4">

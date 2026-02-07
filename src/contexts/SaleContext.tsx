@@ -158,7 +158,10 @@ export const SaleProvider: React.FC<SaleProviderProps> = ({ children }) => {
           loading: false,
           error: action.payload,
           showErrorToast: true,
-          showSuccessToastMsg: "¡Error! Algo salió mal.",
+          showSuccessToastMsg:
+            typeof action.payload === "string"
+              ? action.payload
+              : "¡Error! Algo salió mal.",
         };
       }
       case actionTypes.SUCCESS: {
@@ -997,6 +1000,7 @@ export const saleActions = {
       total,
       cashierName,
       userStore,
+      cashierId,
     }: any) =>
     async (dispatch: any) => {
       dispatch({
@@ -1027,18 +1031,19 @@ export const saleActions = {
           total,
           cashierName,
           userStore,
+          cashierId,
         });
 
         dispatch({
           type: actionTypes.SUCCESS_PRINT,
           payload: data.results,
         });
-      } catch (error) {
+      } catch (error: any) {
         console.log(error);
 
         dispatch({
           type: actionTypes.ERROR,
-          payload: ERROR_MESSAGE_TIMEOUT,
+          payload: error.response.data.message,
         });
       }
     },

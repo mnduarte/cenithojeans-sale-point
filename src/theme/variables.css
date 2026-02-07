@@ -76,13 +76,12 @@ http://ionicframework.com/docs/theming/ */
   --ion-color-light-tint: #f5f6f9;
 }
 
-@media (prefers-color-scheme: dark) {
   /*
    * Dark Colors
    * -------------------------------------------
    */
 
-  body {
+  body.dark {
     font-size: 14px;
 
     --ion-color-primary: #428cff;
@@ -242,7 +241,6 @@ http://ionicframework.com/docs/theming/ */
 
     --ion-card-background: #1e1e1e;
   }
-}
 
 html {
   /* For more information on dynamic font scaling, visit the documentation: 

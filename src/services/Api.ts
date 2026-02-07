@@ -403,6 +403,20 @@ const removeCashflows = ({ cashflowIds }: any) =>
 const getLastNumOrder = ({ seller }: any) =>
   instance.post("/sale/last-num-order-by-seller", { seller });
 
+// Obtener todas las impresoras
+const getAllPrinters = async (): Promise<any> => {
+  const response = await instance.get<any>(`/printer`);
+  return response.data.results;
+};
+
+// Obtener impresoras por sucursal
+const getPrintersByStore = async (store: string): Promise<any> => {
+  const response = await instance.post<any>(`/printer/by-store`, {
+    store,
+  });
+  return response.data.results;
+};
+
 const printSale = ({
   pricesSelected,
   devolutionPricesSelected,
@@ -425,6 +439,7 @@ const printSale = ({
   total,
   cashierName,
   userStore,
+  cashierId,
 }: any) =>
   instance.post("/sale/print-sale", {
     pricesSelected,
@@ -448,6 +463,7 @@ const printSale = ({
     total,
     cashierName,
     userStore,
+    cashierId,
   });
 
 const addCashflow = ({
@@ -786,6 +802,9 @@ const Api = {
   createCashier,
   updateCashier,
   deleteCashier,
+  
+  getAllPrinters,
+  getPrintersByStore,
 };
 
 export default Api;

@@ -52,7 +52,7 @@ const Keyboard = ({ onKeyPress }: any) => {
   ];
 
   return (
-    <div className="w-[50vh] mt-4 grid grid-rows-4 grid-flow-col gap-2">
+    <div className="w-[50vh] mt-4 grid grid-rows-4 grid-flow-col gap-2 text-white select-none">
       {rows.map((row, rowIndex) => (
         <div key={rowIndex} className="flex">
           {row.map((key, keyIndex) => (

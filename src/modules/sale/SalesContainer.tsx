@@ -76,28 +76,28 @@ const SalesContainer = () => {
     const totalItems = pricesSelected.reduce(
       (acc, current) =>
         Number(acc) + (current.concept ? 0 : Number(current.quantity)),
-      0
+      0,
     );
     setTotalItems(totalItems);
 
     const totalDevolutionItems = devolutionPricesSelected.reduce(
       (acc, current) =>
         Number(acc) + (current.concept ? 0 : Number(current.quantity)),
-      0
+      0,
     );
     setTotalDevolutionItems(totalDevolutionItems);
 
     setTotalPrices(
       pricesSelected.reduce(
         (acc, current) => current.price * current.quantity + acc,
-        0
-      )
+        0,
+      ),
     );
     setTotalDevolutionPrices(
       devolutionPricesSelected.reduce(
         (acc, current) => current.price * current.quantity + acc,
-        0
-      )
+        0,
+      ),
     );
   }, [pricesSelected, devolutionPricesSelected]);
 
@@ -123,7 +123,7 @@ const SalesContainer = () => {
     data.cashierId = selectedCashier?.id || null;
     data.cashierName = selectedCashier?.name || null;
 
-    // Los nuevos campos (itemsJeans, itemsRemeras, subtotals, amounts) 
+    // Los nuevos campos (itemsJeans, itemsRemeras, subtotals, amounts)
     // ya vienen calculados desde ConfirmSale.tsx en el objeto data
 
     dispatchSale(saleActions.addSale(data)(dispatchSale));
@@ -132,7 +132,7 @@ const SalesContainer = () => {
   const handleQuantityByPrice = (
     event: any,
     itemId: any,
-    isDevolution: boolean
+    isDevolution: boolean,
   ) => {
     const inputValue = event.target.value;
     if (/^\d*$/.test(inputValue)) {
@@ -159,7 +159,7 @@ const SalesContainer = () => {
   const addManualPrice = (concept: any) => {
     if (manualPrice) {
       const [foundConcept]: any = concepts.filter(
-        (c: any) => c.value === concept
+        (c: any) => c.value === concept,
       );
 
       let setPricesItems = devolutionModeActive
@@ -177,7 +177,7 @@ const SalesContainer = () => {
       setPricesItems((items: any) => {
         const maxId = Math.max(
           ...items.map((item: PriceSelected) => item.id),
-          ...prices.map((item: Price) => item.id)
+          ...prices.map((item: Price) => item.id),
         );
 
         const newItem: SaleItem = {
@@ -210,7 +210,7 @@ const SalesContainer = () => {
             item.quantity = Number(quantityForItem);
           }
           return item;
-        })
+        }),
       );
       setItemIdFocusForQuantity("");
       setQuantityForItem("");
@@ -221,7 +221,7 @@ const SalesContainer = () => {
   const handleManualPrice = (item: any, concept: any) => {
     if (item.action === "deleteLast") {
       return setManualPrice((currentValue: any) =>
-        String(currentValue).slice(0, -1)
+        String(currentValue).slice(0, -1),
       );
     }
 
@@ -230,14 +230,14 @@ const SalesContainer = () => {
     }
 
     setManualPrice(
-      (currentValue: any) => String(currentValue) + String(item.value)
+      (currentValue: any) => String(currentValue) + String(item.value),
     );
   };
 
   const handleQuantityByItem = (item: any) => {
     if (item.action === "deleteLast") {
       return setQuantityForItem((currentValue: any) =>
-        String(currentValue).slice(0, -1)
+        String(currentValue).slice(0, -1),
       );
     }
 
@@ -246,7 +246,7 @@ const SalesContainer = () => {
     }
 
     setQuantityForItem(
-      (currentValue: any) => String(currentValue) + String(item.value)
+      (currentValue: any) => String(currentValue) + String(item.value),
     );
   };
 
@@ -274,7 +274,7 @@ const SalesContainer = () => {
       saleActions.printSale({
         pricesSelected: pricesSelected.filter((price: any) => !price.concept),
         devolutionPricesSelected: devolutionPricesSelected.filter(
-          (price: any) => !price.concept
+          (price: any) => !price.concept,
         ),
         percentageToDisccountOrAdd,
         username: user.username,
@@ -294,8 +294,9 @@ const SalesContainer = () => {
         totalToPay,
         total: totalFinal,
         cashierName: selectedCashier?.name || "",
-        userStore: user.store
-      })(dispatchSale)
+        userStore: user.store,
+        cashierId: selectedCashier?.id || null,
+      })(dispatchSale),
     );
 
   const getLastNumOrder = (seller: any) =>
@@ -376,8 +377,8 @@ const SalesContainer = () => {
           itemIdFocusForQuantity
             ? "Agregar Cantidad al Item"
             : devolutionModeActive
-            ? "Añadir precio dev manual"
-            : "Añadir precio manual"
+              ? "Añadir precio dev manual"
+              : "Añadir precio manual"
         }
         concept={concept}
         setConcept={setConcept}

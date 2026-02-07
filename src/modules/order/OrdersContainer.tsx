@@ -1007,7 +1007,7 @@ const OrdersContainer = () => {
           )}
       </div>
 
-      <div className="mt-5 h-[74vh] mx-auto max-w overflow-hidden overflow-y-auto overflow-x-auto">
+      <div className="mt-5 h-[72vh] mx-auto max-w overflow-hidden overflow-y-auto overflow-x-auto">
         <EditableTable
           data={ordersFiltered}
           columns={columns}

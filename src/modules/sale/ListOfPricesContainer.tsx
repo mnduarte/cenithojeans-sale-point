@@ -92,14 +92,22 @@ const ListOfPricesContainer = ({
     const itemType = item.type || "jeans";
 
     // Buscar si ya existe un item con el mismo precio Y tipo
-    if (lastItem && lastItem.price === item.price && lastItemType === itemType) {
+    if (
+      lastItem &&
+      lastItem.price === item.price &&
+      lastItemType === itemType
+    ) {
       let itemIncremented = false;
 
       const pricesReversed = [...pricesItems].reverse();
 
       const productsUpdated = pricesReversed.map((product: any) => {
         const productType = product.type || "jeans";
-        if (!itemIncremented && product.price === item.price && productType === itemType) {
+        if (
+          !itemIncremented &&
+          product.price === item.price &&
+          productType === itemType
+        ) {
           itemIncremented = true;
           product.quantity = product.quantity + 1;
         }
@@ -113,7 +121,7 @@ const ListOfPricesContainer = ({
     setPricesItems((items: any) => {
       const maxId = Math.max(
         ...items.map((item: any) => item.id),
-        ...prices.map((item: any) => item.id)
+        ...prices.map((item: any) => item.id),
       );
 
       const newItem = {
@@ -145,23 +153,23 @@ const ListOfPricesContainer = ({
   };
 
   // Ordenar precios: primero Jeans, luego Remeras (ambos de menor a mayor)
-const sortedPrices = [...prices].sort((a: any, b: any) => {
-  const typeA = a.type || "jeans";
-  const typeB = b.type || "jeans";
-  
-  // Primero ordenar por tipo (jeans antes que remera)
-  if (typeA !== typeB) {
-    return typeA === "jeans" ? -1 : 1;
-  }
-  
-  // Dentro del mismo tipo, ordenar por precio de menor a mayor
-  return a.price - b.price;
-});
+  const sortedPrices = [...prices].sort((a: any, b: any) => {
+    const typeA = a.type || "jeans";
+    const typeB = b.type || "jeans";
+
+    // Primero ordenar por tipo (jeans antes que remera)
+    if (typeA !== typeB) {
+      return typeA === "jeans" ? -1 : 1;
+    }
+
+    // Dentro del mismo tipo, ordenar por precio de menor a mayor
+    return a.price - b.price;
+  });
 
   return (
     <>
-      <div className={`p-2 border ${themeStyles[theme].tailwindcss.border}`}>
-        <div className="ml-4 inline-block">
+      {/* <div className={`p-2 border ${themeStyles[theme].tailwindcss.border}`}>
+       <div className="ml-4 inline-block">
           <label className="mr-2">Ordenar:</label>
           <Select
             className={themeStyles[theme].classNameSelector}
@@ -179,7 +187,7 @@ const sortedPrices = [...prices].sort((a: any, b: any) => {
           />
         </div>
 
-        <div className="ml-5 inline-block">
+        <div className="inline-block">
           <div
             className={`cursor-pointer inline-block px-4 py-1 rounded-md border ${
               devolutionModeActive && "bg-red-600 text-white"
@@ -191,10 +199,10 @@ const sortedPrices = [...prices].sort((a: any, b: any) => {
             Devolución: {`${devolutionModeActive ? "ON" : "OFF"}`}
           </div>
         </div>
-      </div>
+      </div>*/}
 
       <div
-        className={` relative p-2 border-x ${themeStyles[theme].tailwindcss.border}`}
+        className={` relative p-2 border ${themeStyles[theme].tailwindcss.border}`}
       >
         <div
           className={`cursor-pointer inline-block px-4 py-1 rounded-md bg-green-600 text-white`}
@@ -278,9 +286,23 @@ const sortedPrices = [...prices].sort((a: any, b: any) => {
             ))}
           </Select>
         </div>
+
+        {/* Divider vertical + Selector de Cajero */}
+        <div className="inline-block ml-4 pl-4 border-l border-gray-500">
+          <div
+            className={`cursor-pointer inline-block px-4 py-1 rounded-md border ${
+              devolutionModeActive && "bg-red-600 text-white"
+            } border-red-500 `}
+            onClick={() => {
+              setDevolutionModeActive((currentMode: boolean) => !currentMode);
+            }}
+          >
+            Devolución: {`${devolutionModeActive ? "ON" : "OFF"}`}
+          </div>
+        </div>
       </div>
       <div
-        className={`h-[78vh] p-2 border ${themeStyles[theme].tailwindcss.border} overflow-hidden overflow-y-auto`}
+        className={`h-[84vh] p-2 border ${themeStyles[theme].tailwindcss.border} overflow-hidden overflow-y-auto`}
       >
         {isLoading ? (
           <div className="flex items-center justify-center h-[70vh]">
