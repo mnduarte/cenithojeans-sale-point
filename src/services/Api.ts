@@ -64,18 +64,33 @@ const removeEmployee = ({ id }: any) =>
 
 const getAccountsForTransfer = ({ store }: any) =>
   instance.post("/accounttransfer/", { store });
-const addAccountForTransfer = ({ name, store, position, active }: any) =>
+const addAccountForTransfer = ({
+  name,
+  acronym,
+  store,
+  position,
+  active,
+}: any) =>
   instance.post("/accounttransfer/add", {
     name,
+    acronym,
     store,
     position,
     active,
   });
 
-const updateAccountForTransfer = ({ id, name, store, position, active }: any) =>
+const updateAccountForTransfer = ({
+  id,
+  name,
+  acronym,
+  store,
+  position,
+  active,
+}: any) =>
   instance.put("/accounttransfer/", {
     id,
     name,
+    acronym,
     store,
     position,
     active,
@@ -802,7 +817,7 @@ const Api = {
   createCashier,
   updateCashier,
   deleteCashier,
-  
+
   getAllPrinters,
   getPrintersByStore,
 };

@@ -296,6 +296,10 @@ const AccountsForTransferContainer = () => {
       title: "Nombre de cuenta",
       dataIndex: "name",
     },
+    {
+      title: "Acrónimo",
+      dataIndex: "acronym",
+    },
     { title: "Posicion", dataIndex: "position" },
     { title: "Sucursal", dataIndex: "store" },
     { title: "Activo", dataIndex: "active" },

@@ -71,7 +71,7 @@ export const AccountForTransferProvider: React.FC<
           ...state,
           loading: false,
           accountsForTransfer: action.payload.sort(
-            (a: any, b: any) => a.position - b.position
+            (a: any, b: any) => a.position - b.position,
           ),
         };
       }
@@ -111,7 +111,7 @@ export const useAccountForTransfer = () => {
   const context = useContext(AccountForTransferContext);
   if (!context) {
     throw new Error(
-      "useAccountForTransfer debe usarse dentro de un AccountForTranferProvider"
+      "useAccountForTransfer debe usarse dentro de un AccountForTranferProvider",
     );
   }
   return context;
@@ -144,7 +144,7 @@ export const accountForTransferActions = {
       }
     },
   addAccountForTransfer:
-    ({ name, store, position, active }: any) =>
+    ({ name, acronym, store, position, active }: any) =>
     async (dispatch: any) => {
       dispatch({
         type: actionTypes.LOADING,
@@ -154,6 +154,7 @@ export const accountForTransferActions = {
       try {
         const { data } = await Api.addAccountForTransfer({
           name,
+          acronym,
           store,
           position,
           active,
@@ -173,7 +174,7 @@ export const accountForTransferActions = {
       }
     },
   updateAccountForTransfer:
-    ({ id, name, store, position, active, activeForCost }: any) =>
+    ({ id, name, acronym, store, position, active, activeForCost }: any) =>
     async (dispatch: any) => {
       dispatch({
         type: actionTypes.LOADING,
@@ -184,6 +185,7 @@ export const accountForTransferActions = {
         const { data } = await Api.updateAccountForTransfer({
           id,
           name,
+          acronym,
           store,
           position,
           active,

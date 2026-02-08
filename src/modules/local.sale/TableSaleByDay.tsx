@@ -130,7 +130,7 @@ const TableSaleByDay = ({
                       <span className="pl-1">
                         {column.format
                           ? column.notZero && !Boolean(row[column.dataIndex])
-                            ? column.defaultValue()
+                            ? column.defaultValue(row) // ⬅️ CAMBIO: Pasar row como parámetro
                             : column.format(row[column.dataIndex])
                           : row[column.dataIndex]}
                       </span>

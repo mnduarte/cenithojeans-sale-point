@@ -20,6 +20,7 @@ const AccountForTransferForm = ({
   const initialValues = {
     id: "",
     name: "",
+    acronym: "",
     store: "",
     position: null,
     active: true,
@@ -67,10 +68,38 @@ const AccountForTransferForm = ({
           type="text"
           value={accountTransferValues.name}
           onChange={(e) =>
-            setAccountTransfer({ ...accountTransferValues, name: e.target.value })
+            setAccountTransfer({
+              ...accountTransferValues,
+              name: e.target.value,
+            })
           }
           className={`p-1 rounded-md w-full ${themeStyles[theme].tailwindcss.inputText}`}
         />
+      </div>
+
+      <div className="mb-4">
+        <label
+          className={`block text-sm font-medium mb-2 ${themeStyles[theme].tailwindcss.textColor}`}
+        >
+          Acrónimo/Apodo/Alias
+        </label>
+        <input
+          type="text"
+          name="acronym"
+          value={accountTransferValues.acronym}
+          onChange={(e) =>
+            setAccountTransfer({
+              ...accountTransferValues,
+              acronym: e.target.value,
+            })
+          }
+          required
+          className={`w-full px-3 py-2 rounded-md ${themeStyles[theme].tailwindcss.inputText}`}
+          placeholder="Ej: JHL, LAV, LMS..."
+        />
+        <p className="text-xs text-gray-400 mt-1">
+          Identificación corta para reconocer la cuenta rápidamente
+        </p>
       </div>
 
       <div className="mb-4">
@@ -104,7 +133,7 @@ const AccountForTransferForm = ({
           }
           options={Array.from(
             { length: totalPositions + 1 },
-            (_, index) => index
+            (_, index) => index,
           ).map((data: any) => ({
             value: data,
             label: data,
@@ -118,7 +147,10 @@ const AccountForTransferForm = ({
             type="checkbox"
             checked={accountTransferValues.active}
             onChange={({ target }) =>
-              setAccountTransfer({ ...accountTransferValues, active: target.checked })
+              setAccountTransfer({
+                ...accountTransferValues,
+                active: target.checked,
+              })
             }
             className="mr-2"
           />
@@ -130,12 +162,14 @@ const AccountForTransferForm = ({
         {isNewAccountTransfer ? (
           <button
             className={`${
-              !Boolean(accountTransferValues.name) || !Boolean(accountTransferValues.store)
+              !Boolean(accountTransferValues.name) ||
+              !Boolean(accountTransferValues.store)
                 ? "bg-gray-600"
                 : "bg-[#007c2f] hover:opacity-80 transition-opacity"
             } text-white px-4 py-2 rounded-md flex items-center mx-auto`}
             disabled={
-              !Boolean(accountTransferValues.name) || !Boolean(accountTransferValues.store)
+              !Boolean(accountTransferValues.name) ||
+              !Boolean(accountTransferValues.store)
             }
             onClick={() => !isLoading && handleAction(onAddAccountTransfer)}
           >
@@ -150,7 +184,9 @@ const AccountForTransferForm = ({
           <>
             <button
               className={`bg-red-500 text-white px-4 py-2 rounded-md hover:opacity-80 transition-opacity flex items-center mx-auto`}
-              onClick={() => !isLoading && handleAction(onDeleteAccountTransfer)}
+              onClick={() =>
+                !isLoading && handleAction(onDeleteAccountTransfer)
+              }
             >
               Eliminar
               {isLoading && (
@@ -161,7 +197,9 @@ const AccountForTransferForm = ({
             </button>
             <button
               className={`bg-blue-500 text-white px-4 py-2 rounded-md hover:opacity-80 transition-opacity flex items-center mx-auto`}
-              onClick={() => !isLoading && onUpdateAccountTransfer(accountTransferValues)}
+              onClick={() =>
+                !isLoading && onUpdateAccountTransfer(accountTransferValues)
+              }
             >
               Guardar
               {isLoading && (

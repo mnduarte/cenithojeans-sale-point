@@ -2176,7 +2176,7 @@ const SalesByDayContainer = () => {
       dataIndex: "cash",
       format: (number: any) => `$${formatCurrency(number)}`,
       notZero: true,
-      defaultValue: () => "MPC",
+      defaultValue: (row: any) => row.accountForTransferAcronym || "MPC",
       editableCell: true,
       type: "string",
       sumAcc: user.role === "ADMIN",
@@ -2680,64 +2680,91 @@ const SalesByDayContainer = () => {
                     />
                     {Boolean(showToastDetailSale) && Boolean(selectedRow) && (
                       <div
-                        className={`absolute shadow-lg rounded-lg p-4 ${themeStyles[theme].tailwindcss.modal}`}
+                        className={`absolute shadow-lg rounded-lg border border-gray-600/50 ${themeStyles[theme].tailwindcss.modal}`}
                         style={{
                           top: selectedRow.clientY,
                           left: selectedRow.clientX,
                         }}
                       >
-                        <p className="">
-                          <>
-                            {selectedRow.typeSale === "pedido" && (
-                              <div>
-                                N° Pedido:
-                                <span className="font-bold mx-2">
-                                  {selectedRow.order}
+                        {/* Contenido */}
+                        <div className="p-3 space-y-2">
+                          {/* Cuenta (cuando hay transferencia) */}
+                          {selectedRow.accountForTransfer &&
+                            selectedRow.transfer > 0 && (
+                              <div className="flex items-center justify-between text-sm">
+                                <span className="text-gray-400 flex items-center gap-2">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                                  Cuenta:
+                                </span>
+                                <span className="font-medium text-blue-400  ml-1">
+                                  {selectedRow.accountForTransfer || "S/A"}
                                 </span>
                               </div>
                             )}
-                            <div>
-                              Transferencia:
-                              <span className="font-bold mx-2">
-                                $
-                                {formatCurrency(
-                                  selectedRow.transfer
-                                    ? selectedRow.transfer
-                                    : 0,
-                                )}
-                              </span>
-                            </div>
-                            <div>
-                              Efectivo:
-                              <span className="font-bold mx-2">
-                                $
-                                {formatCurrency(
-                                  selectedRow.cash ? selectedRow.cash : 0,
-                                )}
-                              </span>
-                            </div>
 
-                            {selectedRow.type !== "ingreso" && (
-                              <div>
+                          {/* N° Pedido (si aplica) */}
+                          {selectedRow.typeSale === "pedido" && (
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="text-gray-400 flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                                N° Pedido:
+                              </span>
+                              <span className="font-medium text-green-400 ml-1">
+                                {selectedRow.order}
+                              </span>
+                            </div>
+                          )}
+
+                          {/* Transferencia */}
+                          {selectedRow.transfer > 0 && (
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="text-gray-400 flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-cyan-500"></span>
+                                Transfer:
+                              </span>
+                              <span className="font-medium text-cyan-400 ml-1">
+                                ${formatCurrency(selectedRow.transfer || 0)}
+                              </span>
+                            </div>
+                          )}
+
+                          {/* Efectivo */}
+                          {selectedRow.cash > 0 && (
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="text-gray-400 flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                                Efectivo:
+                              </span>
+                              <span className="font-medium text-green-400  ml-1">
+                                ${formatCurrency(selectedRow.cash || 0)}
+                              </span>
+                            </div>
+                          )}
+
+                          {/* Total (solo si no es ingreso) */}
+                          {selectedRow.type !== "ingreso" && (
+                            <div className="flex items-center justify-between text-sm pt-2 border-t border-gray-600/30">
+                              <span className="text-gray-300 font-medium">
                                 Total:
-                                <span className="font-bold mx-2">
-                                  $
-                                  {formatCurrency(
-                                    selectedRow.total ? selectedRow.total : 0,
-                                  )}
-                                </span>
-                              </div>
-                            )}
-                            {selectedRow.description && (
-                              <div>
+                              </span>
+                              <span className="font-bold text-white">
+                                ${formatCurrency(selectedRow.total || 0)}
+                              </span>
+                            </div>
+                          )}
+
+                          {/* Comentario (si existe) */}
+                          {selectedRow.description && (
+                            <div className="pt-2 border-t border-gray-600/30">
+                              <p className="text-xs text-gray-400 mb-1">
                                 Comentario:
-                                <span className="font-bold mx-2">
-                                  {selectedRow.description}
-                                </span>
-                              </div>
-                            )}
-                          </>
-                        </p>
+                              </p>
+                              <p className="text-xs text-gray-300 italic">
+                                "{selectedRow.description}"
+                              </p>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     )}
                   </div>
