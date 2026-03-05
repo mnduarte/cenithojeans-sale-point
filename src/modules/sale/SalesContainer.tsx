@@ -62,6 +62,7 @@ const SalesContainer = () => {
   const [isModalSaleOpen, setIsModalSaleOpen] = useState(false);
   const [isModalKeyboardNumOpen, setIsModalKeyboardNumOpen] = useState(false);
   const [itemIdFocusForQuantity, setItemIdFocusForQuantity] = useState("");
+  const [isDevolutionItemFocused, setIsDevolutionItemFocused] = useState(false);
   const [quantityForItem, setQuantityForItem] = useState("");
   const [concept, setConcept] = useState("");
   const [enabledDisplacedPrices, setEnabledDisplacedPrices] = useState(false);
@@ -201,7 +202,7 @@ const SalesContainer = () => {
 
   const addManualQuantity = () => {
     if (quantityForItem) {
-      const setPricesItems = devolutionModeActive
+      const setPricesItems = isDevolutionItemFocused
         ? setDevolutionPricesSelected
         : setPricesSelected;
       setPricesItems((items: any) =>
@@ -213,6 +214,7 @@ const SalesContainer = () => {
         }),
       );
       setItemIdFocusForQuantity("");
+      setIsDevolutionItemFocused(false);
       setQuantityForItem("");
       closeModal();
     }
@@ -250,8 +252,9 @@ const SalesContainer = () => {
     );
   };
 
-  const handleOpenKeyboardNum = (itemId: any) => {
+  const handleOpenKeyboardNum = (itemId: any, isDevolution: boolean = false) => {
     setItemIdFocusForQuantity(itemId);
+    setIsDevolutionItemFocused(isDevolution);
     setIsModalKeyboardNumOpen(true);
   };
 

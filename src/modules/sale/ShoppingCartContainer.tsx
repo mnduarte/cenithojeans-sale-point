@@ -85,7 +85,7 @@ const ShoppingPrices = ({
                 className={`w-[5vh] p-2 border border-[#484E55] rounded-md mr-2  ${themeStyles[theme].tailwindcss.inputText}`}
                 value={item.quantity}
                 onChange={(e) => handleQuantityByPrice(e, item.id, isDevolution)}
-                onFocus={() => handleOpenKeyboardNum(item.id)}
+                onFocus={() => handleOpenKeyboardNum(item.id, isDevolution)}
               />
               {/* Indicador J/R */}
               {!item.concept && (

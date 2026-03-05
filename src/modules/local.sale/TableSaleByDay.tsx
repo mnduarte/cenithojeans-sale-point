@@ -156,10 +156,12 @@ const TableSaleByDay = ({
             {columns.map((column: any, idx: number) => {
               const reduceValue =
                 column.sumAcc &&
-                data.reduce(
+                (column.skipPedido
+                  ? data.filter((current: any) => current.typeSale !== "pedido")
+                  : data
+                ).reduce(
                   (acc: any, current: any) =>
-                    acc +
-                    (current[column.dataIndex] || 0) ,
+                    acc + (current[column.dataIndex] || 0),
                   0
                 );
 

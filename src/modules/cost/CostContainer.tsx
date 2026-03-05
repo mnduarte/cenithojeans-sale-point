@@ -18,8 +18,18 @@ import { useTheme } from "../../contexts/ThemeContext";
 import CrudTable from "../../components/CrudTable";
 import { costActions, useCost } from "../../contexts/CostContext";
 import { FcApproval } from "react-icons/fc";
-import * as XLSX from "xlsx";
 import { ModalAccount } from "./ModalAccount";
+import ModalGenerar from "../../components/ModalGenerar";
+import PdfCosts from "./PdfCosts";
+import {
+  createWorkbook,
+  downloadWorkbook,
+  getExcelFileName,
+  xlColWidths,
+  xlHeader,
+  xlTotal,
+  xlData,
+} from "../../utils/excelUtils";
 import { MdCleaningServices, MdOutlineApproval } from "react-icons/md";
 import { GiClothes } from "react-icons/gi";
 import { PiLinkBold, PiLink, PiLinkBreak } from "react-icons/pi";
@@ -72,6 +82,7 @@ const CostContainer = () => {
   const [editableRow, setEditableRow] = useState<number | null>(null);
 
   const [isModalAccountOpen, setIsModalAccountOpen] = useState(false);
+  const [isModalGenerarOpen, setIsModalGenerarOpen] = useState(false);
   const [isModalConfirmDeleteOpen, setIsModalConfirmDeleteOpen] =
     useState(false);
 
@@ -453,43 +464,45 @@ const CostContainer = () => {
     },
   ];
 
-  const downloadExcel = () => {
-    const now = new Date();
-    const formattedDate = now.toLocaleDateString("es-ES", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
+  const downloadExcel = async () => {
+    const headers = ["Fecha", "Cuenta", "N° Orden", "Vendedor", "Cliente", "Items", "Monto", "Tipo", "Aprobado", "Fecha Aprobado", "Sucursal", "Salida"];
+    const colCount = headers.length;
+    let totalMonto = 0;
+
+    const dataRows = costs.map((cost: any) => {
+      totalMonto += cost.amount || 0;
+      return [
+        cost.date || "-",
+        cost.account || "-",
+        cost.numOrder || "-",
+        cost.employee || "-",
+        cost.customer || "-",
+        cost.items || "-",
+        cost.amount || 0,
+        cost.typeShipment || "-",
+        cost.approved ? "Sí" : "No",
+        cost.dateApproved || "-",
+        cost.store || "-",
+        cost.checkoutDate || "-",
+      ];
     });
-    const formattedTime = now
-      .toLocaleTimeString("es-ES", {
-        hour: "2-digit",
-        minute: "2-digit",
-      })
-      .replace(/:/g, "-");
 
-    const fileName = `pagos-${formattedDate}-${formattedTime}.xlsx`;
+    const { wb, ws } = createWorkbook("Pagos");
+    xlColWidths(ws, [10, 16, 9, 14, 14, 7, 12, 12, 9, 14, 10, 12]);
 
-    const formattedData = costs.map((cost: any) => ({
-      Fecha: cost.date,
-      Cuenta: cost.account,
-      "N° Orden": cost.numOrder,
-      Monto: `$${formatCurrency(cost.amount)}`,
-      Sucursal: cost.store,
-      Items: cost.items,
-      Aprobado: cost.approved ? "Sí" : "No",
-      "Fecha Aprobado": cost.dateApproved,
-      Vendedor: cost.employee,
-      Cliente: cost.customer || "-",
-      Tipo: cost.typeShipment || "-",
-      Salida: cost.checkoutDate || "-",
-    }));
+    const hRow = ws.addRow(headers);
+    xlHeader(hRow, 1, colCount);
 
-    const worksheet = XLSX.utils.json_to_sheet(formattedData);
+    dataRows.forEach((r: any[], i: number) => {
+      const row = ws.addRow(r);
+      xlData(row, 1, colCount, i % 2 !== 0);
+    });
 
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Costs");
+    // Total row — only Monto column (col 7) is highlighted
+    const tRow = ws.addRow(["", "", "", "", "", "", totalMonto, "", "", "", "", ""]);
+    xlTotal(tRow, 1, colCount);
 
-    XLSX.writeFile(workbook, fileName);
+    await downloadWorkbook(wb, getExcelFileName("pagos"));
   };
 
   const removeCellSelected = () => {
@@ -812,11 +825,27 @@ const CostContainer = () => {
         </div>
 
         <div
-          className="bg-green-800 hover:bg-green-900 hover:cursor-pointer text-white px-2 py-1 rounded-md flex items-center justify-center select-none"
-          onClick={downloadExcel}
+          className="bg-cyan-700 hover:bg-cyan-800 hover:cursor-pointer text-white px-2 py-1 rounded-md flex items-center justify-center select-none"
+          onClick={() => setIsModalGenerarOpen(true)}
         >
-          Excel
+          Generar
         </div>
+
+        <ModalGenerar
+          isOpen={isModalGenerarOpen}
+          onClose={() => setIsModalGenerarOpen(false)}
+          title="Generar Pagos"
+          pdfDocument={
+            <PdfCosts
+              costs={costs}
+              startDate={filters.startDate}
+              endDate={filters.endDate}
+              store={mappingListStore[userStore] || userStore}
+            />
+          }
+          pdfFileName={getExcelFileName("pagos").replace(".xlsx", ".pdf")}
+          onExcel={downloadExcel}
+        />
 
         {user.store === "ALL" && (
           <div

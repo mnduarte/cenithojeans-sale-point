@@ -5,7 +5,18 @@ import { cashflowActions, useCashflow } from "../../contexts/CashflowContext";
 import { useTheme } from "../../contexts/ThemeContext";
 import { formatCurrency, formatDateToYYYYMMDD } from "../../utils/formatUtils";
 import { dateFormat, listStore, mappingListStore } from "../../utils/constants";
-import { PDFDownloadLink } from "@react-pdf/renderer";
+import ModalGenerar from "../../components/ModalGenerar";
+import {
+  createWorkbook,
+  downloadWorkbook,
+  getExcelFileName,
+  xlColWidths,
+  xlHeader,
+  xlTotal,
+  xlVendor,
+  xlData,
+  xlSectionTitle,
+} from "../../utils/excelUtils";
 import dayjs from "dayjs";
 import { DatePicker, Select, Tag } from "antd";
 
@@ -439,6 +450,7 @@ const ModalItemsBreakdown = ({ isOpen, setIsOpen, salesData }: any) => {
 
   const totals = allSales.reduce(
     (acc: any, sale: any) => {
+      if (sale.typeSale === "pedido") return acc;
       // Normalizar: si no hay desglose J/R, asignar items a jeans
       const hasBreakdown =
         (sale.itemsJeans || 0) + (sale.itemsRemeras || 0) > 0;
@@ -574,6 +586,7 @@ const ModalListDevolutions = ({ isOpen, setIsOpen, date, store }: any) => {
     key: string;
     direction: "asc" | "desc" | null;
   }>({ key: "", direction: null });
+  const [isModalGenerarOpen, setIsModalGenerarOpen] = useState(false);
 
   // Obtener lista única de vendedores
   const vendedores = [
@@ -733,6 +746,61 @@ const ModalListDevolutions = ({ isOpen, setIsOpen, date, store }: any) => {
     },
   );
 
+  const downloadExcelDevoluciones = async () => {
+    const includeOrder = filterMode !== "Consolidado";
+    const headers: string[] = [];
+    if (includeOrder) headers.push("N° Venta");
+    headers.push("Vendedor", "Prendas", "Dev. Total", "Dev. Jeans", "Dev. Remeras", "Monto Dev. J", "Monto Dev. R", "Monto Total Dev.");
+
+    const totals = { prendas: 0, devTotal: 0, devJeans: 0, devRemeras: 0, montoJ: 0, montoR: 0, montoTotal: 0 };
+
+    const dataRows = filteredData.map((row: any) => {
+      totals.prendas += row.items || 0;
+      totals.devTotal += row.devolutionItems || 0;
+      totals.devJeans += row.itemsDevolutionJeans || 0;
+      totals.devRemeras += row.itemsDevolutionRemeras || 0;
+      totals.montoJ += row.montoDevolucionJeans || 0;
+      totals.montoR += row.montoDevolucionRemeras || 0;
+      totals.montoTotal += row.subTotalDevolutionItems || 0;
+
+      const r: any[] = [];
+      if (includeOrder) r.push(row.order || "-");
+      r.push(
+        row.employee || "-",
+        row.items || 0,
+        row.devolutionItems || 0,
+        row.itemsDevolutionJeans || 0,
+        row.itemsDevolutionRemeras || 0,
+        row.montoDevolucionJeans || 0,
+        row.montoDevolucionRemeras || 0,
+        row.subTotalDevolutionItems || 0,
+      );
+      return r;
+    });
+
+    const totalsValues: any[] = [];
+    if (includeOrder) totalsValues.push("");
+    totalsValues.push("TOTAL", totals.prendas, totals.devTotal, totals.devJeans, totals.devRemeras, totals.montoJ, totals.montoR, totals.montoTotal);
+
+    const { wb, ws } = createWorkbook("Devoluciones");
+    const colCount = headers.length;
+    const widths = includeOrder ? [10, 14, 9, 10, 10, 12, 13, 13, 16] : [14, 9, 10, 10, 12, 13, 13, 16];
+    xlColWidths(ws, widths.slice(0, colCount));
+
+    const hRow = ws.addRow(headers);
+    xlHeader(hRow, 1, colCount);
+
+    dataRows.forEach((r, i) => {
+      const row = ws.addRow(r);
+      xlData(row, 1, colCount, i % 2 !== 0);
+    });
+
+    const tRow = ws.addRow(totalsValues);
+    xlTotal(tRow, 1, colCount);
+
+    await downloadWorkbook(wb, getExcelFileName("devoluciones"));
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -782,8 +850,17 @@ const ModalListDevolutions = ({ isOpen, setIsOpen, date, store }: any) => {
             </Select>
           </div>
 
-          <PDFDownloadLink
-            document={
+          <div
+            className="bg-cyan-700 hover:bg-cyan-800 text-white px-4 py-1 rounded-md flex items-center justify-center select-none cursor-pointer"
+            onClick={() => setIsModalGenerarOpen(true)}
+          >
+            Generar
+          </div>
+          <ModalGenerar
+            isOpen={isModalGenerarOpen}
+            onClose={() => setIsModalGenerarOpen(false)}
+            title="Generar Devoluciones"
+            pdfDocument={
               <PdfLocalDevolutions
                 date={dayjs(date).format("DD-MM-YYYY")}
                 store={mappingListStore[store]}
@@ -798,15 +875,9 @@ const ModalListDevolutions = ({ isOpen, setIsOpen, date, store }: any) => {
                 }
               />
             }
-            fileName={`listado-devoluciones-${dayjs(date).format(
-              "DD-MM-YYYY",
-            )}.pdf`}
-            className="bg-red-700 hover:bg-red-800 text-white px-4 py-1 rounded-md flex items-center justify-center select-none cursor-pointer"
-          >
-            {({ loading: pdfLoading }) =>
-              pdfLoading ? "Cargando..." : "Generar PDF"
-            }
-          </PDFDownloadLink>
+            pdfFileName={`listado-devoluciones-${dayjs(date).format("DD-MM-YYYY")}.pdf`}
+            onExcel={downloadExcelDevoluciones}
+          />
         </div>
 
         {/* Tabla */}
@@ -1189,8 +1260,90 @@ const ModalListTranferSale = ({
     key: string;
     direction: "asc" | "desc" | null;
   }>({ key: "", direction: null });
+  const [isModalGenerarOpen, setIsModalGenerarOpen] = useState(false);
 
   const { dispatch: dispatchSale } = useSale();
+
+  const downloadExcelTransferencias = async () => {
+    const headers = ["N°", "Vendedor", "Hora", "Efectivo", "Transferencia", "Prendas J", "Prendas R", "Prendas", "Cuenta", "Total"];
+    const colCount = headers.length;
+    const totals = { cash: 0, transfer: 0, itemsJeans: 0, itemsRemeras: 0, items: 0, total: 0 };
+
+    const dataRows = salesFiltered.map((sale: any) => {
+      totals.cash += sale.cash || 0;
+      totals.transfer += sale.transfer || 0;
+      totals.itemsJeans += sale.itemsJeans || 0;
+      totals.itemsRemeras += sale.itemsRemeras || 0;
+      totals.items += sale.items || 0;
+      totals.total += sale.total || 0;
+      return [
+        sale.order || "-",
+        sale.employee || "-",
+        formatTime(sale.createdAt),
+        sale.cash || 0,
+        sale.transfer || 0,
+        sale.itemsJeans || 0,
+        sale.itemsRemeras || 0,
+        sale.items || 0,
+        sale.accountForTransfer || "-",
+        sale.total || 0,
+      ];
+    });
+
+    // Consolidado por cuenta
+    const consolidado: Record<string, any> = {};
+    salesFiltered.forEach((sale: any) => {
+      const cuenta = sale.accountForTransfer || "Sin cuenta";
+      if (!consolidado[cuenta]) {
+        consolidado[cuenta] = { efectivo: 0, transferencia: 0, prendasJeans: 0, prendasRemeras: 0, prendas: 0, total: 0 };
+      }
+      consolidado[cuenta].efectivo += sale.cash || 0;
+      consolidado[cuenta].transferencia += sale.transfer || 0;
+      consolidado[cuenta].prendasJeans += sale.itemsJeans || 0;
+      consolidado[cuenta].prendasRemeras += sale.itemsRemeras || 0;
+      consolidado[cuenta].prendas += sale.items || 0;
+      consolidado[cuenta].total += sale.total || 0;
+    });
+
+    const { wb, ws } = createWorkbook("Transferencias");
+    xlColWidths(ws, [5, 13, 8, 12, 14, 10, 10, 9, 22, 12]);
+
+    // Main table header
+    const hRow = ws.addRow(headers);
+    xlHeader(hRow, 1, colCount);
+
+    // Data rows
+    dataRows.forEach((r: any[], i: number) => {
+      const row = ws.addRow(r);
+      xlData(row, 1, colCount, i % 2 !== 0);
+    });
+
+    // Totals row
+    const tRow = ws.addRow(["", "TOTALES", "", totals.cash, totals.transfer, totals.itemsJeans, totals.itemsRemeras, totals.items, "", totals.total]);
+    xlTotal(tRow, 1, colCount);
+
+    // Spacer
+    ws.addRow([]);
+
+    // Consolidado section
+    const consCols = 7;
+    const titleRow = ws.addRow(["CONSOLIDADO POR CUENTA"]);
+    xlSectionTitle(titleRow);
+
+    const consHeaders = ["Cuenta", "Efectivo", "Transferencia", "Prendas J", "Prendas R", "Prendas", "Total"];
+    const consHRow = ws.addRow(consHeaders);
+    xlHeader(consHRow, 1, consCols);
+
+    Object.entries(consolidado).forEach(([cuenta, d]: any, i) => {
+      const row = ws.addRow([cuenta, d.efectivo, d.transferencia, d.prendasJeans, d.prendasRemeras, d.prendas, d.total]);
+      xlData(row, 1, consCols, i % 2 !== 0);
+    });
+
+    const consTRow = ws.addRow(["TOTAL", totals.cash, totals.transfer, totals.itemsJeans, totals.itemsRemeras, totals.items, totals.total]);
+    xlTotal(consTRow, 1, consCols);
+
+    await downloadWorkbook(wb, getExcelFileName("transferencias"));
+  };
 
   // Obtener lista única de vendedores
   const vendedores = [
@@ -1320,7 +1473,11 @@ const ModalListTranferSale = ({
       transfer: acc.transfer + (sale.transfer || 0),
       itemsJeans: acc.itemsJeans + (sale.itemsJeans || 0),
       itemsRemeras: acc.itemsRemeras + (sale.itemsRemeras || 0),
-      items: acc.items + (sale.items || 0),
+      items:
+        acc.items +
+        ((sale.itemsJeans || 0) + (sale.itemsRemeras || 0) > 0
+          ? (sale.itemsJeans || 0) + (sale.itemsRemeras || 0)
+          : sale.items || 0),
       total: acc.total + (sale.total || 0),
     }),
     {
@@ -1501,8 +1658,17 @@ const ModalListTranferSale = ({
                 />
               </div>
 
-              <PDFDownloadLink
-                document={
+              <div
+                className="w-25 ml-2 bg-cyan-700 hover:bg-cyan-800 hover:cursor-pointer text-white px-4 py-1 rounded-md flex items-center justify-center select-none"
+                onClick={() => setIsModalGenerarOpen(true)}
+              >
+                Generar
+              </div>
+              <ModalGenerar
+                isOpen={isModalGenerarOpen}
+                onClose={() => setIsModalGenerarOpen(false)}
+                title="Generar Transferencias"
+                pdfDocument={
                   <PdfLocalTransfer
                     date={dayjs(date).format("DD-MM-YYYY")}
                     store={mappingListStore[store]}
@@ -1510,17 +1676,9 @@ const ModalListTranferSale = ({
                     showConsolidado={true}
                   />
                 }
-                fileName={`listado-transferencias-${dayjs(date).format("DD-MM-YYYY")}.pdf`}
-                className="w-25 ml-2 bg-cyan-700 hover:bg-cyan-800 hover:cursor-pointer text-white px-4 py-1 rounded-md flex items-center justify-center select-none"
-              >
-                {({ loading }) =>
-                  loading ? (
-                    <button>Cargando...</button>
-                  ) : (
-                    <button>Generar PDF</button>
-                  )
-                }
-              </PDFDownloadLink>
+                pdfFileName={`listado-transferencias-${dayjs(date).format("DD-MM-YYYY")}.pdf`}
+                onExcel={downloadExcelTransferencias}
+              />
 
               {(Boolean(itemsIdSelected.length) ||
                 Boolean(cashflowIdSelected.length)) && (
@@ -1633,6 +1791,13 @@ const ModalListTranferSale = ({
                           // Para ingresos, no mostrar cash
                           if (sale.type === "ingreso" && col.key === "cash") {
                             displayValue = undefined;
+                          }
+
+                          // Prend: usar suma J+R cuando esté disponible (datos legacy pueden diferir)
+                          if (col.key === "items") {
+                            const sumJR =
+                              (sale.itemsJeans || 0) + (sale.itemsRemeras || 0);
+                            displayValue = sumJR > 0 ? sumJR : sale.items || 0;
                           }
 
                           // Formatear valor para mostrar
@@ -1906,6 +2071,8 @@ const ModalSaleDetail = ({
     dispatch: dispatchSale,
   } = useSale();
 
+  const { dispatch: dispatchCashflow } = useCashflow();
+
   const columns = [
     {
       title: "Efectivo",
@@ -1953,9 +2120,22 @@ const ModalSaleDetail = ({
     }
 
     if (item.action === "addPrice") {
-      dispatchSale(
-        saleActions.updateSaleByEmployee({ ...propSale, value })(dispatchSale),
-      );
+      if (sale?.type === "ingreso") {
+        const cashflowDataIndex = propSale.dataIndex === "cash" ? "amount" : propSale.dataIndex;
+        dispatchCashflow(
+          cashflowActions.updateCashflow({ id: propSale.id, dataIndex: cashflowDataIndex, value })(dispatchCashflow),
+        );
+        dispatchSale(
+          saleActions.patchRowInSalesByEmployees({
+            id: propSale.id,
+            [propSale.dataIndex]: value,
+          }),
+        );
+      } else {
+        dispatchSale(
+          saleActions.updateSaleByEmployee({ ...propSale, value })(dispatchSale),
+        );
+      }
       setValue(0);
       setEditableRow(null);
       return setIsModalKeyboardNumOpen(false);
@@ -1975,10 +2155,8 @@ const ModalSaleDetail = ({
   };
 
   useEffect(() => {
-    if (sale && sale.description) {
-      setDescription(sale.description);
-    }
-  }, []);
+    setDescription(sale?.description ?? "");
+  }, [sale]);
 
   return (
     <>
@@ -2069,16 +2247,32 @@ const ModalSaleDetail = ({
                       ? "bg-gray-500"
                       : "bg-green-800 hover:bg-green-800 hover:cursor-pointer"
                   }  w-1/2 text-white px-4 py-2 rounded-md flex items-center justify-center mx-auto select-none `}
-                  onClick={() =>
-                    Boolean(description.length) &&
-                    dispatchSale(
-                      saleActions.updateSaleByEmployee({
-                        id: sale.id,
-                        dataIndex: "description",
-                        value: description,
-                      })(dispatchSale),
-                    )
-                  }
+                  onClick={() => {
+                    if (!Boolean(description.length)) return;
+                    if (sale?.type === "ingreso") {
+                      dispatchCashflow(
+                        cashflowActions.updateCashflow({
+                          id: sale.id,
+                          dataIndex: "description",
+                          value: description,
+                        })(dispatchCashflow),
+                      );
+                      dispatchSale(
+                        saleActions.patchRowInSalesByEmployees({
+                          id: sale.id,
+                          description,
+                        }),
+                      );
+                    } else {
+                      dispatchSale(
+                        saleActions.updateSaleByEmployee({
+                          id: sale.id,
+                          dataIndex: "description",
+                          value: description,
+                        })(dispatchSale),
+                      );
+                    }
+                  }}
                 >
                   Guardar Comentario
                   {loading && (
@@ -2154,6 +2348,7 @@ const SalesByDayContainer = () => {
     useState(false);
   const [isModalItemsBreakdown, setIsModalItemsBreakdown] = useState(false);
   const [isModalDevolutions, setIsModalDevolutions] = useState(false);
+  const [isModalGenerarPrincipalOpen, setIsModalGenerarPrincipalOpen] = useState(false);
 
   const [totals, setTotals] = useState({
     items: 0,
@@ -2170,6 +2365,7 @@ const SalesByDayContainer = () => {
       editableCell: true,
       type: "string",
       sumAcc: true,
+      skipPedido: true,
     },
     {
       title: "Cash",
@@ -2281,7 +2477,9 @@ const SalesByDayContainer = () => {
         (acc: any, current: any) =>
           Number(acc) +
           current.reduce(
-            (acc: any, current: any) => Number(acc) + current.items,
+            (acc: any, current: any) =>
+              Number(acc) +
+              (current.typeSale !== "pedido" ? current.items : 0),
             0,
           ),
         0,
@@ -2317,17 +2515,22 @@ const SalesByDayContainer = () => {
             };
           }
 
-          // Normalizar items: si hay desglose J/R usar esos, sino todo a Jeans
-          const hasBreakdown =
-            (sale.itemsJeans || 0) + (sale.itemsRemeras || 0) > 0;
-          const jeans = hasBreakdown ? sale.itemsJeans || 0 : sale.items || 0;
-          const remeras = hasBreakdown ? sale.itemsRemeras || 0 : 0;
+          if (sale.typeSale !== "pedido") {
+            // Normalizar items: si hay desglose J/R usar esos, sino todo a Jeans
+            const hasBreakdown =
+              (sale.itemsJeans || 0) + (sale.itemsRemeras || 0) > 0;
+            const jeans = hasBreakdown ? sale.itemsJeans || 0 : sale.items || 0;
+            const remeras = hasBreakdown ? sale.itemsRemeras || 0 : 0;
 
-          acc[sale.cashierId].items += sale.items || 0;
-          acc[sale.cashierId].itemsJeans += jeans;
-          acc[sale.cashierId].itemsRemeras += remeras;
+            acc[sale.cashierId].items += sale.items || 0;
+            acc[sale.cashierId].itemsJeans += jeans;
+            acc[sale.cashierId].itemsRemeras += remeras;
+          }
+
           acc[sale.cashierId].cash += sale.cash || 0;
-          acc[sale.cashierId].transfer += sale.transfer || 0;
+          if (sale.typeSale !== "pedido") {
+            acc[sale.cashierId].transfer += sale.transfer || 0;
+          }
         }
         return acc;
       },
@@ -2387,6 +2590,66 @@ const SalesByDayContainer = () => {
     },
     0,
   );
+
+  const downloadExcelPrincipal = async () => {
+    const allEntries = Object.entries(salesByEmployees) as [string, any[]][];
+    if (allEntries.length === 0) return;
+
+    const DATA_COLS = 3; // N°, Prendas, Efectivo
+    const SEP = 1;       // blank separator column between employees
+
+    // Column widths: [8, 10, 14, sep=2] per employee group
+    const colWidths: number[] = [];
+    allEntries.forEach((_, idx) => {
+      colWidths.push(8, 10, 14);
+      if (idx < allEntries.length - 1) colWidths.push(SEP);
+    });
+
+    const { wb, ws } = createWorkbook("Venta Local");
+    xlColWidths(ws, colWidths);
+
+    // Each vendor is written independently into its own column group.
+    // Row 1: vendor name (merged), Row 2: column headers,
+    // Rows 3..N: data, Row N+1: TOTAL right after last row (no padding).
+    allEntries.forEach(([emp, sales], idx) => {
+      const startCol = idx * (DATA_COLS + SEP) + 1;
+
+      // Row 1 — vendor name header (merged across 3 cols)
+      const nameRow = ws.getRow(1);
+      nameRow.getCell(startCol).value = emp.toUpperCase();
+      ws.mergeCells(1, startCol, 1, startCol + DATA_COLS - 1);
+      xlVendor(nameRow, startCol, startCol + DATA_COLS - 1);
+
+      // Row 2 — column headers
+      const hRow = ws.getRow(2);
+      hRow.getCell(startCol).value = "N°";
+      hRow.getCell(startCol + 1).value = "Prendas";
+      hRow.getCell(startCol + 2).value = "Efectivo";
+      xlHeader(hRow, startCol, startCol + DATA_COLS - 1);
+
+      // Rows 3..N — data (no padding — each vendor ends at its own last row)
+      let totalPrendas = 0;
+      let totalEfectivo = 0;
+      sales.forEach((sale: any, i: number) => {
+        const dataRow = ws.getRow(3 + i);
+        dataRow.getCell(startCol).value = sale.order || "-";
+        dataRow.getCell(startCol + 1).value = sale.items || 0;
+        dataRow.getCell(startCol + 2).value = sale.cash || 0;
+        totalPrendas += sale.items || 0;
+        totalEfectivo += sale.cash || 0;
+        xlData(dataRow, startCol, startCol + DATA_COLS - 1, i % 2 !== 0);
+      });
+
+      // Total row — immediately after this vendor's last data row
+      const tRow = ws.getRow(3 + sales.length);
+      tRow.getCell(startCol).value = "TOTAL";
+      tRow.getCell(startCol + 1).value = totalPrendas;
+      tRow.getCell(startCol + 2).value = totalEfectivo;
+      xlTotal(tRow, startCol, startCol + DATA_COLS - 1);
+    });
+
+    await downloadWorkbook(wb, getExcelFileName("venta-local"));
+  };
 
   return (
     <>
@@ -2466,8 +2729,17 @@ const SalesByDayContainer = () => {
           </div>
         </div>
 
-        <PDFDownloadLink
-          document={
+        <div
+          className="w-25 ml-2 bg-cyan-700 hover:bg-cyan-800 hover:cursor-pointer text-white px-4 py-1 rounded-md flex items-center justify-center select-none"
+          onClick={() => setIsModalGenerarPrincipalOpen(true)}
+        >
+          Generar
+        </div>
+        <ModalGenerar
+          isOpen={isModalGenerarPrincipalOpen}
+          onClose={() => setIsModalGenerarPrincipalOpen(false)}
+          title="Generar Venta Local"
+          pdfDocument={
             <PdfLocalSale
               salesByEmployees={salesByEmployees}
               date={dayjs(date).format("DD-MM-YYYY")}
@@ -2475,17 +2747,9 @@ const SalesByDayContainer = () => {
               totalItemsSold={totalItemsSold}
             />
           }
-          fileName={`local-${dayjs(date).format("DD-MM-YYYY")}.pdf`}
-          className="w-25 ml-2 bg-cyan-700 hover:bg-green-800 hover:cursor-pointer text-white px-4 py-1 rounded-md flex items-center justify-center select-none"
-        >
-          {({ loading, url, error, blob }) =>
-            loading ? (
-              <button>Cargando Documento ...</button>
-            ) : (
-              <button>Generar PDF</button>
-            )
-          }
-        </PDFDownloadLink>
+          pdfFileName={`local-${dayjs(date).format("DD-MM-YYYY")}.pdf`}
+          onExcel={downloadExcelPrincipal}
+        />
 
         {(Boolean(itemsIdSelected.length) ||
           Boolean(cashflowIdSelected.length)) && (

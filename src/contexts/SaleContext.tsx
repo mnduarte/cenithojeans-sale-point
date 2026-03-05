@@ -27,6 +27,7 @@ const actionTypes = {
   CANCEL_ORDERS: "cancel_orders",
   ENABLE_ORDERS: "enable_orders",
   LAST_NUM_ORDER_BY_SELLER: "last_num_order_by_seller",
+  PATCH_ROW_IN_SALES_BY_EMPLOYEES: "patch_row_in_sales_by_employees",
 };
 
 // Tipo de estado para el contexto de precios
@@ -274,6 +275,16 @@ export const SaleProvider: React.FC<SaleProviderProps> = ({ children }) => {
             return order;
           }),
         };
+      }
+      case actionTypes.PATCH_ROW_IN_SALES_BY_EMPLOYEES: {
+        const { id, ...patch } = action.payload;
+        const patched: any = {};
+        Object.entries(state.salesByEmployees).forEach(([emp, rows]: any) => {
+          patched[emp] = rows.map((row: any) =>
+            row.id === id ? { ...row, ...patch } : row,
+          );
+        });
+        return { ...state, salesByEmployees: patched };
       }
       case actionTypes.ADD_NEW_ROW_SALE: {
         const newSalesByEmployees = state.salesByEmployees;
@@ -1081,4 +1092,8 @@ export const saleActions = {
       });
     }
   },
+  patchRowInSalesByEmployees: (payload: any) => ({
+    type: actionTypes.PATCH_ROW_IN_SALES_BY_EMPLOYEES,
+    payload,
+  }),
 };

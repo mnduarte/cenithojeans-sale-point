@@ -19,9 +19,20 @@ import { FaEye } from "react-icons/fa";
 import { DatePicker, Select } from "antd";
 import { useTheme } from "../../contexts/ThemeContext";
 import { MdClose } from "react-icons/md";
-import { PDFDownloadLink } from "@react-pdf/renderer";
 import PdfReportByWeek from "./PdfReportByWeek";
 import PdfReportByEmployee from "./PdfReportByEmployee";
+import ModalGenerar from "../../components/ModalGenerar";
+import {
+  createWorkbook,
+  downloadWorkbook,
+  getExcelFileName,
+  xlColWidths,
+  xlHeader,
+  xlTotal,
+  xlVendor,
+  xlData,
+  xlSectionTitle,
+} from "../../utils/excelUtils";
 import { HiDocumentReport } from "react-icons/hi";
 import { TbReportAnalytics } from "react-icons/tb";
 import { useEmployee } from "../../contexts/EmployeeContext";
@@ -51,6 +62,148 @@ const ReportByEmployee = () => {
     year: currentYear,
     employees: [],
   });
+  const [isModalGenerarOpen, setIsModalGenerarOpen] = useState(false);
+
+  const downloadExcelByEmployee = async () => {
+    const { wb, ws } = createWorkbook("Reporte Empleado");
+    xlColWidths(ws, [35, 14, 14, 14, 14, 14]);
+
+    const addSectionTitle = (text: string) => {
+      const row = ws.addRow([text]);
+      xlSectionTitle(row);
+    };
+
+    const addSubTitle = (text: string) => {
+      const row = ws.addRow([text]);
+      row.getCell(1).font = { bold: true, size: 9 };
+    };
+
+    const processStore = (storeData: any, storeName: string) => {
+      if (!storeData?.byItemWeek?.employees) return;
+
+      addSectionTitle(`=== ${storeName.toUpperCase()} ===`);
+      ws.addRow([]);
+
+      // 1. Prendas por semana
+      addSubTitle("Prendas por semana (Venta local)");
+      const empNames = storeData.byItemWeek.employees.map((e: any) => e.employee);
+      const hRow1 = ws.addRow(["Semana", ...empNames]);
+      xlHeader(hRow1, 1, 1 + empNames.length);
+
+      const allWeeks = [
+        ...new Set(
+          storeData.byItemWeek.employees.flatMap((e: any) =>
+            e.data.map((d: any) => d.week)
+          )
+        ),
+      ].sort((a: any, b: any) => (a as number) - (b as number));
+
+      allWeeks.forEach((week: any, i) => {
+        const weekLabel =
+          storeData.byItemWeek.employees
+            .flatMap((e: any) => e.data)
+            .find((d: any) => d.week === week)?.weekdays || `Semana ${week}`;
+        const vals: any[] = [weekLabel];
+        storeData.byItemWeek.employees.forEach((emp: any) => {
+          const match = emp.data.find((d: any) => d.week === week);
+          vals.push(match ? (match.devolutionItems > 0 ? `${match.items || 0} / ${match.devolutionItems}` : `${match.items || 0}`) : "-");
+        });
+        const row = ws.addRow(vals);
+        xlData(row, 1, vals.length, i % 2 !== 0);
+      });
+
+      const totalWeekVals: any[] = ["Total:"];
+      storeData.byItemWeek.employees.forEach((emp: any) => {
+        const t = emp.data.reduce((s: number, d: any) => s + (d.items ?? 0), 0);
+        const td = emp.data.reduce((s: number, d: any) => s + (d.devolutionItems ?? 0), 0);
+        totalWeekVals.push(td > 0 ? `${t} / ${td}` : `${t}`);
+      });
+      const tRow1 = ws.addRow(totalWeekVals);
+      xlTotal(tRow1, 1, totalWeekVals.length);
+
+      const sumRow1 = ws.addRow([`Total: ${storeData.byItemWeek.totalItems}${storeData.byItemWeek.totalDevolutionItems > 0 ? ` / ${storeData.byItemWeek.totalDevolutionItems} dev.` : ""}`]);
+      sumRow1.getCell(1).font = { bold: true };
+      ws.addRow([]);
+
+      // 2. Cantidad de pedidos
+      if (storeData.byQuantitySalePedido?.employees) {
+        addSubTitle("Cantidad de pedidos");
+        const pedidoEmps = storeData.byQuantitySalePedido.employees.map((e: any) => e.employee);
+        const hRow2 = ws.addRow(pedidoEmps);
+        xlVendor(hRow2, 1, pedidoEmps.length);
+        const dRow2 = ws.addRow(storeData.byQuantitySalePedido.employees.map((e: any) => e.data[0]?.quantity || 0));
+        xlData(dRow2, 1, pedidoEmps.length);
+        const sumRow2 = ws.addRow([`Total: ${storeData.byQuantitySalePedido.totalItems}`]);
+        sumRow2.getCell(1).font = { bold: true };
+        ws.addRow([]);
+      }
+
+      // 3. Prendas por concepto
+      if (storeData.byItemConceptEmployee?.employees) {
+        addSubTitle("Prendas por concepto");
+        const conceptEmps = storeData.byItemConceptEmployee.employees.map((e: any) => e.employee);
+        const hRow3 = ws.addRow(["Concepto", ...conceptEmps]);
+        xlHeader(hRow3, 1, 1 + conceptEmps.length);
+
+        const concepts = ["Venta local", "Pedido (Retira local)", "Pedido (Envio)"];
+        concepts.forEach((concept, i) => {
+          const vals: any[] = [concept];
+          storeData.byItemConceptEmployee.employees.forEach((emp: any) => {
+            const match = emp.data.find((d: any) => d.concept === concept);
+            vals.push(match ? (match.devolutionItems > 0 ? `${match.items || 0} / ${match.devolutionItems}` : `${match.items || 0}`) : "-");
+          });
+          const row = ws.addRow(vals);
+          xlData(row, 1, vals.length, i % 2 !== 0);
+        });
+
+        const totalConceptVals: any[] = ["Total:"];
+        storeData.byItemConceptEmployee.employees.forEach((emp: any) => {
+          const t = emp.data.reduce((s: number, d: any) => s + (d.items ?? 0), 0);
+          const td = emp.data.reduce((s: number, d: any) => s + (d.devolutionItems ?? 0), 0);
+          totalConceptVals.push(td > 0 ? `${t} / ${td}` : `${t}`);
+        });
+        const tRow3 = ws.addRow(totalConceptVals);
+        xlTotal(tRow3, 1, totalConceptVals.length);
+
+        const sumRow3 = ws.addRow([`Total: ${storeData.byItemConceptEmployee.totalItems}${storeData.byItemConceptEmployee.totalDevolutionItems > 0 ? ` / ${storeData.byItemConceptEmployee.totalDevolutionItems} dev.` : ""}`]);
+        sumRow3.getCell(1).font = { bold: true };
+        ws.addRow([]);
+      }
+
+      // 4. Resumen por concepto
+      if (storeData.byItemConcept?.concepts) {
+        addSubTitle("Resumen por concepto");
+        const hRow4 = ws.addRow(["Concepto", "Prendas", "Dev."]);
+        xlHeader(hRow4, 1, 3);
+        storeData.byItemConcept.concepts.forEach((c: any, i: number) => {
+          const row = ws.addRow([c.concept, c.items, c.devolutionItems || 0]);
+          xlData(row, 1, 3, i % 2 !== 0);
+        });
+        const tRow4 = ws.addRow(["Total:", storeData.byItemConcept.totalItems, storeData.byItemConcept.totalDevolutionItems || 0]);
+        xlTotal(tRow4, 1, 3);
+        ws.addRow([]);
+      }
+
+      // Section total
+      const totalPrendas = storeData.byItemConcept?.totalItems ?? 0;
+      const totalDev = storeData.byItemConcept?.totalDevolutionItems ?? 0;
+      const storeTotal = ws.addRow([`Total ${storeName}: ${totalPrendas} prendas${totalDev > 0 ? ` / ${totalDev} devoluciones` : ""}`]);
+      storeTotal.getCell(1).font = { bold: true, color: { argb: "FF0891B2" }, size: 10 };
+      ws.addRow([]);
+      ws.addRow([]);
+    };
+
+    processStore(dataBogota, "Bogotá");
+    processStore(dataHelguera, "Helguera");
+
+    // Grand total
+    const grandTotal = (dataBogota?.byItemConcept?.totalItems ?? 0) + (dataHelguera?.byItemConcept?.totalItems ?? 0);
+    const grandDev = (dataBogota?.byItemConcept?.totalDevolutionItems ?? 0) + (dataHelguera?.byItemConcept?.totalDevolutionItems ?? 0);
+    const grandRow = ws.addRow([`TOTAL GENERAL: ${grandTotal} prendas${grandDev > 0 ? ` / ${grandDev} devoluciones` : ""}`]);
+    grandRow.getCell(1).font = { bold: true, color: { argb: "FF0891B2" }, size: 12 };
+
+    await downloadWorkbook(wb, getExcelFileName("reporte-empleado"));
+  };
 
   // Columna para "Prendas por semana" - nombre de empleado como header
   // Formato: "items / devolutionItems" donde devolutionItems está en rojo
@@ -290,8 +443,17 @@ const ReportByEmployee = () => {
         </div>
 
         <div className="inline-block">
-          <PDFDownloadLink
-            document={
+          <div
+            className="w-25 h-8 ml-2 bg-cyan-700 hover:bg-cyan-800 hover:cursor-pointer text-white px-4 py-1 rounded-md flex items-center justify-center select-none"
+            onClick={() => setIsModalGenerarOpen(true)}
+          >
+            Generar
+          </div>
+          <ModalGenerar
+            isOpen={isModalGenerarOpen}
+            onClose={() => setIsModalGenerarOpen(false)}
+            title="Generar Reporte Empleado"
+            pdfDocument={
               <PdfReportByEmployee
                 timePeriod={`Reporte de prendas por empleado del periodo - ${
                   filters.typeDate === "byDate"
@@ -302,21 +464,13 @@ const ReportByEmployee = () => {
                 dataHelguera={dataHelguera}
               />
             }
-            fileName={`informe-prendas-por-empleado-${
+            pdfFileName={`informe-prendas-por-empleado-${
               filters.typeDate === "byDate"
                 ? `${filters.startDate}-${filters.endDate}`
                 : months[filters.month]
             }.pdf`}
-            className="w-25 h-8 ml-2 bg-cyan-700 hover:bg-green-800 hover:cursor-pointer text-white px-4 py-1 rounded-md flex items-center justify-center select-none"
-          >
-            {({ loading, url, error, blob }) =>
-              loading ? (
-                <button>Cargando Documento ...</button>
-              ) : (
-                <button>Generar PDF</button>
-              )
-            }
-          </PDFDownloadLink>
+            onExcel={downloadExcelByEmployee}
+          />
         </div>
       </div>
       <div>
@@ -787,6 +941,102 @@ const ReportGeneral = () => {
     store: "BOGOTA",
     typeSale: "local",
   });
+  const [isModalGenerarWeek, setIsModalGenerarWeek] = useState<number | null>(null);
+
+  const downloadExcelReportWeek = async (report: any, typeSale: string) => {
+    const isLocal = typeSale === "local";
+    const colCount = isLocal ? 6 : 6;
+
+    const { wb, ws } = createWorkbook(`Semana ${report.week}`);
+    xlColWidths(ws, [12, 9, 9, 12, 12, 12]);
+
+    // === RESUMEN GENERAL ===
+    const titleRow1 = ws.addRow(["RESUMEN GENERAL"]);
+    xlSectionTitle(titleRow1);
+    ws.mergeCells(titleRow1.number, 1, titleRow1.number, colCount);
+    ws.addRow([]);
+
+    if (isLocal) {
+      const hRow = ws.addRow(["Fecha", "Prendas", "Dev", "Gastos", "Venta", "Total Caja"]);
+      xlHeader(hRow, 1, colCount);
+      const gt = { items: 0, dev: 0, gastos: 0, venta: 0, totalBox: 0 };
+      (report.salesGeneral || []).forEach((r: any, i: number) => {
+        gt.items += r.items || 0;
+        gt.dev += r.devolutionItems || 0;
+        gt.gastos += r.outgoings || 0;
+        gt.venta += r.cash || 0;
+        gt.totalBox += r.totalBox || 0;
+        const row = ws.addRow([r.date || "-", r.items || 0, r.devolutionItems || 0, r.outgoings || 0, r.cash || 0, r.totalBox || 0]);
+        xlData(row, 1, colCount, i % 2 !== 0);
+      });
+      const tRow = ws.addRow(["Total", gt.items, gt.dev, gt.gastos, gt.venta, gt.totalBox]);
+      xlTotal(tRow, 1, colCount);
+    } else {
+      const hRow = ws.addRow(["Fecha", "Prendas", "Dev", "Efectivo", "Transfer", "Total"]);
+      xlHeader(hRow, 1, colCount);
+      const gt = { items: 0, dev: 0, cash: 0, transfer: 0, total: 0 };
+      (report.salesGeneral || []).forEach((r: any, i: number) => {
+        gt.items += r.items || 0;
+        gt.dev += r.devolutionItems || 0;
+        gt.cash += r.cash || 0;
+        gt.transfer += r.transfer || 0;
+        gt.total += r.total || 0;
+        const row = ws.addRow([r.date || "-", r.items || 0, r.devolutionItems || 0, r.cash || 0, r.transfer || 0, r.total || 0]);
+        xlData(row, 1, colCount, i % 2 !== 0);
+      });
+      const tRow = ws.addRow(["Total", gt.items, gt.dev, gt.cash, gt.transfer, gt.total]);
+      xlTotal(tRow, 1, colCount);
+    }
+
+    ws.addRow([]);
+    ws.addRow([]);
+
+    // === DETALLE POR EMPLEADO ===
+    const titleRow2 = ws.addRow(["DETALLE POR EMPLEADO"]);
+    xlSectionTitle(titleRow2);
+    ws.mergeCells(titleRow2.number, 1, titleRow2.number, colCount);
+    ws.addRow([]);
+
+    (report.salesByEmployees || []).forEach((empData: any) => {
+      const empRow = ws.addRow([empData.employee]);
+      xlVendor(empRow, 1, isLocal ? 4 : colCount);
+
+      if (isLocal) {
+        const hRow = ws.addRow(["Fecha", "Prendas", "Dev", "Venta"]);
+        xlHeader(hRow, 1, 4);
+        const et = { items: 0, dev: 0, total: 0 };
+        (empData.sales || []).forEach((sale: any, i: number) => {
+          const venta = sale.total || sale.cash || 0;
+          et.items += sale.items || 0;
+          et.dev += sale.devolutionItems || 0;
+          et.total += venta;
+          const row = ws.addRow([sale.date || "-", sale.items || 0, sale.devolutionItems || 0, venta]);
+          xlData(row, 1, 4, i % 2 !== 0);
+        });
+        const tRow = ws.addRow(["Total", et.items, et.dev, et.total]);
+        xlTotal(tRow, 1, 4);
+      } else {
+        const hRow = ws.addRow(["Fecha", "Prendas", "Dev", "Efectivo", "Transfer", "Total"]);
+        xlHeader(hRow, 1, colCount);
+        const et = { items: 0, dev: 0, cash: 0, transfer: 0, total: 0 };
+        (empData.sales || []).forEach((sale: any, i: number) => {
+          et.items += sale.items || 0;
+          et.dev += sale.devolutionItems || 0;
+          et.cash += sale.cash || 0;
+          et.transfer += sale.transfer || 0;
+          et.total += sale.total || 0;
+          const row = ws.addRow([sale.date || "-", sale.items || 0, sale.devolutionItems || 0, sale.cash || 0, sale.transfer || 0, sale.total || 0]);
+          xlData(row, 1, colCount, i % 2 !== 0);
+        });
+        const tRow = ws.addRow(["Total", et.items, et.dev, et.cash, et.transfer, et.total]);
+        xlTotal(tRow, 1, colCount);
+      }
+
+      ws.addRow([]);
+    });
+
+    await downloadWorkbook(wb, getExcelFileName(`reporte-semana-${report.week}`));
+  };
 
   // Columnas para venta local - con devoluciones
   const columnsLocalSalesByDay = [
@@ -1038,8 +1288,17 @@ const ReportGeneral = () => {
                     Ver detalle por empleado
                   </div>
 
-                  <PDFDownloadLink
-                    document={
+                  <div
+                    className="w-25 h-8 ml-2 bg-cyan-700 hover:bg-cyan-800 hover:cursor-pointer text-white px-4 py-1 rounded-md flex items-center justify-center select-none"
+                    onClick={() => setIsModalGenerarWeek(report.week)}
+                  >
+                    Generar
+                  </div>
+                  <ModalGenerar
+                    isOpen={isModalGenerarWeek === report.week}
+                    onClose={() => setIsModalGenerarWeek(null)}
+                    title={`Generar Semana ${report.week}`}
+                    pdfDocument={
                       <PdfReportByWeek
                         week={report.week}
                         store={mappingListStore[filters.store]}
@@ -1048,17 +1307,9 @@ const ReportGeneral = () => {
                         salesByEmployees={report.salesByEmployees}
                       />
                     }
-                    fileName={`informe-${reports.typeSale}-semana-${report.week}.pdf`}
-                    className="w-25 h-8 ml-2 bg-cyan-700 hover:bg-green-800 hover:cursor-pointer text-white px-4 py-1 rounded-md flex items-center justify-center select-none"
-                  >
-                    {({ loading, url, error, blob }) =>
-                      loading ? (
-                        <button>Cargando Documento ...</button>
-                      ) : (
-                        <button>Generar PDF</button>
-                      )
-                    }
-                  </PDFDownloadLink>
+                    pdfFileName={`informe-${reports.typeSale}-semana-${report.week}.pdf`}
+                    onExcel={() => downloadExcelReportWeek(report, reports.typeSale)}
+                  />
                 </div>
               );
             })}

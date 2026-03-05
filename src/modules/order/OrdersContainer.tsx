@@ -25,14 +25,25 @@ import {
 } from "../../utils/constants";
 import { useTheme } from "../../contexts/ThemeContext";
 import { MdClose } from "react-icons/md";
-import * as XLSX from "xlsx";
 import ModalSearchByText from "./ModalSearchByText";
+import ModalGenerar from "../../components/ModalGenerar";
+import PdfOrders from "./PdfOrders";
+import {
+  createWorkbook,
+  downloadWorkbook,
+  getExcelFileName,
+  xlColWidths,
+  xlHeader,
+  xlTotal,
+  xlData,
+} from "../../utils/excelUtils";
 
 const mappingConceptToUpdate: Record<string, string> = {
   order: "N° Pedido",
   cash: "Efectivo",
   transfer: "Transferencia",
-  items: "Prendas",
+  itemsJeans: "Prendas J",
+  itemsRemeras: "Prendas R",
   total: "Total",
 };
 
@@ -222,6 +233,7 @@ const OrdersContainer = () => {
   });
   const [isModalKeyboardNumOpen, setIsModalKeyboardNumOpen] = useState(false);
   const [isModalSearchByTextOpen, setIsModalSearchByTextOpen] = useState(false);
+  const [isModalGenerarOpen, setIsModalGenerarOpen] = useState(false);
   const [isModalCancellationReasonOpen, setIsModalCancellationReasonOpen] =
     useState(false);
   const [itemsSelected, setItemsSelected] = useState<any[]>([]);
@@ -338,10 +350,22 @@ const OrdersContainer = () => {
       applyColorText: true,
     },
     {
-      title: "Prendas",
-      dataIndex: "items",
+      title: "Prendas J",
+      dataIndex: "itemsJeans",
       editableCell: true,
       type: "string",
+      sumAcc: true,
+    },
+    {
+      title: "Prendas R",
+      dataIndex: "itemsRemeras",
+      editableCell: true,
+      type: "string",
+      sumAcc: true,
+    },
+    {
+      title: "Prendas",
+      dataIndex: "items",
       sumAcc: true,
     },
     {
@@ -423,7 +447,7 @@ const OrdersContainer = () => {
         saleActions.updateOrder({
           dataIndex,
           id,
-          value: formatDateToYYYYMMDD(new Date(inputValue)),
+          value: inputValue.format("YYYY-MM-DD"),
           ...cashierData,
         })(dispatchSale)
       );
@@ -484,45 +508,49 @@ const OrdersContainer = () => {
     setOrdersFiltered(orders);
   }, [orders]);
 
-  const downloadExcel = () => {
-    const now = new Date();
-    const formattedDate = now.toLocaleDateString("es-ES", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
+  const downloadExcel = async () => {
+    const headers = ["Fecha", "Vendedor", "N° Orden", "Sucursal", "Tipo", "Prendas J", "Prendas R", "Prendas", "Efectivo", "Transferencia", "Total", "Salida"];
+    const colCount = headers.length;
+    const totals = { itemsJeans: 0, itemsRemeras: 0, items: 0, cash: 0, transfer: 0, total: 0 };
+
+    const dataRows = ordersFiltered.map((order: any) => {
+      totals.itemsJeans += order.itemsJeans || 0;
+      totals.itemsRemeras += order.itemsRemeras || 0;
+      totals.items += order.items || 0;
+      totals.cash += order.cash || 0;
+      totals.transfer += order.transfer || 0;
+      totals.total += order.total || 0;
+      return [
+        order.date || "-",
+        order.employee || "-",
+        order.order || "-",
+        order.store || "-",
+        order.typeShipment || "-",
+        order.itemsJeans ?? 0,
+        order.itemsRemeras ?? 0,
+        order.items || 0,
+        order.cash || 0,
+        order.transfer || 0,
+        order.total || 0,
+        order.checkoutDate || "-",
+      ];
     });
-    const formattedTime = now
-      .toLocaleTimeString("es-ES", {
-        hour: "2-digit",
-        minute: "2-digit",
-      })
-      .replace(/:/g, "-");
 
-    const fileName = `pedidos-${formattedDate}-${formattedTime}.xlsx`;
+    const { wb, ws } = createWorkbook("Pedidos");
+    xlColWidths(ws, [10, 13, 9, 10, 12, 9, 9, 9, 12, 12, 12, 12]);
 
-    // Mapear los datos de ordersFiltered a un formato adecuado para Excel
-    const formattedData = ordersFiltered.map((order: any) => ({
-      Fecha: order.date || "-",
-      Vendedor: order.employee || "-",
-      "N° Orden": order.order || "-",
-      Sucursal: order.store || "-",
-      Aprobado: order.approved ? "Sí" : "No",
-      Tipo: order.typeShipment || "-",
-      Transferencia: `$${formatCurrency(order.transfer)}`,
-      Efectivo: `$${formatCurrency(order.cash)}`,
-      Prendas: order.items || "-",
-      Total: `$${formatCurrency(order.total)}`,
-      Salida: order.checkoutDate || "-",
-    }));
+    const hRow = ws.addRow(headers);
+    xlHeader(hRow, 1, colCount);
 
-    // Crear hoja de trabajo y libro
-    const worksheet = XLSX.utils.json_to_sheet(formattedData);
+    dataRows.forEach((r, i) => {
+      const row = ws.addRow(r);
+      xlData(row, 1, colCount, i % 2 !== 0);
+    });
 
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Orders");
+    const tRow = ws.addRow(["", "TOTALES", "", "", "", totals.itemsJeans, totals.itemsRemeras, totals.items, totals.cash, totals.transfer, totals.total, ""]);
+    xlTotal(tRow, 1, colCount);
 
-    // Descargar el archivo
-    XLSX.writeFile(workbook, fileName);
+    await downloadWorkbook(wb, getExcelFileName("pedidos"));
   };
 
   return (
@@ -696,11 +724,27 @@ const OrdersContainer = () => {
         </div>
 
         <div
-          className="bg-green-800 hover:bg-green-900 hover:cursor-pointer text-white px-2 py-1 rounded-md flex items-center justify-center select-none"
-          onClick={downloadExcel}
+          className="bg-cyan-700 hover:bg-cyan-800 hover:cursor-pointer text-white px-2 py-1 rounded-md flex items-center justify-center select-none"
+          onClick={() => setIsModalGenerarOpen(true)}
         >
-          Excel
+          Generar
         </div>
+
+        <ModalGenerar
+          isOpen={isModalGenerarOpen}
+          onClose={() => setIsModalGenerarOpen(false)}
+          title="Generar Pedidos"
+          pdfDocument={
+            <PdfOrders
+              orders={ordersFiltered}
+              startDate={filters.startDate}
+              endDate={filters.endDate}
+              store={mappingListStore[filters.store] || filters.store || "Todas"}
+            />
+          }
+          pdfFileName={getExcelFileName("pedidos").replace(".xlsx", ".pdf")}
+          onExcel={downloadExcel}
+        />
       </div>
 
       {/* Fila 2: Filtros de salida */}
