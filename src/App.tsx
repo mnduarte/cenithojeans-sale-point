@@ -189,6 +189,16 @@ const LoginContainer = ({ onLogin, error, loading }: any) => {
   });
   const [inputSelected, setInputSelected] = useState("username");
 
+  const devMode = !!localStorage.getItem("cenitho_dev_mode");
+  const [selectedEnv, setSelectedEnv] = useState(
+    () => localStorage.getItem("cenitho_selected_env") || "local"
+  );
+
+  const handleEnvChange = (env: string) => {
+    setSelectedEnv(env);
+    localStorage.setItem("cenitho_selected_env", env);
+  };
+
   useEffect(() => {
     if (error) {
       setUser({
@@ -203,6 +213,34 @@ const LoginContainer = ({ onLogin, error, loading }: any) => {
       {/* Contenido del modal */}
       <div className="w-[55vh] h-[60vh] p-8 rounded shadow-md relative">
         <h2 className="text-white text-lg font-bold mb-8">Punto de venta</h2>
+
+        {devMode && (
+          <div className="mb-6 flex items-center gap-3">
+            <span className="text-gray-400 text-sm">Modo:</span>
+            <div className="flex rounded-md overflow-hidden border border-gray-600">
+              <button
+                className={`px-4 py-1 text-sm transition-colors ${
+                  selectedEnv === "local"
+                    ? "bg-cyan-600 text-white"
+                    : "bg-gray-700 text-gray-400 hover:bg-gray-600"
+                }`}
+                onClick={() => handleEnvChange("local")}
+              >
+                Prueba
+              </button>
+              <button
+                className={`px-4 py-1 text-sm transition-colors ${
+                  selectedEnv === "stg"
+                    ? "bg-orange-600 text-white"
+                    : "bg-gray-700 text-gray-400 hover:bg-gray-600"
+                }`}
+                onClick={() => handleEnvChange("stg")}
+              >
+                Producción
+              </button>
+            </div>
+          </div>
+        )}
 
         <div className="mb-4">
           <label className="block text-white mb-2">Usuario:</label>

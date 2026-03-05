@@ -21,6 +21,14 @@ const instance = axios.create({
 instance.interceptors.request.use(
   (config) => {
     config.headers["X-API-Key"] = API_KEY;
+
+    // Si el usuario tiene el modo dev activo, enviar el env seleccionado al backend
+    const devMode = localStorage.getItem("cenitho_dev_mode");
+    if (devMode) {
+      const selectedEnv = localStorage.getItem("cenitho_selected_env") || "local";
+      config.headers["x-client-env"] = selectedEnv;
+    }
+
     return config;
   },
   (error) => {
