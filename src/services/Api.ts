@@ -240,6 +240,11 @@ const getSalesWithDevolutions = ({ date, store }: any) => {
   return instance.get("/sale/sales-with-devolutions", config);
 };
 
+const getVendorDailyReport = ({ startDate, endDate, store, employee }: any) =>
+  instance.get("/sale/vendor-daily-report", {
+    params: { startDate, endDate, store, employee },
+  });
+
 const getCashflowByDay = ({ date, store }: any) => {
   const config: AxiosRequestConfig = {
     params: {
@@ -788,6 +793,7 @@ const Api = {
   getSalesCashByDay,
   getSalesTranferByDay,
   getSalesWithDevolutions,
+  getVendorDailyReport,
   getCashflowByDay,
   getOutgoingsByDay,
 

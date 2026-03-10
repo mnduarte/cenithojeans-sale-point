@@ -36,6 +36,7 @@ import Keyboard from "../../components/Keyboard";
 import PdfLocalSale from "./PdfLocalSale";
 import PdfLocalTransfer from "./PdfLocalTransfer";
 import PdfLocalDevolutions from "./PdfLocalDevolutions";
+import VendorDailyContainer from "../report/VendorDailyContainer";
 import Api from "../../services/Api";
 import { useAccountForTransfer } from "../../contexts/AccountForTransferContext";
 import { useCashier } from "../../contexts/CashierContext";
@@ -2341,6 +2342,7 @@ const SalesByDayContainer = () => {
     useState("");
   const [cashierFilter, setCashierFilter] = useState<string>("none");
   const [isModalCashierTotals, setIsModalCashierTotals] = useState(false);
+  const [isVendorListOpen, setIsVendorListOpen] = useState(false);
 
   // Estados para modales de desglose
   const [isModalCashBreakdown, setIsModalCashBreakdown] = useState(false);
@@ -2899,6 +2901,14 @@ const SalesByDayContainer = () => {
         >
           Totales Cajeros
         </div>
+
+        {/* Botón Listado Vendedor */}
+        <div
+          className="w-25 ml-2 bg-teal-700 hover:bg-teal-800 hover:cursor-pointer text-white px-4 py-1 rounded-md flex items-center justify-center select-none"
+          onClick={() => setIsVendorListOpen(true)}
+        >
+          Prend/Dev Vendedor
+        </div>
       </div>
 
       <div className="mt-5 h-[68vh] mx-auto max-w overflow-hidden overflow-y-auto overflow-x-auto">
@@ -3321,6 +3331,12 @@ const SalesByDayContainer = () => {
         setIsOpen={setIsModalDevolutions}
         date={date}
         store={store}
+      />
+      <VendorDailyContainer
+        isOpen={isVendorListOpen}
+        onClose={() => setIsVendorListOpen(false)}
+        initialDate={date}
+        initialStore={store}
       />
     </>
   );
