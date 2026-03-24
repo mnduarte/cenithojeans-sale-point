@@ -1,6 +1,6 @@
 import { DatePicker } from "antd";
 import { formatDateToYYYYMMDD } from "../../utils/formatUtils";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTheme } from "../../contexts/ThemeContext";
 import dayjs from "dayjs";
 import { dateFormat } from "../../utils/constants";
@@ -9,6 +9,8 @@ import Spinner from "../../components/Spinner";
 import { adminActions, useAdmin } from "../../contexts/AdminContext";
 import { MdClose } from "react-icons/md";
 import Toast from "../../components/Toast";
+import Api from "../../services/Api";
+import { useUser } from "../../contexts/UserContext";
 
 const ModalDeleteConfirm = ({
   isModalDeleteConfirm,
@@ -101,13 +103,31 @@ const AdminContainer = () => {
     dispatch,
   } = useAdmin();
 
+  const { state: { settings }, dispatch: userDispatch } = useUser();
+
   const [isModalDeleteConfirm, setIsModalDeleteConfirm] = useState(false);
   const [withFilters, setIsWithFilters] = useState(false);
+  const [showCashToUsers, setShowCashToUsers] = useState(false);
 
   const [filters, setFilters] = useState({
     startDate: formatDateToYYYYMMDD(new Date()),
     endDate: formatDateToYYYYMMDD(new Date()),
   });
+
+  useEffect(() => {
+    setShowCashToUsers(settings?.showCashToUsers ?? false);
+  }, [settings]);
+
+  const handleToggleCash = async () => {
+    const newValue = !showCashToUsers;
+    setShowCashToUsers(newValue);
+    try {
+      await Api.updateSetting({ showCashToUsers: newValue });
+      userDispatch({ type: "set_settings", payload: { ...settings, showCashToUsers: newValue } });
+    } catch (_) {
+      setShowCashToUsers(!newValue);
+    }
+  };
 
   return (
     <>
@@ -186,6 +206,19 @@ const AdminContainer = () => {
               </div>
             )}
           </div>
+        </div>
+
+        {/* Configuración: mostrar efectivo a cajeros */}
+        <div className={`mt-4 p-3 border ${themeStyles[theme].tailwindcss.border} rounded-md flex items-center justify-between`}>
+          <span className="text-sm">Usuarios de Caja vean totales en efectivo</span>
+          <button
+            onClick={handleToggleCash}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${showCashToUsers ? "bg-teal-600" : "bg-gray-500"}`}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${showCashToUsers ? "translate-x-6" : "translate-x-1"}`}
+            />
+          </button>
         </div>
 
         <ModalDeleteConfirm

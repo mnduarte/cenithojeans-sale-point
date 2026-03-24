@@ -8,12 +8,14 @@ const actionTypes = {
   ERROR: "error",
   LOGIN: "login",
   ERROR_LOGIN: "error_login",
+  SET_SETTINGS: "set_settings",
 };
 // Tipo de estado para el contexto de empleados
 type UserState = {
   loading: boolean;
   error: any;
   user: any;
+  settings: { showCashToUsers: boolean };
 };
 // Crear el contexto de precios
 type UserContextType = {
@@ -38,6 +40,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       role: null,
       store: null,
     },
+    settings: { showCashToUsers: false },
     /*user: {
       username: "admin",
       role: "ADMIN",
@@ -71,6 +74,12 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
           ...state,
           loading: false,
           error: action.payload,
+        };
+      }
+      case actionTypes.SET_SETTINGS: {
+        return {
+          ...state,
+          settings: action.payload,
         };
       }
       default:
@@ -110,10 +119,17 @@ export const userActions = {
         const { data } = await Api.login({ username, password });
 
         if (data.user) {
-          return dispatch({
-            type: actionTypes.LOGIN,
-            payload: data.user,
-          });
+          dispatch({ type: actionTypes.LOGIN, payload: data.user });
+
+          try {
+            const { data: settingData } = await Api.getSetting();
+            dispatch({
+              type: actionTypes.SET_SETTINGS,
+              payload: settingData.results,
+            });
+          } catch (_) {}
+
+          return;
         }
 
         dispatch({

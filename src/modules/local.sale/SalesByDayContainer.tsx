@@ -2055,8 +2055,11 @@ const ModalSaleDetail = ({
     state: { theme, themeStyles },
   } = useTheme();
   const {
-    state: { user },
+    state: { user, settings },
   } = useUser();
+
+  const isAdmin = user?.role === "ADMIN";
+  const canSeeCash = isAdmin || (settings?.showCashToUsers ?? false);
 
   const [description, setDescription] = useState("");
   const [editableRow, setEditableRow] = useState<number | null>(null);
@@ -2309,7 +2312,7 @@ const SalesByDayContainer = () => {
     dispatch: dispatchSale,
   } = useSale();
   const {
-    state: { user },
+    state: { user, settings },
   } = useUser();
   const { cashiers, fetchAllCashiers, getCashiersForStore } = useCashier();
 
@@ -2456,6 +2459,7 @@ const SalesByDayContainer = () => {
   };
 
   const isAdmin = user?.role === "ADMIN";
+  const canSeeCash = isAdmin || (settings?.showCashToUsers ?? false);
   const userStore = user?.store || "ALL";
 
   useEffect(() => {
@@ -3210,7 +3214,7 @@ const SalesByDayContainer = () => {
                         <span className="font-bold text-lg">
                           {cashier.name}
                         </span>
-                        {user.store === "ALL" && (
+                        {canSeeCash && (
                           <span className="text-sm px-2 py-1 rounded bg-gray-700/50 text-white font-medium">
                             {moneyPercent}% Cash + Transfer
                           </span>
@@ -3219,7 +3223,7 @@ const SalesByDayContainer = () => {
 
                       {/* Fila de Cash, Transfer y Prendas */}
                       <div className="grid grid-cols-3 gap-2 text-sm">
-                        {user.store === "ALL" && (
+                        {canSeeCash && (
                           <div className="p-2 rounded bg-green-900/25 border border-green-800/30">
                             <span className="text-gray-400">Cash:</span>
                             <div className="font-bold text-green-400">
@@ -3266,7 +3270,7 @@ const SalesByDayContainer = () => {
                 {/* Total general */}
                 <div className="border-t border-gray-500 pt-3 mt-3">
                   <div className="grid grid-cols-3 gap-2 font-bold">
-                    {user.store === "ALL" && (
+                    {canSeeCash && (
                       <div className="p-2 rounded bg-green-900/30 border border-green-700/50">
                         <span className="text-gray-400 text-sm">
                           Total Cash:

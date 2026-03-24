@@ -437,6 +437,10 @@ const getPrintersByStore = async (store: string): Promise<any> => {
   return response.data.results;
 };
 
+const getSetting = () => instance.get("/setting");
+
+const updateSetting = (data: any) => instance.put("/setting", data);
+
 const printSale = ({
   pricesSelected,
   devolutionPricesSelected,
@@ -826,6 +830,9 @@ const Api = {
 
   getAllPrinters,
   getPrintersByStore,
+
+  getSetting,
+  updateSetting,
 };
 
 export default Api;
