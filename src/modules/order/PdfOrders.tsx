@@ -139,15 +139,17 @@ const styles = StyleSheet.create({
   },
   colNum: { width: "5%" },
   colFecha: { width: "8%" },
-  colVendedor: { width: "13%" },
+  colVendedor: { width: "11%" },
   colTipo: { width: "9%" },
-  colPJ: { width: "6%" },
-  colPR: { width: "6%" },
-  colPrendas: { width: "6%" },
-  colEfectivo: { width: "13%" },
-  colTransfer: { width: "13%" },
-  colTotal: { width: "13%" },
-  colSalida: { width: "8%" },
+  colPJ: { width: "5%" },
+  colPR: { width: "5%" },
+  colDJ: { width: "5%" },
+  colDR: { width: "5%" },
+  colPrendas: { width: "5%" },
+  colEfectivo: { width: "12%" },
+  colTransfer: { width: "12%" },
+  colTotal: { width: "12%" },
+  colSalida: { width: "6%" },
 });
 
 const PdfOrders = ({ orders, startDate, endDate, store }: any) => {
@@ -157,12 +159,14 @@ const PdfOrders = ({ orders, startDate, endDate, store }: any) => {
     (acc: any, o: any) => ({
       itemsJeans: acc.itemsJeans + (o.itemsJeans || 0),
       itemsRemeras: acc.itemsRemeras + (o.itemsRemeras || 0),
+      devJeans: acc.devJeans + (o.itemsDevolutionJeans || 0),
+      devRemeras: acc.devRemeras + (o.itemsDevolutionRemeras || 0),
       items: acc.items + (o.items || 0),
       cash: acc.cash + (o.cash || 0),
       transfer: acc.transfer + (o.transfer || 0),
       total: acc.total + (o.total || 0),
     }),
-    { itemsJeans: 0, itemsRemeras: 0, items: 0, cash: 0, transfer: 0, total: 0 }
+    { itemsJeans: 0, itemsRemeras: 0, devJeans: 0, devRemeras: 0, items: 0, cash: 0, transfer: 0, total: 0 }
   );
 
   return (
@@ -189,7 +193,9 @@ const PdfOrders = ({ orders, startDate, endDate, store }: any) => {
             <View style={styles.colVendedor}><Text style={styles.tableHeaderCell}>Vendedor</Text></View>
             <View style={styles.colTipo}><Text style={styles.tableHeaderCell}>Tipo</Text></View>
             <View style={styles.colPJ}><Text style={styles.tableHeaderCellBlue}>P.J</Text></View>
+            <View style={styles.colDJ}><Text style={styles.tableHeaderCell}>D.J</Text></View>
             <View style={styles.colPR}><Text style={styles.tableHeaderCellGreen}>P.R</Text></View>
+            <View style={styles.colDR}><Text style={styles.tableHeaderCell}>D.R</Text></View>
             <View style={styles.colPrendas}><Text style={styles.tableHeaderCell}>Pren.</Text></View>
             <View style={styles.colEfectivo}><Text style={styles.tableHeaderCell}>Efectivo</Text></View>
             <View style={styles.colTransfer}><Text style={styles.tableHeaderCell}>Transfer</Text></View>
@@ -213,7 +219,9 @@ const PdfOrders = ({ orders, startDate, endDate, store }: any) => {
               <View style={styles.colVendedor}><Text style={styles.tableCellLeft}>{order.employee || "-"}</Text></View>
               <View style={styles.colTipo}><Text style={styles.tableCell}>{order.typeShipment || "-"}</Text></View>
               <View style={styles.colPJ}><Text style={styles.tableCellBlue}>{order.itemsJeans ?? 0}</Text></View>
+              <View style={styles.colDJ}><Text style={styles.tableCell}>{order.itemsDevolutionJeans ?? 0}</Text></View>
               <View style={styles.colPR}><Text style={styles.tableCellGreen}>{order.itemsRemeras ?? 0}</Text></View>
+              <View style={styles.colDR}><Text style={styles.tableCell}>{order.itemsDevolutionRemeras ?? 0}</Text></View>
               <View style={styles.colPrendas}><Text style={styles.tableCell}>{order.items || 0}</Text></View>
               <View style={styles.colEfectivo}>
                 <Text style={styles.tableCell}>
@@ -238,7 +246,9 @@ const PdfOrders = ({ orders, startDate, endDate, store }: any) => {
             <View style={styles.colVendedor}><Text style={styles.tableFooterCell}>TOTALES</Text></View>
             <View style={styles.colTipo}><Text style={styles.tableFooterCell}></Text></View>
             <View style={styles.colPJ}><Text style={styles.tableFooterCellBlue}>{totals.itemsJeans}</Text></View>
+            <View style={styles.colDJ}><Text style={styles.tableFooterCell}>{totals.devJeans}</Text></View>
             <View style={styles.colPR}><Text style={styles.tableFooterCellGreen}>{totals.itemsRemeras}</Text></View>
+            <View style={styles.colDR}><Text style={styles.tableFooterCell}>{totals.devRemeras}</Text></View>
             <View style={styles.colPrendas}><Text style={styles.tableFooterCell}>{totals.items}</Text></View>
             <View style={styles.colEfectivo}><Text style={styles.tableFooterCell}>${formatCurrency(totals.cash)}</Text></View>
             <View style={styles.colTransfer}><Text style={styles.tableFooterCell}>${formatCurrency(totals.transfer)}</Text></View>

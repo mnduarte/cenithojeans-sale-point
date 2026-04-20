@@ -44,6 +44,8 @@ const mappingConceptToUpdate: Record<string, string> = {
   transfer: "Transferencia",
   itemsJeans: "Prendas J",
   itemsRemeras: "Prendas R",
+  itemsDevolutionJeans: "Dev J",
+  itemsDevolutionRemeras: "Dev R",
   total: "Total",
 };
 
@@ -357,8 +359,22 @@ const OrdersContainer = () => {
       sumAcc: true,
     },
     {
+      title: "Dev J",
+      dataIndex: "itemsDevolutionJeans",
+      editableCell: true,
+      type: "string",
+      sumAcc: true,
+    },
+    {
       title: "Prendas R",
       dataIndex: "itemsRemeras",
+      editableCell: true,
+      type: "string",
+      sumAcc: true,
+    },
+    {
+      title: "Dev R",
+      dataIndex: "itemsDevolutionRemeras",
       editableCell: true,
       type: "string",
       sumAcc: true,
@@ -509,13 +525,15 @@ const OrdersContainer = () => {
   }, [orders]);
 
   const downloadExcel = async () => {
-    const headers = ["Fecha", "Vendedor", "N° Orden", "Sucursal", "Tipo", "Prendas J", "Prendas R", "Prendas", "Efectivo", "Transferencia", "Total", "Salida"];
+    const headers = ["Fecha", "Vendedor", "N° Orden", "Sucursal", "Tipo", "Prendas J", "Dev J", "Prendas R", "Dev R", "Prendas", "Efectivo", "Transferencia", "Total", "Salida"];
     const colCount = headers.length;
-    const totals = { itemsJeans: 0, itemsRemeras: 0, items: 0, cash: 0, transfer: 0, total: 0 };
+    const totals = { itemsJeans: 0, itemsRemeras: 0, devJeans: 0, devRemeras: 0, items: 0, cash: 0, transfer: 0, total: 0 };
 
     const dataRows = ordersFiltered.map((order: any) => {
       totals.itemsJeans += order.itemsJeans || 0;
       totals.itemsRemeras += order.itemsRemeras || 0;
+      totals.devJeans += order.itemsDevolutionJeans || 0;
+      totals.devRemeras += order.itemsDevolutionRemeras || 0;
       totals.items += order.items || 0;
       totals.cash += order.cash || 0;
       totals.transfer += order.transfer || 0;
@@ -527,7 +545,9 @@ const OrdersContainer = () => {
         order.store || "-",
         order.typeShipment || "-",
         order.itemsJeans ?? 0,
+        order.itemsDevolutionJeans ?? 0,
         order.itemsRemeras ?? 0,
+        order.itemsDevolutionRemeras ?? 0,
         order.items || 0,
         order.cash || 0,
         order.transfer || 0,
@@ -537,7 +557,7 @@ const OrdersContainer = () => {
     });
 
     const { wb, ws } = createWorkbook("Pedidos");
-    xlColWidths(ws, [10, 13, 9, 10, 12, 9, 9, 9, 12, 12, 12, 12]);
+    xlColWidths(ws, [10, 13, 9, 10, 12, 9, 9, 7, 7, 9, 12, 12, 12, 12]);
 
     const hRow = ws.addRow(headers);
     xlHeader(hRow, 1, colCount);
@@ -547,7 +567,7 @@ const OrdersContainer = () => {
       xlData(row, 1, colCount, i % 2 !== 0);
     });
 
-    const tRow = ws.addRow(["", "TOTALES", "", "", "", totals.itemsJeans, totals.itemsRemeras, totals.items, totals.cash, totals.transfer, totals.total, ""]);
+    const tRow = ws.addRow(["", "TOTALES", "", "", "", totals.itemsJeans, totals.devJeans, totals.itemsRemeras, totals.devRemeras, totals.items, totals.cash, totals.transfer, totals.total, ""]);
     xlTotal(tRow, 1, colCount);
 
     await downloadWorkbook(wb, getExcelFileName("pedidos"));
